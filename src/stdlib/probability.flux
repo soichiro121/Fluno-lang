@@ -1,0 +1,33 @@
+#[derive(Debug, Eq, Clone)]
+struct Gaussian {
+    mean: Float;
+    std: Float;
+}
+
+trait Add {
+    fn add(self: Self, rhs: Self): Self;
+}
+trait Sub { fn sub(self: Self, rhs: Self): Self; }
+trait Mul { fn mul(self: Self, rhs: Self): Self; }
+trait Div { fn div(self: Self, rhs: Self): Self; }
+
+impl Add for Gaussian {
+    fn add(self: Gaussian, rhs: Gaussian): Gaussian {
+        Gaussian { mean: self.mean + rhs.mean, std: sqrt(self.std * self.std + rhs.std * rhs.std) }
+    }
+}
+impl Sub for Gaussian { fn sub(self: Gaussian, rhs: Gaussian): Gaussian {
+    Gaussian { mean: self.mean - rhs.mean, std: sqrt(self.std * self.std + rhs.std * rhs.std) }
+}}
+impl Mul for Gaussian { fn mul(self: Gaussian, rhs: Gaussian): Gaussian {
+    let m = self.mean * rhs.mean;
+    let rel = (self.std / self.mean) * (self.std / self.mean) +
+              (rhs.std / rhs.mean) * (rhs.std / rhs.mean);
+    Gaussian { mean: m, std: abs(m) * sqrt(rel) }
+}}
+impl Div for Gaussian { fn div(self: Gaussian, rhs: Gaussian): Gaussian {
+    let m = self.mean / rhs.mean;
+    let rel = (self.std / self.mean) * (self.std / self.mean) +
+              (rhs.std / rhs.mean) * (rhs.std / rhs.mean);
+    Gaussian { mean: m, std: abs(m) * sqrt(rel) }
+}}
