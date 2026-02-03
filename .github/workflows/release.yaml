@@ -1,71 +1,67 @@
 name: Release
 
-# リリースを作成してファイルをアップロードするための権限設定
 permissions:
   contents: write
 
 on:
   push:
     tags:
-      - "v*" # v1.0.0 などのタグがプッシュされたら実行
+      - 'v*'
 
 jobs:
-  build-and-release:
-    name: Build for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  build:
+    name: Release - ${{ matrix.platform.os_name }}
+    runs-on: ${{ matrix.platform.os }}
     strategy:
       matrix:
-        include:
-          # Linux
-          - os: ubuntu-latest
+        platform:
+          - os_name: Linux-x86_64
+            os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            binary_name: fluno
-            asset_name: fluno-linux-amd64
-          # Windows
-          - os: windows-latest
+            bin: fluno
+            name: fluno-linux-x86_64.tar.gz
+          - os_name: Windows-x86_64
+            os: windows-latest
             target: x86_64-pc-windows-msvc
-            binary_name: fluno.exe
-            asset_name: fluno-windows-amd64
-          # macOS
-          - os: macos-latest
+            bin: fluno.exe
+            name: fluno-windows-x86_64.zip
+          - os_name: macOS-x86_64
+            os: macos-latest
             target: x86_64-apple-darwin
-            binary_name: fluno
-            asset_name: fluno-macos-amd64
+            bin: fluno
+            name: fluno-macos-x86_64.tar.gz
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.platform.target }}
 
-      - name: Build
-        # リリースモードで、マトリックスで指定したターゲット向けにビルド
-        run: cargo build --release --target ${{ matrix.target }}
+      - name: Build binary
+        run: cargo build --release --target ${{ matrix.platform.target }}
 
-      - name: Package Binary
-        # WindowsでもBashを使って条件分岐を記述 (shell: bash を指定)
+      - name: Package as archive
         shell: bash
         run: |
-          # ビルド成果物があるディレクトリへ移動
-          cd target/${{ matrix.target }}/release
+          cd target/${{ matrix.platform.target }}/release
           
-          # OSに応じて圧縮コマンドを切り替え
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            # Windows: 7-Zipを使ってzip圧縮 (GitHub Actionsには7zがプリインストールされています)
-            7z a ../../../${{ matrix.asset_name }}.zip ${{ matrix.binary_name }}
+          if [ "${{ matrix.platform.os }}" = "windows-latest" ]; then
+            # Windowsの場合は7zを使ってzip圧縮
+            7z a -tzip ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
           else
-            # Linux/macOS: tarコマンドでtar.gz圧縮
-            tar -czf ../../../${{ matrix.asset_name }}.tar.gz ${{ matrix.binary_name }}
+            # Linux/macOSの場合はtar.gz圧縮
+            tar -czf ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
           fi
+          
+          cd -
 
-      - name: Upload to Release
+      - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          # マトリックス変数を使ってアップロードするファイルを指定
-          file: ${{ matrix.asset_name }}.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
-          asset_name: ${{ matrix.asset_name }}.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
+          file: ${{ matrix.platform.name }}
+          asset_name: ${{ matrix.platform.name }}
           tag: ${{ github.ref }}
