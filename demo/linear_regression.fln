@@ -1,0 +1,86 @@
+// demo/linear_regression.fln
+// ベイズ線形回帰 (Bayesian Linear Regression)
+
+// モデル: y = ax + b + noise
+fn regression_model(x_data: Array<Float>, y_data: Array<Float>) -> Array<Float> {
+    // 1. パラメータの事前分布
+    // 傾き a: 平均0, 分散10 の正規分布
+    let a = sample(Gaussian(0.0, 10.0));
+    
+    // 切片 b: 平均0, 分散10 の正規分布
+    let b = sample(Gaussian(0.0, 10.0));
+    
+    // ノイズの標準偏差 sigma: 0.0〜5.0 の一様分布
+    let sigma = sample(Uniform(0.1, 5.0));
+
+    // 2. 観測モデル
+    let i = 0;
+    let n = x_data.len();
+    while i < n {
+        let x = x_data[i];
+        let y = y_data[i];
+        
+        let mu = a * x + b;
+        
+        // 平均 ax+b, 標準偏差 sigma の正規分布からデータ y が生成されたと仮定
+        observe(Gaussian(mu, sigma), y);
+        
+        i = i + 1;
+    }
+
+    // 推論したいパラメータを返す
+    return [a, b, sigma];
+}
+
+fn analyze_samples(samples: Array<Any>) {
+    let sum_a = 0.0;
+    let sum_b = 0.0;
+    let sum_sigma = 0.0;
+    let n = samples.len();
+    
+    if n == 0 { return; }
+
+    let i = 0;
+    while i < n {
+        let s = samples[i];
+        // sample呼び出し順序に対応: 0->a, 1->b, 2->sigma
+        sum_a = sum_a + s.get("sample_0");
+        sum_b = sum_b + s.get("sample_1");
+        sum_sigma = sum_sigma + s.get("sample_2");
+        i = i + 1;
+    }
+    
+    print("  a (Slope)     : "); println(sum_a / n);
+    print("  b (Intercept) : "); println(sum_b / n);
+    print("  sigma (Noise) : "); println(sum_sigma / n);
+}
+
+fn main() {
+    println("=============================================");
+    println("   Fluno Bayesian Linear Regression Demo");
+    println("=============================================");
+    
+    // 真のパラメータ: a=2.5, b=1.0, noise_std=0.5
+    // データ生成
+    let x_data = [1.0, 2.0, 3.0, 4.0, 5.0];
+    let y_data = [3.6, 5.9, 8.4, 11.1, 13.4]; // おおよそ 2.5*x + 1.0 + noise
+    
+    println("Data Points (x, y):");
+    println("  (1.0, 3.6), (2.0, 5.9), (3.0, 8.4), (4.0, 11.1), (5.0, 13.4)");
+    println("");
+
+    let config = Map();
+    config.insert("num_samples", 1000);
+    config.insert("step_size", 0.01);
+    config.insert("num_leapfrog", 10);
+
+    println("推論中 (HMC)...");
+    
+    let samples = infer_hmc(config, || regression_model(x_data, y_data));
+
+    println("推論完了。事後分布の平均:");
+    analyze_samples(samples);
+    
+    println("-----------------------------------------------------------");
+    println("期待値: a ≈ 2.5, b ≈ 1.0");
+}
