@@ -1,20 +1,17 @@
+// src/typeck/reactive.rs
+
 use crate::ast::node::{Type, Span};
 use crate::typeck::{TypeError, TypeResult};
 
-
-
-// Signal型の静的メソッド (new, combine) の型推論
 pub fn infer_signal_static(method: &str, args: &[Type], span: Span) -> TypeResult<Type> {
     match method {
         "new" => {
-            // Signal::new(T) -> Signal<T>
             if args.len() != 1 {
                 return Err(TypeError::ArgumentMismatch { expected: 1, found: args.len(), span });
             }
             Ok(Type::Signal(Box::new(args[0].clone())))
         }
         "combine" => {
-            // Signal::combine(Signal<A>, Signal<B>, fn(A, B) -> C) -> Signal<C>
             if args.len() != 3 {
                 return Err(TypeError::ArgumentMismatch { expected: 3, found: args.len(), span });
             }
@@ -26,8 +23,6 @@ pub fn infer_signal_static(method: &str, args: &[Type], span: Span) -> TypeResul
                 Type::Signal(inner) => inner,
                 t => return Err(TypeError::TypeMismatch { message: format!("Arg 2 must be Signal, got {:?}", t) }),
             };
-            // 第3引数は関数 fn(A, B) -> C
-            // 第3引数は関数 fn(A, B) -> C
             match &args[2] {
                 Type::Function { params, return_type } => {
                     if params.len() != 2 {
@@ -54,11 +49,9 @@ pub fn infer_signal_static(method: &str, args: &[Type], span: Span) -> TypeResul
     }
 }
 
-// Signal型のインスタンスメソッド (map, filter) の型推論
 pub fn infer_signal_method(method: &str, receiver_inner_ty: &Type, args: &[Type], span: Span) -> TypeResult<Type> {
     match method {
         "map" => {
-            // signal<T>.map(fn(T) -> U) -> Signal<U>
             if args.len() != 1 {
                 return Err(TypeError::ArgumentMismatch { expected: 1, found: args.len(), span });
             }
@@ -78,7 +71,6 @@ pub fn infer_signal_method(method: &str, receiver_inner_ty: &Type, args: &[Type]
 
         }
         "filter" => {
-            // signal<T>.filter(fn(T) -> Bool) -> Signal<T>
             if args.len() != 1 {
                 return Err(TypeError::ArgumentMismatch { expected: 1, found: args.len(), span });
             }

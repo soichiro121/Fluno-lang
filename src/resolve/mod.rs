@@ -1,13 +1,4 @@
-// Name resolution / module expansion for Fluno.
-//
-// Phase1: flatten nested modules into top-level "qualified names".
-// - `mod a { fn f() { ... } }`  ==> creates a top-level `fn a::f() { ... }`
-// - also flattens nested modules recursively: `a::b::g`
-//
-// Notes:
-// - Current AST represents `ImportStmt.path` as `Vec<Identifier>` (not `Path`),
-//   so we don't attach resolution IDs yet.  We only normalize the item namespace
-//   so later phases (typeck/env) can look up `a::f` easily.
+// src/resolve/mod.rs
 
 use crate::ast::node::{Identifier, Item, ModuleDef, Program, Span};
 
@@ -19,19 +10,11 @@ pub struct ResolveError {
 
 pub type ResolveResult<T> = Result<T, Vec<ResolveError>>;
 
-// Phase1 resolver: collect/flatten module items into top-level qualified items.
-//
-// This function mutates `program.items`:
-// - keeps original non-module items
-// - expands module contents into additional items with qualified names
-// - removes the original `Item::Module` nodes (so the rest of pipeline sees a flat namespace)
 pub fn resolve_program(program: &mut Program) -> ResolveResult<()> {
     let mut errors = Vec::<ResolveError>::new();
 
-    // output items after flattening
     let mut out = Vec::<Item>::new();
 
-    // walk original items
     for item in program.items.clone() {
         match item {
             Item::Module(m) => {
@@ -49,14 +32,12 @@ pub fn resolve_program(program: &mut Program) -> ResolveResult<()> {
     }
 }
 
-// Recursively flatten a module into top-level items, prefixing names with `prefix + module.name`.
 fn flatten_module(
     module: &ModuleDef,
     prefix: &mut Vec<Identifier>,
     out: &mut Vec<Item>,
     errors: &mut Vec<ResolveError>,
 ) {
-    // push this module name onto prefix
     prefix.push(module.name.clone());
 
     for item in module.items.clone() {
@@ -91,13 +72,10 @@ fn flatten_module(
             }
 
             Item::Impl(i) => {
-                // For Phase1: keep impl as-is (method lookup/typeck may key off self type).
-                // If later you want impls to live in module namespaces, this needs redesign.
                 out.push(Item::Impl(i));
             }
 
             Item::Import(imp) => {
-                // Imports are left as-is for now. (Typeck already has handling.)
                 out.push(Item::Import(imp));
             }
 
@@ -110,14 +88,9 @@ fn flatten_module(
         }
     }
 
-    // pop this module name
     prefix.pop();
 }
 
-// Rewrite an Identifier like `f` into `a::b::f` by embedding `::` in `name`.
-//
-// This is a Phase1 hack to avoid changing the AST to a proper Path type.
-// Typeck currently builds keys using `a::b::f` style strings, so this matches that world.
 fn qualify_ident(ident: &mut Identifier, prefix: &[Identifier]) {
     if prefix.is_empty() {
         return;

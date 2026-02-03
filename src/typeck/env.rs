@@ -1,4 +1,4 @@
-// Type environment for type checking.
+// src/typeck/env.rs
 
 use crate::ast::node::{DefId, Span, Type, TypeParameter, WherePredicate};
 use crate::typeck::error::{TypeError, TypeResult};

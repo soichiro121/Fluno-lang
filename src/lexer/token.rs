@@ -1,11 +1,4 @@
-// Token definitions for the Flux programming language lexer.
-//
-// This module defines all token types used in lexical analysis, including:
-// - Keywords (fn, let, if, else, etc.)
-// - Literals (integers, floats, booleans, strings)
-// - Operators (arithmetic, comparison, logical, bitwise, assignment)
-// - Delimiters (parentheses, braces, brackets, punctuation)
-// - Identifiers and special tokens (EOF, comments)
+// src/lexer/token.rs
 
 use std::fmt;
 use crate::ast::node::Span;
@@ -19,7 +12,6 @@ pub struct Token {
 }
 
 impl Token {
-    // Create a new token with position information
     pub fn new(kind: TokenKind, line: usize, column: usize) -> Self {
         Token {
             kind,
@@ -29,7 +21,6 @@ impl Token {
         }
     }
 
-    // Create a new token with text content
     pub fn with_text(kind: TokenKind, line: usize, column: usize, text: String) -> Self {
         Token {
             kind,
@@ -39,7 +30,6 @@ impl Token {
         }
     }
 
-    // Get the text content of this token, if available
     pub fn text(&self) -> Option<&str> {
         self.text.as_deref()
     }
@@ -49,7 +39,6 @@ impl Token {
         Span::new(self.line, self.column, len)
     }
 
-    // Check if this token is a keyword
     pub fn is_keyword(&self) -> bool {
         matches!(
             self.kind,
@@ -85,7 +74,6 @@ impl Token {
         )
     }
 
-    // Check if this token is a literal
     pub fn is_literal(&self) -> bool {
         matches!(
             self.kind,
@@ -97,7 +85,6 @@ impl Token {
         )
     }
 
-    // Check if this token is an operator
     pub fn is_operator(&self) -> bool {
         matches!(
             self.kind,
@@ -136,10 +123,8 @@ impl Token {
     }
 }
 
-// Enumeration of all possible token types in Flux.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum TokenKind {
-    // ========== Keywords ==========
     Fn,
     Let,
     If,
@@ -151,182 +136,90 @@ pub enum TokenKind {
     Break,
     Continue,
     Return,
-    // `struct` - Structure definition keyword
     Struct,
-    // `enum` - Enumeration definition keyword
     Enum,
-    // `impl` - Implementation block keyword
     Impl,
-    // `trait` - Trait definition keyword
     Trait,
-    // `type` - Type alias keyword
     Type,
-    // `pub` - Public visibility modifier
     Pub,
-    // `priv` - Private visibility modifier
     Priv,
-    // `mod` - Module keyword
     Mod,
-    // `use` - Import statement keyword
     Use,
-    // `import` - Alternative import keyword
     Import,
-    // `as` - Renaming keyword
     As,
-    // `async` - Asynchronous function keyword
     Async,
-    // `await` - Await expression keyword
     Await,
-    // `spawn` - Thread spawn keyword
     Spawn,
-    // `true` - Boolean true literal
     True,
-    // `false` - Boolean false literal
     False,
-    // `self` - Self reference (lowercase)
     SelfLower,
-    // `Self` - Self type (uppercase)
     SelfUpper,
 
-    // ========== Literals ==========
-    // Integer literal (e.g., 42, 0xFF, 0o755, 0b1010)
     IntLiteral,
-    // Floating-point literal (e.g., 3.14, 1.0e-10)
     FloatLiteral,
-    // Boolean literal (true or false)
     BoolLiteral,
-    // String literal (e.g., "Hello, World!")
     StringLiteral,
-    // Unit literal `()`
     UnitLiteral,
-
-    // ========== Identifiers ==========
-    // User-defined identifier (variable names, function names, etc.)
     Identifier,
-
-    // ========== Arithmetic Operators ==========
-    // `+` - Addition operator
     Plus,
-    // `-` - Subtraction or negation operator
     Minus,
-    // `*` - Multiplication operator
     Star,
-    // `/` - Division operator
     Slash,
-    // `%` - Modulo operator
     Percent,
-
-    // ========== Comparison Operators ==========
-    // `==` - Equality operator
     Eq,
-    // `!=` - Inequality operator
     Ne,
-    // `<` - Less than operator
     Lt,
-    // `<=` - Less than or equal operator
     Le,
-    // `>` - Greater than operator
     Gt,
-    // `>=` - Greater than or equal operator
     Ge,
-
-    // ========== Logical Operators ==========
-    // `&&` - Logical AND operator
     And,
-    // `||` - Logical OR operator
     Or,
-    // `!` - Logical NOT operator
     Not,
-
-    // ========== Bitwise Operators ==========
-    // `&` - Bitwise AND operator
     BitAnd,
-    // `|` - Bitwise OR operator
     BitOr,
-    // `^` - Bitwise XOR operator
     BitXor,
-    // `~` - Bitwise NOT operator
     BitNot,
-    // `<<` - Left shift operator
     Shl,
-    // `>>` - Right shift operator
     Shr,
-
-    // ========== Assignment Operators ==========
-    // `=` - Assignment operator
     Assign,
-    // `+=` - Addition assignment
     PlusAssign,
-    // `-=` - Subtraction assignment
     MinusAssign,
-    // `*=` - Multiplication assignment
     StarAssign,
-    // `/=` - Division assignment
     SlashAssign,
-    // `%=` - Modulo assignment
     PercentAssign,
-    // `&=` - Bitwise AND assignment
     BitAndAssign,
-    // `|=` - Bitwise OR assignment
     BitOrAssign,
-    // `^=` - Bitwise XOR assignment
     BitXorAssign,
-    // `<<=` - Left shift assignment
+            
     ShlAssign,
-    // `>>=` - Right shift assignment
     ShrAssign,
 
-    // ========== Delimiters ==========
-    // `(` - Left parenthesis
     LParen,
-    // `)` - Right parenthesis
     RParen,
-    // `{` - Left brace
     LBrace,
-    // `}` - Right brace
     RBrace,
-    // `[` - Left bracket
     LBracket,
-    // `]` - Right bracket
     RBracket,
 
-    // ========== Punctuation ==========
-    // `,` - Comma
     Comma,
-    // `;` - Semicolon
     Semicolon,
-    // `:` - Colon
     Colon,
-    // `::` - Double colon (path separator)
     ColonColon,
-    // `.` - Dot (member access)
     Dot,
-    // `..` - Range operator
     DotDot,
-    // `...` - Variadic operator
     DotDotDot,
-    // `->` - Arrow (function return type)
     Arrow,
-    // `=>` - Fat arrow (match arms, lambdas)
     FatArrow,
-    // `?` - Question mark (error propagation)
     Question,
 
-    // ========== Special Tokens ==========
-    // End of file
     Eof,
-    // Line comment (// ...)
     LineComment,
-    // Block comment (/* ... */)
     BlockComment,
-    // Documentation comment (/// ...)
     DocComment,
-    // Whitespace (typically filtered out)
     Whitespace,
-    // Invalid/unrecognized token
     Invalid,
 
-    Pound, // または Hash
+    Pound,
     With,
     Extern,
 }
@@ -334,7 +227,6 @@ pub enum TokenKind {
 impl fmt::Display for TokenKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
-            // Keywords
             TokenKind::Fn => "fn",
             TokenKind::Let => "let",
             TokenKind::If => "if",
@@ -365,17 +257,14 @@ impl fmt::Display for TokenKind {
             TokenKind::SelfLower => "self",
             TokenKind::SelfUpper => "Self",
 
-            // Literals
             TokenKind::IntLiteral => "integer literal",
             TokenKind::FloatLiteral => "float literal",
             TokenKind::BoolLiteral => "boolean literal",
             TokenKind::StringLiteral => "string literal",
             TokenKind::UnitLiteral => "unit literal",
 
-            // Identifiers
             TokenKind::Identifier => "identifier",
 
-            // Operators
             TokenKind::Plus => "+",
             TokenKind::Minus => "-",
             TokenKind::Star => "*",
@@ -408,7 +297,6 @@ impl fmt::Display for TokenKind {
             TokenKind::ShlAssign => "<<=",
             TokenKind::ShrAssign => ">>=",
 
-            // Delimiters
             TokenKind::LParen => "(",
             TokenKind::RParen => ")",
             TokenKind::LBrace => "{",
@@ -416,7 +304,6 @@ impl fmt::Display for TokenKind {
             TokenKind::LBracket => "[",
             TokenKind::RBracket => "]",
 
-            // Punctuation
             TokenKind::Comma => ",",
             TokenKind::Semicolon => ";",
             TokenKind::Colon => ":",
@@ -428,7 +315,6 @@ impl fmt::Display for TokenKind {
             TokenKind::FatArrow => "=>",
             TokenKind::Question => "?",
 
-            // Special
             TokenKind::Eof => "EOF",
             TokenKind::LineComment => "line comment",
             TokenKind::BlockComment => "block comment",
@@ -445,8 +331,6 @@ impl fmt::Display for TokenKind {
 }
 
 impl TokenKind {
-    // Convert a string slice to a keyword token if it matches,
-    // otherwise return None.
     pub fn from_keyword(s: &str) -> Option<Self> {
         match s {
             "fn" => Some(TokenKind::Fn),
@@ -484,7 +368,6 @@ impl TokenKind {
         }
     }
 
-    // Check if this token kind is a reserved keyword
     pub fn is_reserved_keyword(&self) -> bool {
         matches!(
             self,
@@ -520,11 +403,8 @@ impl TokenKind {
         )
     }
 
-    // Get the precedence level for binary operators (higher = tighter binding).
-    // Returns None for non-operator tokens.
     pub fn precedence(&self) -> Option<u8> {
         match self {
-            // Assignment operators (lowest precedence)
             TokenKind::Assign
             | TokenKind::PlusAssign
             | TokenKind::MinusAssign
@@ -537,40 +417,28 @@ impl TokenKind {
             | TokenKind::ShlAssign
             | TokenKind::ShrAssign => Some(1),
 
-            // Logical OR
             TokenKind::Or => Some(2),
 
-            // Logical AND
             TokenKind::And => Some(3),
 
-            // Equality and comparison operators
             TokenKind::Eq | TokenKind::Ne => Some(4),
             TokenKind::Lt | TokenKind::Le | TokenKind::Gt | TokenKind::Ge => Some(5),
 
-            // Bitwise OR
             TokenKind::BitOr => Some(6),
 
-            // Bitwise XOR
             TokenKind::BitXor => Some(7),
 
-            // Bitwise AND
             TokenKind::BitAnd => Some(8),
 
-            // Bit shifts
             TokenKind::Shl | TokenKind::Shr => Some(9),
 
-            // Addition and subtraction
             TokenKind::Plus | TokenKind::Minus => Some(10),
 
-            // Multiplication, division, modulo (highest precedence)
             TokenKind::Star | TokenKind::Slash | TokenKind::Percent => Some(11),
-
-            // Not an operator
             _ => None,
         }
     }
 
-    // Check if this operator is right-associative
     pub fn is_right_associative(&self) -> bool {
         matches!(
             self,

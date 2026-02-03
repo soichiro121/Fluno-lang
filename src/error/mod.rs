@@ -1,33 +1,21 @@
-// Unified error handling for Fluno language
-//
-// This module provides a centralized error type that encompasses
-// all error categories in the Fluno compiler and runtime.
-
 use crate::typeck::error::TypeError;
 use crate::vm::RuntimeError;
 use crate::parser::ParseError;
 use std::fmt;
 use std::io;
 
-// Unified error type for Fluno language
 #[derive(Debug, Clone)]
 pub enum Error {
-    // Runtime execution errors
     RuntimeError(RuntimeError),
     
-    // Type checking errors
     TypeError(TypeError),
     
-    // Parsing errors
     ParseError(ParseError),
     
-    // I/O errors (file operations, etc.)
     IoError(String),
     
-    // Panic errors (unrecoverable runtime failures)
     Panic(String),
     
-    // Generic error with message
     Generic(String),
 
     CompilationError(String), 
@@ -48,10 +36,6 @@ impl fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
-
-// ========================================
-// From implementations for automatic conversion
-// ========================================
 
 impl From<RuntimeError> for Error {
     fn from(e: RuntimeError) -> Self {
@@ -89,5 +73,4 @@ impl From<&str> for Error {
     }
 }
 
-// Result type alias with unified Error
 pub type FlunoResult<T> = Result<T, Error>;

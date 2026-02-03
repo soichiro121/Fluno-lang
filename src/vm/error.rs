@@ -1,11 +1,10 @@
-// Runtime error definitions for the Flux interpreter.
+// src/vm/error.rs
 
 use thiserror::Error;
 use crate::ast::node::Span;
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;
 
-// Runtime errors that can occur during program execution.
 #[derive(Error, Debug, Clone)]
 pub enum RuntimeError {
     #[error("Undefined variable '{name}' at line {}, column {}", span.line, span.column)]
@@ -57,7 +56,7 @@ pub enum RuntimeError {
     #[error("Feature not yet implemented: {0}")]
     Unimplemented(String),
 
-    #[error("Early return from function")] // メッセージを変更
+    #[error("Early return from function")]
     EarlyReturn,
 
     #[error("Argument mismatch: expected {expected}, found {found} at line {}, column {}", span.line, span.column)]

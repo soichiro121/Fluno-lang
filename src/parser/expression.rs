@@ -106,6 +106,14 @@ impl<'a> Parser<'a> {
                 break;
             }
 
+            if self.check(TokenKind::DotDot) {
+                if precedence > Precedence::Assignment {
+                    break;
+                }
+                left = self.parse_range_expression(left)?;
+                continue;
+            }
+
             if let Some(op) = self.current_binary_op() {
                 let op_precedence = self.current_precedence();
                 left = self.parse_infix(left, op, op_precedence)?;
@@ -125,7 +133,7 @@ impl<'a> Parser<'a> {
         let startspan = left.span();
 
         if self.check(TokenKind::Await) {
-            let await_tok = self.advance()?; 
+            let _await_tok = self.advance()?; 
             let span = Span::new(startspan.line, startspan.column, 0); 
             return Ok(Expression::Await {
                 expr: Box::new(left),
@@ -199,9 +207,33 @@ impl<'a> Parser<'a> {
 
 
 
-    
-    
-    fn parse_field_access(&mut self, left: Expression) -> ParseResult<Expression> {
+    fn parse_range_expression(&mut self, left: Expression) -> ParseResult<Expression> {
+        let _ = self.advance()?; // Consume '..'
+        let start_span = left.span();
+        
+        let end = if self.is_at_end() || 
+                     self.check(TokenKind::Semicolon) || 
+                     self.check(TokenKind::Comma) || 
+                     self.check(TokenKind::RBrace) || 
+                     self.check(TokenKind::RParen) || 
+                     self.check(TokenKind::RBracket) {
+            None
+        } else {
+            Some(self.parse_expression_with_precedence(Precedence::Lowest)?)
+        };
+        
+        // Approximate span (todo: real span union)
+        let span = Span::new(start_span.line, start_span.column, 0); 
+
+        Ok(Expression::Range {
+            start: Some(Box::new(left)),
+            end: end.map(Box::new),
+            inclusive: false,
+            span,
+        })
+    }
+
+    fn _parse_field_access(&mut self, left: Expression) -> ParseResult<Expression> {
         let _ = self.advance(); 
         let start_span = left.span();
         
@@ -217,7 +249,7 @@ impl<'a> Parser<'a> {
     }
     
     
-    fn parse_struct_literal(&mut self, name: Identifier, span: Span) -> ParseResult<Expression> {
+    fn _parse_struct_literal(&mut self, name: Identifier, span: Span) -> ParseResult<Expression> {
         self.expect(TokenKind::LBrace)?; 
         let mut fields = Vec::new();
         
@@ -566,6 +598,15 @@ impl<'a> Parser<'a> {
 
             TokenKind::LBracket => self.parse_array_literal(),
 
+            TokenKind::Spawn => {
+                let _ = self.advance()?;
+                let inner_expr = self.parse_expression_with_precedence(Precedence::Lowest)?;
+                Ok(Expression::Spawn {
+                    expr: Box::new(inner_expr),
+                    span,
+                })
+            }
+
             TokenKind::BitOr | TokenKind::Or => self.parse_lambda_expression(),
 
             _ => Err(ParseError::UnexpectedToken {
@@ -586,31 +627,31 @@ impl<'a> Parser<'a> {
         let mut i = 0;
         while i < len {
             if bytes[i] == b'{' {
-                 if let Some(close_pos) = content[i..].find('}') {
-                     let abs_close = i + close_pos;
-                     let inner = &content[i+1..abs_close];
-                     let inner_trimmed = inner.trim();
-                     
-                     if !inner_trimmed.is_empty() && inner_trimmed.chars().all(|c| c.is_alphanumeric() || c == '_') {
-                         if i > last_pos {
-                             exprs.push(Expression::Literal {
-                                 value: Literal::String(content[last_pos..i].to_string()),
-                                 span, 
-                             });
-                         }
-                         exprs.push(Expression::Variable {
-                             name: Path {
-                                 segments: vec![PathSeg::Ident(Identifier::new(inner_trimmed.to_string(), span))],
-                                 span,
-                                 resolved: None
-                             },
-                             span,
-                         });
-                         last_pos = abs_close + 1;
-                         i = last_pos;
-                         continue;
-                     }
-                 }
+                if let Some(close_pos) = content[i..].find('}') {
+                    let abs_close = i + close_pos;
+                    let inner = &content[i+1..abs_close];
+                    let inner_trimmed = inner.trim();
+                    
+                    if !inner_trimmed.is_empty() && inner_trimmed.chars().all(|c| c.is_alphanumeric() || c == '_') {
+                        if i > last_pos {
+                            exprs.push(Expression::Literal {
+                                value: Literal::String(content[last_pos..i].to_string()),
+                                span, 
+                            });
+                        }
+                        exprs.push(Expression::Variable {
+                            name: Path {
+                                segments: vec![PathSeg::Ident(Identifier::new(inner_trimmed.to_string(), span))],
+                                span,
+                                resolved: None
+                            },
+                            span,
+                        });
+                        last_pos = abs_close + 1;
+                        i = last_pos;
+                        continue;
+                    }
+                }
             }
             i += 1;
         }
@@ -623,7 +664,7 @@ impl<'a> Parser<'a> {
         }
         
         if exprs.is_empty() {
-             return Ok(Expression::Literal { value: Literal::String("".to_string()), span });
+            return Ok(Expression::Literal { value: Literal::String("".to_string()), span });
         }
         
         let mut combined = exprs.remove(0);

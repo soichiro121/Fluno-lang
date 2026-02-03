@@ -5,7 +5,6 @@ use crate::ad::graph::{ADNode, BinaryOp, UnaryOp, Tape};
 use crate::ad::types::ADGradient;
 use crate::ad::cpu_backend::{NdarrayStorage, CpuBackend};
 use crate::ad::backend::TensorBackend;
-use ndarray::ArrayD;
 
 pub fn backward(tape: &Tape, output_node_id: usize) -> HashMap<usize, ADGradient> {
     ensure_tensor_values_computed(tape, output_node_id);
@@ -64,22 +63,22 @@ pub fn backward(tape: &Tape, output_node_id: usize) -> HashMap<usize, ADGradient
                 }
             }
             ADNode::TensorReduce { op, arg, value: _ } => {
-                 if let ADGradient::Scalar(g) = grad {
-                     let input_val = get_node_tensor(&nodes, *arg);
-                     match op {
-                         crate::ad::graph::ReduceOp::Sum => {
-                             let grad_input = CpuBackend::from_elem(input_val.shape(), g);
-                             add_grad(&mut grads, *arg, ADGradient::Tensor(grad_input));
-                         }
-                         crate::ad::graph::ReduceOp::Mean => {
-                             let n = input_val.len() as f64;
-                             let grad_elem = g / n;
-                             let grad_input = CpuBackend::from_elem(input_val.shape(), grad_elem);
-                             add_grad(&mut grads, *arg, ADGradient::Tensor(grad_input));
-                         }
-                         _ => panic!("Unsupported reduce op {:?}", op),
-                     }
-                 }
+                if let ADGradient::Scalar(g) = grad {
+                    let input_val = get_node_tensor(&nodes, *arg);
+                    match op {
+                        crate::ad::graph::ReduceOp::Sum => {
+                            let grad_input = CpuBackend::from_elem(input_val.shape(), g);
+                            add_grad(&mut grads, *arg, ADGradient::Tensor(grad_input));
+                        }
+                        crate::ad::graph::ReduceOp::Mean => {
+                            let n = input_val.len() as f64;
+                            let grad_elem = g / n;
+                            let grad_input = CpuBackend::from_elem(input_val.shape(), grad_elem);
+                            add_grad(&mut grads, *arg, ADGradient::Tensor(grad_input));
+                        }
+                        _ => panic!("Unsupported reduce op {:?}", op),
+                    }
+                }
             }
             ADNode::TensorFusedMulAdd { a, b, c, value: _ } => {
                 if let ADGradient::Tensor(g) = grad {
@@ -212,35 +211,35 @@ fn compute_binary_grad(
             (rhs_val / denom * grad_output, -lhs_val / denom * grad_output)
         }
         BinaryOp::BetaSample => {
-             use statrs::function::beta::beta_reg;
-             use statrs::function::gamma::ln_gamma;
+            use statrs::function::beta::beta_reg;
+            use statrs::function::gamma::ln_gamma;
              
-             let alpha = lhs_val;
-             let beta_param = rhs_val;
-             let z = output_val;
+            let alpha = lhs_val;
+            let beta_param = rhs_val;
+            let z = output_val;
              
-             if z <= 0.0 || z >= 1.0 {
-                 return (0.0, 0.0);
-             }
+            if z <= 0.0 || z >= 1.0 {
+                return (0.0, 0.0);
+            }
 
-             let ln_b = ln_gamma(alpha) + ln_gamma(beta_param) - ln_gamma(alpha + beta_param);
-             let ln_pdf = (alpha - 1.0) * z.ln() + (beta_param - 1.0) * (1.0 - z).ln() - ln_b;
-             let pdf = ln_pdf.exp();
+            let ln_b = ln_gamma(alpha) + ln_gamma(beta_param) - ln_gamma(alpha + beta_param);
+            let ln_pdf = (alpha - 1.0) * z.ln() + (beta_param - 1.0) * (1.0 - z).ln() - ln_b;
+            let pdf = ln_pdf.exp();
 
-             let h = 1e-4;
+            let h = 1e-4;
              
-             let cdf_a_plus = beta_reg(alpha + h, beta_param, z);
-             let cdf_a_minus = beta_reg(alpha - h, beta_param, z);
-             let d_cdf_d_alpha = (cdf_a_plus - cdf_a_minus) / (2.0 * h);
+            let cdf_a_plus = beta_reg(alpha + h, beta_param, z);
+            let cdf_a_minus = beta_reg(alpha - h, beta_param, z);
+            let d_cdf_d_alpha = (cdf_a_plus - cdf_a_minus) / (2.0 * h);
              
-             let cdf_b_plus = beta_reg(alpha, beta_param + h, z);
-             let cdf_b_minus = beta_reg(alpha, beta_param - h, z);
-             let d_cdf_d_beta = (cdf_b_plus - cdf_b_minus) / (2.0 * h);
+            let cdf_b_plus = beta_reg(alpha, beta_param + h, z);
+            let cdf_b_minus = beta_reg(alpha, beta_param - h, z);
+            let d_cdf_d_beta = (cdf_b_plus - cdf_b_minus) / (2.0 * h);
              
-             let dz_da = -d_cdf_d_alpha / pdf;
-             let dz_db = -d_cdf_d_beta / pdf;
+            let dz_da = -d_cdf_d_alpha / pdf;
+            let dz_db = -d_cdf_d_beta / pdf;
 
-             (dz_da * grad_output, dz_db * grad_output)
+            (dz_da * grad_output, dz_db * grad_output)
         }
         BinaryOp::MatMul => panic!("MatMul is not a scalar operation"),
     }
@@ -254,8 +253,7 @@ fn compute_tensor_unary_grad(
 ) -> NdarrayStorage {
     let mut grad_input = input_val.0.clone();
     
-    for ((gin, &vin), (&vout, &gout)) in grad_input.iter_mut().zip(input_val.0.iter())
-                                            .zip(output_val.0.iter().zip(grad_output.0.iter())) {
+    for ((gin, &vin), (&vout, &gout)) in grad_input.iter_mut().zip(input_val.0.iter()).zip(output_val.0.iter().zip(grad_output.0.iter())) {
         *gin = compute_unary_grad(op, vin, vout, gout);
     }
     
@@ -276,19 +274,19 @@ fn compute_tensor_binary_grad(
             NdarrayStorage(&lhs.0 * &grad_output.0)
         ),
         BinaryOp::Div => {
-             let grad_lhs = NdarrayStorage(&grad_output.0 / &rhs.0);
-             let grad_rhs = NdarrayStorage(-(&grad_output.0 * &lhs.0) / (&rhs.0 * &rhs.0));
-             (grad_lhs, grad_rhs)
+            let grad_lhs = NdarrayStorage(&grad_output.0 / &rhs.0);
+            let grad_rhs = NdarrayStorage(-(&grad_output.0 * &lhs.0) / (&rhs.0 * &rhs.0));
+            (grad_lhs, grad_rhs)
         }
         BinaryOp::MatMul => {
-             let lhs_2d = lhs.0.view().into_dimensionality::<ndarray::Ix2>().expect("MatMul lhs must be 2D");
-             let rhs_2d = rhs.0.view().into_dimensionality::<ndarray::Ix2>().expect("MatMul rhs must be 2D");
-             let grad_2d = grad_output.0.view().into_dimensionality::<ndarray::Ix2>().expect("MatMul grad must be 2D");
+            let lhs_2d = lhs.0.view().into_dimensionality::<ndarray::Ix2>().expect("MatMul lhs must be 2D");
+            let rhs_2d = rhs.0.view().into_dimensionality::<ndarray::Ix2>().expect("MatMul rhs must be 2D");
+            let grad_2d = grad_output.0.view().into_dimensionality::<ndarray::Ix2>().expect("MatMul grad must be 2D");
              
-             let da = grad_2d.dot(&rhs_2d.t());
-             let db = lhs_2d.t().dot(&grad_2d);
+            let da = grad_2d.dot(&rhs_2d.t());
+            let db = lhs_2d.t().dot(&grad_2d);
              
-             (NdarrayStorage(da.into_dyn()), NdarrayStorage(db.into_dyn()))
+            (NdarrayStorage(da.into_dyn()), NdarrayStorage(db.into_dyn()))
         }
         _ => panic!("Unsupported tensor binary op {:?}", op),
     }
@@ -347,14 +345,14 @@ mod tests {
         let y = x.clone().lgamma();
         
         if let ADFloat::Dual { node_id, tape_id, .. } = y {
-             let grads = crate::ad::with_tape(tape_id, |tape| {
+            let grads = crate::ad::with_tape(tape_id, |tape| {
                 backward(tape, node_id)
-             });
-             if let ADFloat::Dual { node_id: x_id, .. } = x {
-                 let grad = grads.get(&x_id).and_then(|g| g.as_scalar()).unwrap_or(0.0);
-                 let expected = digamma(x_val);
-                 assert!((grad - expected).abs() < 1e-6);
-             }
+            });
+            if let ADFloat::Dual { node_id: x_id, .. } = x {
+                let grad = grads.get(&x_id).and_then(|g| g.as_scalar()).unwrap_or(0.0);
+                let expected = digamma(x_val);
+                assert!((grad - expected).abs() < 1e-6);
+            }
         }
     }
     

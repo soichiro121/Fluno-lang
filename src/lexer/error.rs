@@ -1,23 +1,9 @@
-// Lexical error definitions for the Fluno programming language.
-//
-// This module defines all error types that can occur during lexical analysis,
-// including invalid characters, unterminated strings, invalid escape sequences,
-// and malformed numeric literals.
-//
-// Each error includes:
-// - A standard error code (E0xxx format)
-// - Position information (line and column)
-// - A descriptive error message
+// src/lexer/error.rs
 
 use thiserror::Error;
 
-// Result type alias for lexer operations
 pub type LexResult<T> = Result<T, LexError>;
 
-// Enumeration of all lexical analysis errors in Fluno.
-//
-// Each variant corresponds to a specific error condition and includes
-// position information for accurate error reporting.
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum LexError {
     #[error("[E0001] Invalid character '{character}' at line {line}, column {column}")]
@@ -79,21 +65,18 @@ pub enum LexError {
         column: usize,
     },
 
-    // E0009: Unterminated block comment
     #[error("[E0009] Unterminated block comment starting at line {line}, column {column}")]
     UnterminatedBlockComment {
         line: usize,
         column: usize,
     },
 
-    // E0010: Invalid UTF-8 encoding in source
     #[error("[E0010] Invalid UTF-8 encoding at line {line}, column {column}")]
     InvalidUtf8 {
         line: usize,
         column: usize,
     },
 
-    // E0011: Invalid identifier (starts with digit or contains invalid characters)
     #[error("[E0011] Invalid identifier '{identifier}' at line {line}, column {column}: {reason}")]
     InvalidIdentifier {
         identifier: String,
@@ -102,7 +85,6 @@ pub enum LexError {
         column: usize,
     },
 
-    // E0012: Number literal with no digits after base prefix (0x, 0o, 0b)
     #[error("[E0012] Expected digits after '{prefix}' prefix at line {line}, column {column}")]
     ExpectedDigitsAfterPrefix {
         prefix: String,
@@ -110,14 +92,12 @@ pub enum LexError {
         column: usize,
     },
 
-    // E0013: Number literal with multiple decimal points
     #[error("[E0013] Multiple decimal points in number literal at line {line}, column {column}")]
     MultipleDecimalPoints {
         line: usize,
         column: usize,
     },
 
-    // E0014: Invalid exponent in floating-point literal
     #[error("[E0014] Invalid exponent in float literal at line {line}, column {column}: {reason}")]
     InvalidExponent {
         reason: String,
@@ -125,28 +105,24 @@ pub enum LexError {
         column: usize,
     },
 
-    // E0015: Unexpected end of file
     #[error("[E0015] Unexpected end of file at line {line}, column {column}")]
     UnexpectedEof {
         line: usize,
         column: usize,
     },
 
-    // E0016: Byte Order Mark (BOM) not allowed
     #[error("[E0016] Byte Order Mark (BOM) is not allowed in Flux source files at line {line}, column {column}")]
     BomNotAllowed {
         line: usize,
         column: usize,
     },
 
-    // E0017: Tab character in indentation (style violation)
     #[error("[E0017] Tab character found at line {line}, column {column}; use spaces for indentation")]
     TabInIndentation {
         line: usize,
         column: usize,
     },
 
-    // E0018: Invalid number literal suffix
     #[error("[E0018] Invalid suffix '{suffix}' on numeric literal at line {line}, column {column}")]
     InvalidNumberSuffix {
         suffix: String,
@@ -154,14 +130,12 @@ pub enum LexError {
         column: usize,
     },
 
-    // E0019: Carriage return without line feed (CR without LF)
     #[error("[E0019] Bare carriage return (CR) without line feed (LF) at line {line}, column {column}")]
     BareCarriageReturn {
         line: usize,
         column: usize,
     },
 
-    // E0020: Generic lexical error
     #[error("[E0020] Lexical error at line {line}, column {column}: {message}")]
     Generic {
         message: String,
@@ -171,7 +145,6 @@ pub enum LexError {
 }
 
 impl LexError {
-    // Get the error code for this lexical error
     pub fn error_code(&self) -> &'static str {
         match self {
             LexError::InvalidCharacter { .. } => "E0001",
@@ -197,7 +170,6 @@ impl LexError {
         }
     }
 
-    // Get the line number where this error occurred
     pub fn line(&self) -> usize {
         match self {
             LexError::InvalidCharacter { line, .. }
@@ -223,7 +195,6 @@ impl LexError {
         }
     }
 
-    // Get the column number where this error occurred
     pub fn column(&self) -> usize {
         match self {
             LexError::InvalidCharacter { column, .. }
@@ -249,7 +220,6 @@ impl LexError {
         }
     }
 
-    // Create a user-friendly error report with context
     pub fn format_with_source(&self, source: &str) -> String {
         let line_num = self.line();
         let col_num = self.column();
@@ -257,31 +227,24 @@ impl LexError {
         let lines: Vec<&str> = source.lines().collect();
         let mut output = String::new();
         
-        // Error header
         output.push_str(&format!("error[{}]: {}\n", self.error_code(), self));
         output.push_str(&format!("  --> line {}, column {}\n", line_num, col_num));
         
-        // Show the problematic line with context
         if line_num > 0 && line_num <= lines.len() {
-            // Previous line for context
             if line_num > 1 {
                 output.push_str(&format!("{:4} | {}\n", line_num - 1, lines[line_num - 2]));
             }
             
-            // The error line
             let error_line = lines[line_num - 1];
             output.push_str(&format!("{:4} | {}\n", line_num, error_line));
             
-            // Pointer to the error location
             output.push_str(&format!("     | {}{}\n", " ".repeat(col_num.saturating_sub(1)), "^"));
             
-            // Next line for context
             if line_num < lines.len() {
                 output.push_str(&format!("{:4} | {}\n", line_num + 1, lines[line_num]));
             }
         }
         
-        // Add helpful hints based on error type
         if let Some(hint) = self.hint() {
             output.push_str(&format!("\nHelp: {}\n", hint));
         }
@@ -289,7 +252,6 @@ impl LexError {
         output
     }
 
-    // Get a helpful hint for resolving this error
     pub fn hint(&self) -> Option<String> {
         match self {
             LexError::InvalidEscapeSequence { sequence, .. } => {
@@ -328,17 +290,13 @@ impl LexError {
     }
 }
 
-// Context information for lexical errors
 #[derive(Debug, Clone)]
 pub struct LexErrorContext {
-    // The source file path (optional)
     pub file_path: Option<String>,
-    // The full source code
     pub source: String,
 }
 
 impl LexErrorContext {
-    // Create a new error context
     pub fn new(source: String) -> Self {
         LexErrorContext {
             file_path: None,
@@ -346,7 +304,6 @@ impl LexErrorContext {
         }
     }
 
-    // Create a new error context with a file path
     pub fn with_file(source: String, file_path: String) -> Self {
         LexErrorContext {
             file_path: Some(file_path),
@@ -354,7 +311,6 @@ impl LexErrorContext {
         }
     }
 
-    // Format an error with full context
     pub fn format_error(&self, error: &LexError) -> String {
         let mut output = String::new();
         

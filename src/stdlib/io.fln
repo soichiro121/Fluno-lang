@@ -1,3 +1,4 @@
+// src/stdlib/io.fln
 
 #[link(name = "c:/Users/froms/Desktop/Flux-main/fluno-rt/target/release/fluno_rt.dll")]
 extern "C" {
@@ -7,10 +8,7 @@ extern "C" {
      fn fluno_time_sleep(ms: Int) -> Int;
 }
 
-// User-friendly Wrappers
-
 fn read_file(path: String) -> String {
-    // In a real stdlib, we would return Result<String, Error>
     fluno_fs_read(path)
 }
 

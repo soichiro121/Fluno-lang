@@ -39,7 +39,7 @@ where
     });
 }
 
-pub fn get_vjp(name: &str) -> Option<std::sync::RwLockReadGuard<'static, HashMap<String, CustomVjpDef>>> {
+pub fn get_vjp(_name: &str) -> Option<std::sync::RwLockReadGuard<'static, HashMap<String, CustomVjpDef>>> {
     Some(VJP_REGISTRY.read().unwrap())
 }
 

@@ -26,7 +26,7 @@ mod tests {
         {
             let _v2 = v1.clone();
             assert_eq!(Rc::strong_count(&v1), 2);
-        } // _v2 drop -> count decr
+        }
         
         assert_eq!(Rc::strong_count(&v1), 1);
     }
@@ -35,14 +35,14 @@ mod tests {
     fn test_rc_string() {
         let s1 = Rc::new("hello".to_string());
         let s2 = s1.clone();
-        assert_eq!(*s1, "hello"); // PartialEq works
+        assert_eq!(*s1, "hello");
         assert_eq!(Rc::strong_count(&s1), 2);
     }
     
     #[test]
     fn test_rc_struct_display() {
         let s = Rc::new("world".to_string());
-        let msg = format!("Hello {}", s); // Display works
+        let msg = format!("Hello {}", s);
         assert_eq!(msg, "Hello world");
     }
 }

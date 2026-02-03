@@ -1,9 +1,8 @@
-// Gaussian確率型の演算・型推論専用モジュール
+// src/typeck/prob.rs
 
-use crate::ast::node::{Type, Expression, BinaryOp, Span};
+use crate::ast::node::{Type, BinaryOp, Span};
 use crate::typeck::{TypeError, TypeResult};
 
-// Gaussian型の二項演算・メソッド型推論ルール
 pub fn infer_gaussian_binop(left_ty: &Type, op: &BinaryOp, right_ty: &Type, span: Span) -> TypeResult<Type> {
     match (left_ty, op, right_ty) {
         (Type::Gaussian, BinaryOp::Add, Type::Gaussian) => Ok(Type::Gaussian),
@@ -11,32 +10,133 @@ pub fn infer_gaussian_binop(left_ty: &Type, op: &BinaryOp, right_ty: &Type, span
         (Type::Float, BinaryOp::Mul, Type::Gaussian) => Ok(Type::Gaussian),
         (Type::Gaussian, BinaryOp::Sub, Type::Gaussian) => Ok(Type::Gaussian),
         (Type::Gaussian, op, other) | (other, op, Type::Gaussian) => {
-            Err(TypeError::InvalidBinaryOp(op.clone(), format!("Gaussianと{:?}の演算は未対応", other), span))
+            Err(TypeError::InvalidBinaryOp(op.clone(), format!("Unsupported operation between Gaussian and {:?}", other), span))
         }
-        _ => Err(TypeError::InvalidBinaryOp(op.clone(), "非Gaussian型にGaussian推論".into(), span)),
+        _ => Err(TypeError::InvalidBinaryOp(op.clone(), "Non-Gaussian type in Gaussian operation".into(), span)),
     }
 }
 
-// Gaussian型のメソッド呼び出し型検査
-pub fn infer_gaussian_method(method: &str, receiver_ty: &Type, args: &[Type], span: Span) -> TypeResult<Type> {
-    if receiver_ty != &Type::Gaussian {
-        return Err(TypeError::UnknownMethod("Gaussianでない型にメソッド呼び出し".into(), method.into(), span));
+pub fn infer_distribution_method(method: &str, receiver_ty: &Type, args: &[Type], span: Span) -> TypeResult<Type> {
+    match receiver_ty {
+        Type::Gaussian => infer_gaussian_method_impl(method, args, span),
+        Type::Uniform => infer_uniform_method(method, args, span),
+        Type::Bernoulli => infer_bernoulli_method(method, args, span),
+        Type::Beta => infer_beta_method(method, args, span),
+        _ => Err(TypeError::UnknownMethod("Method call on non-distribution type".into(), method.into(), span)),
     }
+}
+
+fn infer_gaussian_method_impl(method: &str, args: &[Type], span: Span) -> TypeResult<Type> {
     match method {
         "pdf" | "cdf" => {
             if args.len() == 1 && matches!(args[0], Type::Float) {
                 Ok(Type::Float)
             } else {
-                Err(TypeError::InvalidArgument("Gaussianのpdf/cdfはFloat引数1つのみ".into(), span))
+                Err(TypeError::InvalidArgument("Gaussian pdf/cdf requires exactly one Float argument".into(), span))
             }
         }
         "sample" => {
             if args.is_empty() {
                 Ok(Type::Float)
             } else {
-                Err(TypeError::InvalidArgument("sampleは引数なし".into(), span))
+                Err(TypeError::InvalidArgument("sample takes no arguments".into(), span))
             }
         }
-        _ => Err(TypeError::UnknownMethod("Gaussian未定義メソッド".into(), method.into(), span)),
+        "clone" => {
+            if args.is_empty() {
+                Ok(Type::Gaussian)
+            } else {
+                Err(TypeError::InvalidArgument("clone takes no arguments".into(), span))
+            }
+        }
+        _ => Err(TypeError::UnknownMethod("Gaussian".into(), method.into(), span)),
     }
+}
+
+fn infer_uniform_method(method: &str, args: &[Type], span: Span) -> TypeResult<Type> {
+    match method {
+        "pdf" | "cdf" => {
+            if args.len() == 1 && matches!(args[0], Type::Float) {
+                Ok(Type::Float)
+            } else {
+                Err(TypeError::InvalidArgument("Uniform pdf/cdf requires exactly one Float argument".into(), span))
+            }
+        }
+        "sample" => {
+            if args.is_empty() {
+                Ok(Type::Float)
+            } else {
+                Err(TypeError::InvalidArgument("sample takes no arguments".into(), span))
+            }
+        }
+        "clone" => {
+            if args.is_empty() {
+                Ok(Type::Uniform)
+            } else {
+                Err(TypeError::InvalidArgument("clone takes no arguments".into(), span))
+            }
+        }
+        _ => Err(TypeError::UnknownMethod("Uniform".into(), method.into(), span)),
+    }
+}
+
+fn infer_bernoulli_method(method: &str, args: &[Type], span: Span) -> TypeResult<Type> {
+    match method {
+        "pmf" => {
+            if args.len() == 1 && matches!(args[0], Type::Bool | Type::Int) {
+                Ok(Type::Float)
+            } else {
+                Err(TypeError::InvalidArgument("Bernoulli pmf requires exactly one Bool or Int argument".into(), span))
+            }
+        }
+        "sample" => {
+            if args.is_empty() {
+                Ok(Type::Bool)
+            } else {
+                Err(TypeError::InvalidArgument("sample takes no arguments".into(), span))
+            }
+        }
+        "clone" => {
+            if args.is_empty() {
+                Ok(Type::Bernoulli)
+            } else {
+                Err(TypeError::InvalidArgument("clone takes no arguments".into(), span))
+            }
+        }
+        _ => Err(TypeError::UnknownMethod("Bernoulli".into(), method.into(), span)),
+    }
+}
+
+fn infer_beta_method(method: &str, args: &[Type], span: Span) -> TypeResult<Type> {
+    match method {
+        "pdf" => {
+            if args.len() == 1 && matches!(args[0], Type::Float) {
+                Ok(Type::Float)
+            } else {
+                Err(TypeError::InvalidArgument("Beta pdf requires exactly one Float argument".into(), span))
+            }
+        }
+        "sample" => {
+            if args.is_empty() {
+                Ok(Type::Float)
+            } else {
+                Err(TypeError::InvalidArgument("sample takes no arguments".into(), span))
+            }
+        }
+        "clone" => {
+            if args.is_empty() {
+                Ok(Type::Beta)
+            } else {
+                Err(TypeError::InvalidArgument("clone takes no arguments".into(), span))
+            }
+        }
+        _ => Err(TypeError::UnknownMethod("Beta".into(), method.into(), span)),
+    }
+}
+
+pub fn infer_gaussian_method(method: &str, receiver_ty: &Type, args: &[Type], span: Span) -> TypeResult<Type> {
+    if receiver_ty != &Type::Gaussian {
+        return Err(TypeError::UnknownMethod("Method call on non-Gaussian type".into(), method.into(), span));
+    }
+    infer_gaussian_method_impl(method, args, span)
 }

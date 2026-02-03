@@ -1,6 +1,4 @@
-// ============================
-// stdlib/core.flux
-// ============================
+// src/stdlib/core.fln
 
 enum Result<T, E> {
     Ok(T),

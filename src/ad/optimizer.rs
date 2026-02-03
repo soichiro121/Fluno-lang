@@ -16,24 +16,17 @@ enum NodeKey {
 impl NodeKey {
     fn from_node(node: &ADNode) -> Option<Self> {
         match node {
-             ADNode::Binary { op, lhs, rhs, .. } => Some(NodeKey::Binary(*op, *lhs, *rhs)),
-             ADNode::Unary { op, arg, .. } => Some(NodeKey::Unary(*op, *arg)),
-             ADNode::TensorBinary { op, lhs, rhs, .. } => Some(NodeKey::TensorBinary(*op, *lhs, *rhs)),
-             ADNode::TensorUnary { op, arg, .. } => Some(NodeKey::TensorUnary(*op, *arg)),
-             ADNode::TensorReduce { op, arg, .. } => Some(NodeKey::TensorReduce(*op, *arg)),
-             ADNode::TensorFusedMulAdd { a, b, c, .. } => Some(NodeKey::TensorFusedMulAdd(*a, *b, *c)),
-             _ => None,
+            ADNode::Binary { op, lhs, rhs, .. } => Some(NodeKey::Binary(*op, *lhs, *rhs)),
+            ADNode::Unary { op, arg, .. } => Some(NodeKey::Unary(*op, *arg)),
+            ADNode::TensorBinary { op, lhs, rhs, .. } => Some(NodeKey::TensorBinary(*op, *lhs, *rhs)),
+            ADNode::TensorUnary { op, arg, .. } => Some(NodeKey::TensorUnary(*op, *arg)),
+            ADNode::TensorReduce { op, arg, .. } => Some(NodeKey::TensorReduce(*op, *arg)),
+            ADNode::TensorFusedMulAdd { a, b, c, .. } => Some(NodeKey::TensorFusedMulAdd(*a, *b, *c)),
+            _ => None,
         }
     }
 }
 
-// Optimizes the computation graph in-place.
-// Performs:
-// 1. Constant Folding 
-// 2. Algebraic Simplification 
-// 3. Operator Fusion (Mul + Add -> MulAdd)
-// 4. Common Subexpression Elimination (CSE)
-// 5. Dead Code Elimination (DCE) via remapping
 pub fn optimize_graph(tape: &Tape) {
     let mut nodes = tape.nodes.borrow_mut();
     let len = nodes.len();
@@ -284,10 +277,10 @@ mod tests {
             optimize_graph(tape);
             let nodes = tape.nodes.borrow();
             if let ADTensor::Dual { node_id, .. } = d {
-                 match &nodes[node_id] {
-                     ADNode::TensorFusedMulAdd { .. } => {}, 
-                     n => panic!("Expected FusedMulAdd, found {:?}", n),
-                 }
+                match &nodes[node_id] {
+                    ADNode::TensorFusedMulAdd { .. } => {}, 
+                    n => panic!("Expected FusedMulAdd, found {:?}", n),
+                }
             }
         });
         
@@ -323,8 +316,8 @@ mod tests {
                 ADNode::TensorFusedMulAdd { a: fa, b: fb, c: fc, .. } => {
                     assert_eq!(*fc, x_id, "Fused c should be x_id (CSE remapped y->x)");
                     if let ADNode::TensorBinary { lhs, rhs, .. } = &nodes[x_id] {
-                         assert_eq!(*fa, *lhs);
-                         assert_eq!(*fb, *rhs);
+                        assert_eq!(*fa, *lhs);
+                        assert_eq!(*fb, *rhs);
                     }
                 }
                 _ => panic!("Expected TensorBinary or TensorFusedMulAdd for Z, found {:?}", nodes[z_id]),
@@ -368,7 +361,6 @@ mod tests {
         let tape_id = create_tape();
         
         with_tape(tape_id, |tape| {
-            // x + 0 → x
             let x_id = tape.push(ADNode::Input { value: 42.0 });
             let zero_id = tape.push(ADNode::Constant { value: 0.0 });
             let add_id = tape.push(ADNode::Binary { 
@@ -401,7 +393,6 @@ mod tests {
         let tape_id = create_tape();
         
         with_tape(tape_id, |tape| {
-            // x * 1 → x
             let x_id = tape.push(ADNode::Input { value: 42.0 });
             let one_id = tape.push(ADNode::Constant { value: 1.0 });
             let mul_id = tape.push(ADNode::Binary { 
@@ -470,7 +461,6 @@ mod tests {
         let tape_id = create_tape();
         
         with_tape(tape_id, |tape| {
-            // --x → x
             let x_id = tape.push(ADNode::Input { value: 42.0 });
             let neg1_id = tape.push(ADNode::Unary { 
                 op: UnaryOp::Neg, 

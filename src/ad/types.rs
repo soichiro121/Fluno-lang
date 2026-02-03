@@ -421,3 +421,234 @@ impl std::fmt::Display for ADFloat {
         write!(f, "{}", self.value())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ad::create_tape;
+
+    fn approx_eq(a: f64, b: f64, eps: f64) -> bool {
+        (a - b).abs() < eps
+    }
+
+    #[test]
+    fn test_concrete_arithmetic() {
+        let a = ADFloat::Concrete(3.0);
+        let b = ADFloat::Concrete(2.0);
+        
+        assert!(approx_eq((a + b).value(), 5.0, 1e-10));
+        assert!(approx_eq((a - b).value(), 1.0, 1e-10));
+        assert!(approx_eq((a * b).value(), 6.0, 1e-10));
+        assert!(approx_eq((a / b).value(), 1.5, 1e-10));
+        assert!(approx_eq((-a).value(), -3.0, 1e-10));
+    }
+
+    #[test]
+    fn test_unary_ops_forward() {
+        let x = ADFloat::Concrete(2.0);
+        
+        assert!(approx_eq(x.sqrt().value(), 2.0_f64.sqrt(), 1e-10));
+        assert!(approx_eq(x.exp().value(), 2.0_f64.exp(), 1e-10));
+        assert!(approx_eq(x.ln().value(), 2.0_f64.ln(), 1e-10));
+        assert!(approx_eq(x.sin().value(), 2.0_f64.sin(), 1e-10));
+        assert!(approx_eq(x.cos().value(), 2.0_f64.cos(), 1e-10));
+        assert!(approx_eq(x.tan().value(), 2.0_f64.tan(), 1e-10));
+        assert!(approx_eq(x.abs().value(), 2.0_f64.abs(), 1e-10));
+        assert!(approx_eq(x.tanh().value(), 2.0_f64.tanh(), 1e-10));
+        
+        // Sigmoid: 1 / (1 + exp(-x))
+        let expected_sigmoid = 1.0 / (1.0 + (-2.0_f64).exp());
+        assert!(approx_eq(x.sigmoid().value(), expected_sigmoid, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_add() {
+        // f(x, y) = x + y, df/dx = 1, df/dy = 1
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(3.0, tape_id);
+        let y = ADFloat::new_input(4.0, tape_id);
+        let z = x + y;
+        
+        assert!(approx_eq(z.value(), 7.0, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let y_id = y.node_id().unwrap();
+        
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        let dy = grads.get(&y_id).unwrap().as_scalar().unwrap();
+        
+        assert!(approx_eq(dx, 1.0, 1e-10));
+        assert!(approx_eq(dy, 1.0, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_mul() {
+        // f(x, y) = x * y, df/dx = y, df/dy = x
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(3.0, tape_id);
+        let y = ADFloat::new_input(4.0, tape_id);
+        let z = x * y;
+        
+        assert!(approx_eq(z.value(), 12.0, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let y_id = y.node_id().unwrap();
+        
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        let dy = grads.get(&y_id).unwrap().as_scalar().unwrap();
+        
+        assert!(approx_eq(dx, 4.0, 1e-10));
+        assert!(approx_eq(dy, 3.0, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_chain_rule() {
+        // f(x) = (x * x) + x = x^2 + x, df/dx = 2x + 1
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(5.0, tape_id);
+        let x2 = x * x;
+        let z = x2 + x;
+        
+        assert!(approx_eq(z.value(), 30.0, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        
+        assert!(approx_eq(dx, 11.0, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_exp() {
+        // f(x) = exp(x), df/dx = exp(x)
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(2.0, tape_id);
+        let z = x.exp();
+        
+        let expected = 2.0_f64.exp();
+        assert!(approx_eq(z.value(), expected, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        
+        assert!(approx_eq(dx, expected, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_sin_cos() {
+        // f(x) = sin(x), df/dx = cos(x)
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(1.0, tape_id);
+        let z = x.sin();
+        
+        assert!(approx_eq(z.value(), 1.0_f64.sin(), 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        
+        assert!(approx_eq(dx, 1.0_f64.cos(), 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_div() {
+        // f(x, y) = x / y, df/dx = 1/y, df/dy = -x/y^2
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(6.0, tape_id);
+        let y = ADFloat::new_input(2.0, tape_id);
+        let z = x / y;
+        
+        assert!(approx_eq(z.value(), 3.0, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let y_id = y.node_id().unwrap();
+        
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        let dy = grads.get(&y_id).unwrap().as_scalar().unwrap();
+        
+        assert!(approx_eq(dx, 0.5, 1e-10));
+        assert!(approx_eq(dy, -1.5, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_sqrt() {
+        // f(x) = sqrt(x), df/dx = 1/(2*sqrt(x))
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(4.0, tape_id);
+        let z = x.sqrt();
+        
+        assert!(approx_eq(z.value(), 2.0, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        
+        assert!(approx_eq(dx, 0.25, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_neg() {
+        // f(x) = -x, df/dx = -1
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(5.0, tape_id);
+        let z = -x;
+        
+        assert!(approx_eq(z.value(), -5.0, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        
+        assert!(approx_eq(dx, -1.0, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_tanh() {
+        // f(x) = tanh(x), df/dx = 1 - tanh(x)^2
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(1.0, tape_id);
+        let z = x.tanh();
+        
+        let tanh_val = 1.0_f64.tanh();
+        assert!(approx_eq(z.value(), tanh_val, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        
+        let expected_grad = 1.0 - tanh_val * tanh_val;
+        assert!(approx_eq(dx, expected_grad, 1e-10));
+    }
+
+    #[test]
+    fn test_gradient_sigmoid() {
+        // f(x) = sigmoid(x), df/dx = sigmoid(x) * (1 - sigmoid(x))
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(1.0, tape_id);
+        let z = x.sigmoid();
+        
+        let sig_val = 1.0 / (1.0 + (-1.0_f64).exp());
+        assert!(approx_eq(z.value(), sig_val, 1e-10));
+        
+        let grads = z.backward();
+        let x_id = x.node_id().unwrap();
+        let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
+        
+        let expected_grad = sig_val * (1.0 - sig_val);
+        assert!(approx_eq(dx, expected_grad, 1e-10));
+    }
+
+    #[test]
+    fn test_complex_expression() {
+        // f(x) = x^2 * exp(x) - sin(x)
+        let tape_id = create_tape();
+        let x = ADFloat::new_input(1.0, tape_id);
+        let z = (x * x) * x.exp() - x.sin();
+        
+        let _grads = z.backward();
+    }
+}

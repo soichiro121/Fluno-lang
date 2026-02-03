@@ -1,15 +1,56 @@
 use std::ptr::NonNull;
 use std::alloc::{alloc, dealloc, Layout};
+use std::cell::Cell;
 use std::ops::Deref;
 use std::fmt;
 use std::cmp::Ordering;
 use std::mem::ManuallyDrop;
 use crate::gc::weak::Weak;
 
+const MAX_REFCOUNT: usize = usize::MAX / 2;
+
 pub(crate) struct RcBox<T> {
-    pub(crate) strong_count: usize,
-    pub(crate) weak_count: usize,
+    pub(crate) strong_count: Cell<usize>,
+    pub(crate) weak_count: Cell<usize>,
     pub(crate) value: ManuallyDrop<T>,
+}
+
+impl<T> RcBox<T> {
+    #[inline]
+    pub(crate) fn inc_strong(&self) {
+        let count = self.strong_count.get();
+        if count > MAX_REFCOUNT {
+            panic!("Rc strong count overflow");
+        }
+        self.strong_count.set(count + 1);
+    }
+
+    #[inline]
+    pub(crate) fn dec_strong(&self) -> usize {
+        let count = self.strong_count.get();
+        debug_assert!(count > 0, "Rc strong count underflow");
+        let new_count = count - 1;
+        self.strong_count.set(new_count);
+        new_count
+    }
+
+    #[inline]
+    pub(crate) fn inc_weak(&self) {
+        let count = self.weak_count.get();
+        if count > MAX_REFCOUNT {
+            panic!("Rc weak count overflow");
+        }
+        self.weak_count.set(count + 1);
+    }
+
+    #[inline]
+    pub(crate) fn dec_weak(&self) -> usize {
+        let count = self.weak_count.get();
+        debug_assert!(count > 0, "Rc weak count underflow");
+        let new_count = count - 1;
+        self.weak_count.set(new_count);
+        new_count
+    }
 }
 
 pub struct Rc<T> {
@@ -18,16 +59,16 @@ pub struct Rc<T> {
 
 impl<T> Rc<T> {
     pub fn new(value: T) -> Self {
+        let layout = Layout::new::<RcBox<T>>();
+        let ptr = unsafe { alloc(layout) as *mut RcBox<T> };
+        if ptr.is_null() {
+            std::alloc::handle_alloc_error(layout);
+        }
+        
         unsafe {
-            let layout = Layout::new::<RcBox<T>>();
-            let ptr = alloc(layout) as *mut RcBox<T>;
-            if ptr.is_null() {
-                std::alloc::handle_alloc_error(layout);
-            }
-            
             std::ptr::write(ptr, RcBox {
-                strong_count: 1,
-                weak_count: 0,
+                strong_count: Cell::new(1),
+                weak_count: Cell::new(0),
                 value: ManuallyDrop::new(value),
             });
 
@@ -37,47 +78,50 @@ impl<T> Rc<T> {
         }
     }
 
+    #[inline]
+    fn inner(&self) -> &RcBox<T> {
+        unsafe { self.ptr.as_ref() }
+    }
+
     pub fn downgrade(this: &Self) -> Weak<T> {
-        unsafe {
-            let mut ptr = this.ptr;
-            ptr.as_mut().weak_count += 1;
-            Weak { ptr: this.ptr }
-        }
+        this.inner().inc_weak();
+        Weak { ptr: this.ptr }
     }
 
     pub fn strong_count(this: &Self) -> usize {
-        unsafe { this.ptr.as_ref().strong_count }
+        this.inner().strong_count.get()
     }
 
     pub fn weak_count(this: &Self) -> usize {
-        unsafe { this.ptr.as_ref().weak_count }
+        this.inner().weak_count.get()
+    }
+
+    pub fn ptr_eq(this: &Self, other: &Self) -> bool {
+        this.ptr == other.ptr
     }
 }
 
 impl<T> Clone for Rc<T> {
     fn clone(&self) -> Self {
-        unsafe {
-            let mut ptr = self.ptr;
-            ptr.as_mut().strong_count += 1;
-            Rc { ptr: self.ptr }
-        }
+        self.inner().inc_strong();
+        Rc { ptr: self.ptr }
     }
 }
 
 impl<T> Drop for Rc<T> {
     fn drop(&mut self) {
-        unsafe {
-            let mut ptr = self.ptr;
-            let box_ptr = ptr.as_mut();
+        let inner = self.inner();
+        let new_strong = inner.dec_strong();
+        
+        if new_strong == 0 {
+            let weak_count = inner.weak_count.get();
             
-            box_ptr.strong_count -= 1;
+            unsafe {
+                ManuallyDrop::drop(&mut self.ptr.as_mut().value);
+            }
 
-            if box_ptr.strong_count == 0 {
-                // 強参照がなくなったら、まずデータを破棄する
-                ManuallyDrop::drop(&mut box_ptr.value);
-
-                // 弱参照もなければ、管理領域(RcBox)自体を解放する
-                if box_ptr.weak_count == 0 {
+            if weak_count == 0 {
+                unsafe {
                     let layout = Layout::new::<RcBox<T>>();
                     dealloc(self.ptr.as_ptr() as *mut u8, layout);
                 }

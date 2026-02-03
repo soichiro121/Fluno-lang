@@ -1,3 +1,5 @@
+// src/stdlib/probability.fln
+
 #[derive(Debug, Eq, Clone)]
 struct Gaussian {
     mean: Float;

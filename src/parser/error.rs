@@ -481,7 +481,7 @@ impl ParseError {
                 Some(format!("Remove the duplicate field '{}' or rename it", field))
             }
             ParseError::ExpectedSemicolon { .. } => {
-                Some("Statements in Flux typically end with a semicolon ';'".to_string())
+                Some("Statements in Fluno typically end with a semicolon ';'".to_string())
             }
             ParseError::InvalidAssignmentTarget { .. } => {
                 Some("Only variables, fields, and index expressions can be assigned to".to_string())
@@ -528,34 +528,34 @@ impl ParseError {
 }
 
 #[derive(Debug, Clone)]
-pub struct ParseErrorContext {
+pub struct _ParseErrorContext {
     pub file_path: Option<String>,
     pub source: String,
     pub errors: Vec<ParseError>,
 }
 
-impl ParseErrorContext {
-    pub fn new(source: String) -> Self {
-        ParseErrorContext {
+impl _ParseErrorContext {
+    pub fn _new(source: String) -> Self {
+        _ParseErrorContext {
             file_path: None,
             source,
             errors: Vec::new(),
         }
     }
 
-    pub fn with_file(source: String, file_path: String) -> Self {
-        ParseErrorContext {
+    pub fn _with_file(source: String, file_path: String) -> Self {
+        _ParseErrorContext {
             file_path: Some(file_path),
             source,
             errors: Vec::new(),
         }
     }
 
-    pub fn add_error(&mut self, error: ParseError) {
+    pub fn _add_error(&mut self, error: ParseError) -> () {
         self.errors.push(error);
     }
     
-    pub fn format_errors(&self) -> String {
+    pub fn _format_errors(&self) -> String {
         let mut output = String::new();
         
         if let Some(path) = &self.file_path {
@@ -649,12 +649,12 @@ mod tests {
     #[test]
     fn test_error_context() {
         let source = "fn test() { break; }".to_string();
-        let mut context = ParseErrorContext::with_file(source, "test.flux".to_string());
+        let mut context = _ParseErrorContext::_with_file(source, "test.fln".to_string());
         
-        context.add_error(ParseError::BreakOutsideLoop { line: 1, column: 13 });
+        context._add_error(ParseError::BreakOutsideLoop { line: 1, column: 13 });
         
-        let formatted = context.format_errors();
-        assert!(formatted.contains("test.flux"));
+        let formatted = context._format_errors();
+        assert!(formatted.contains("test.fln"));
         assert!(formatted.contains("E0043"));
         assert!(formatted.contains("1 error(s) found"));
     }
@@ -662,14 +662,14 @@ mod tests {
     #[test]
     fn test_multiple_errors() {
         let source = "fn test() {}".to_string();
-        let mut context = ParseErrorContext::new(source);
+        let mut context = _ParseErrorContext::_new(source);
         
-        context.add_error(ParseError::ExpectedSemicolon {
+        context._add_error(ParseError::ExpectedSemicolon {
             found: TokenKind::RBrace,
             line: 1,
             column: 12,
         });
-        context.add_error(ParseError::UnexpectedEof {
+        context._add_error(ParseError::UnexpectedEof {
             expected: "statement".to_string(),
             line: 1,
             column: 13,

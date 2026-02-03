@@ -1,105 +1,93 @@
-// Runtime value representation for Flux with Reference Counting GC.
+// src/vm/value.rs
 
 use crate::ast::node::{Block, Parameter};
 use crate::vm::Environment;
-use crate::gc::{Rc, Weak}; // 自作Rcを使用
+use crate::gc::{Rc, Weak};
 use std::fmt;
 use std::collections::HashMap;
 use crate::ad::types::ADFloat;
 use std::ops::{Add, Sub, Mul, Div, Neg};
+use std::cell::RefCell;
+use std::sync::{Arc, Mutex};
 
-// Runtime value in the Flux interpreter.
 #[derive(Debug, Clone, PartialEq)]
+pub enum Upvalue {
+    Open(usize),
+    Closed(Value),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum IteratorState {
+    Range { current: i64, end: i64, inclusive: bool },
+    Array { array: Rc<RefCell<Vec<Value>>>, index: usize },
+}
+
+#[derive(Debug, Clone)]
 pub enum Value {
-    // Integer value
     Int(i64),
-    // Floating-point value
     Float(ADFloat),
-    // Boolean value
     Bool(bool),
-    // String value (Heap allocated)
     String(Rc<String>),
-    // Unit value (void)
     Unit,
-    // Opaque handle to an external resource
     Handle(usize),
-    
-    // Tuple value (Heap allocated)
     Tuple(Rc<Vec<Value>>),
-    // Array value (Heap allocated)
-    Array(Rc<Vec<Value>>),
-    
-    // Struct instance (Heap allocated)
+    Array(Rc<RefCell<Vec<Value>>>),
     Struct {
         name: String,
-        fields: Rc<HashMap<String, Value>>,
+        fields: Rc<RefCell<HashMap<String, Value>>>,
     },
-    
-    // Enum variant (Heap allocated if data is present)
-    /*Enum {
-        name: String,
-        variant: String,
-        data: Rc<Value>, // BoxではなくRcに変更
-    },*/
     Enum { name: String, variant: String, fields: Rc<Vec<Value>> },
-    
-    // Function closure (Heap allocated)
     Function {
         params: Vec<Parameter>,
         body: Block,
         closure: Rc<Environment>, 
+        is_async: bool,
     },
-    
-    // Probabilistic value (Gaussian)
+    BytecodeFunction {
+        name: String,
+        chunk_index: usize,
+        arity: usize,
+        upvalue_count: usize,
+    },
+    BytecodeClosure {
+        function: Box<Value>,
+        upvalues: Vec<Rc<RefCell<Upvalue>>>,
+    },
     Gaussian {
         mean: ADFloat,
         std: ADFloat,
     },
-    
-    // Probabilistic value (Uniform)
     Uniform {
         min: ADFloat,
         max: ADFloat,
     },
-    
-    // Probabilistic value (Bernoulli)
     Bernoulli {
-        p: ADFloat, // probability of success (0 <= p <= 1)
+        p: ADFloat,
     },
-    
-    // Probabilistic value (Beta)
     Beta {
         alpha: ADFloat,
         beta: ADFloat,
     },
-    
-    // Signal value (reactive)
     Signal {
         id: usize,
-        current_value: Rc<Value>, // Box -> Rc
+        current_value: Rc<Value>,
     },
-    
-    // Event value (reactive)
+    Range {
+        start: i64,
+        end: i64,
+        inclusive: bool,
+    },
+    Iterator(Rc<RefCell<IteratorState>>),
     Event {
         id: usize,
-        latest_value: Option<Rc<Value>>, // Box -> Rc
+        latest_value: Option<Rc<Value>>,
     },
-    
     Some(Box<Value>),
     None,
-    
-    // Built-in function
     Builtin(String),
-    //Option(Option<Rc<Value>>), // Box -> Rc
-
-    // Map value (Heap allocated, Mutable)
     Map(Rc<std::cell::RefCell<HashMap<String, Value>>>),
-    
-    // Internal use for Rc/Weak
     Rc(Rc<Value>),
     Weak(Weak<Value>),
-
-    // Foreign Function (Dynamic Library Call)
     NativeFunction {
         name: String,
         library_index: usize,
@@ -113,10 +101,13 @@ pub enum Value {
         vtable: Rc<HashMap<String, Value>>,
         data: Rc<Value>,
     },
+    Future {
+        task_id: usize,
+        result: Arc<Mutex<Option<Result<Value, String>>>>,
+    },
 }
 
 impl Value {
-    // Check if this value is "truthy" (for conditionals).
     pub fn is_truthy(&self) -> bool {
         match self {
             Value::Bool(b) => *b,
@@ -129,7 +120,6 @@ impl Value {
         }
     }
 
-    // Get the type name of this value.
     pub fn type_name(&self) -> &str {
         match self {
             Value::Int(_) => "Int",
@@ -141,14 +131,14 @@ impl Value {
             Value::Array(_) => "Array",
             Value::Struct { .. } => "Struct",
             Value::Function { .. } => "Function",
+            Value::BytecodeFunction { .. } => "Function",
+            Value::BytecodeClosure { .. } => "Function",
             Value::Gaussian { .. } => "Gaussian",
             Value::Uniform { .. } => "Uniform",
             Value::Bernoulli { .. } => "Bernoulli",
             Value::Beta { .. } => "Beta",
             Value::Signal { .. } => "Signal",
             Value::Event { .. } => "Event",
-            //Value::Option(_) => "Option",
-            //Value::Result(_) => "Result",
             Value::Enum { name, .. } => name.as_str(),
             Value::Builtin(_) => "Builtin", 
             Value::Some(_) => "Some",
@@ -160,6 +150,9 @@ impl Value {
             Value::Map(_) => "Map",
             Value::Handle(_) => "Handle",
             Value::NativeFunction { .. } => "NativeFunction",
+            Value::Range { .. } => "Range",
+            Value::Iterator(_) => "Iterator",
+            Value::Future { .. } => "Future",
         }
     }
     
@@ -200,7 +193,8 @@ impl fmt::Display for Value {
             }
             Value::Array(elements) => {
                 write!(f, "[")?;
-                for (i, elem) in elements.iter().enumerate() {
+                let arr = elements.borrow();
+                for (i, elem) in arr.iter().enumerate() {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
@@ -210,7 +204,8 @@ impl fmt::Display for Value {
             }
             Value::Struct { name, fields } => {
                 write!(f, "{} {{ ", name)?;
-                for (i, (key, val)) in fields.iter().enumerate() {
+                let map = fields.borrow();
+                for (i, (key, val)) in map.iter().enumerate() {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
@@ -231,16 +226,14 @@ impl fmt::Display for Value {
                 }
             }
             Value::Function { .. } => write!(f, "<function>"),
+            Value::BytecodeFunction { name, arity, .. } => write!(f, "<fn {} (arity {})>", name, arity),
+            Value::BytecodeClosure { function, .. } => write!(f, "{}", function),
             Value::Gaussian { mean, std } => write!(f, "Gaussian({}, {})", mean.value(), std.value()),
             Value::Uniform { min, max } => write!(f, "Uniform({}, {})", min.value(), max.value()),
             Value::Bernoulli { p } => write!(f, "Bernoulli({})", p.value()),
             Value::Beta { alpha, beta } => write!(f, "Beta({}, {})", alpha.value(), beta.value()),
             Value::Signal { id, .. } => write!(f, "<signal:{}>", id),
             Value::Event { id, .. } => write!(f, "<event:{}>", id),
-            //Value::Option(Some(val)) => write!(f, "Some({})", val),
-            //Value::Option(None) => write!(f, "None"),
-            //Value::Result(Ok(val)) => write!(f, "Ok({})", val),
-            //Value::Result(Err(err)) => write!(f, "Err({})", err),
             Value::Builtin(name) => write!(f, "<builtin:{}>", name),
             Value::Some(v) => write!(f, "Some({})", v),
             Value::None => write!(f, "None"), 
@@ -261,6 +254,15 @@ impl fmt::Display for Value {
             }
             Value::Handle(id) => write!(f, "Handle({})", id),
             Value::NativeFunction { name, .. } => write!(f, "<native fn {}>", name),
+            Value::Range { start, end, inclusive } => {
+                if *inclusive {
+                    write!(f, "{}..={}", start, end)
+                } else {
+                    write!(f, "{}..{}", start, end)
+                }
+            }
+            Value::Iterator(_) => write!(f, "<iterator>"),
+            Value::Future { task_id, .. } => write!(f, "<future:{}>", task_id),
         }
     }
 }
@@ -273,17 +275,10 @@ impl Add for Value {
     fn add(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a + b)),
-            
-            // ADFloat同士
             (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a + b)),
-            
-            // IntとFloatの混合 -> Float (ADFloat)
             (Value::Int(a), Value::Float(b)) => Ok(Value::Float(ADFloat::from(a as f64) + b)),
             (Value::Float(a), Value::Int(b)) => Ok(Value::Float(a + ADFloat::from(b as f64))),
-            
-            // 文字列連結
             (Value::String(a), Value::String(b)) => Ok(Value::String(Rc::new((**a).to_string() + &b))),
-            
             (a, b) => Err(format!("Type mismatch in addition: {} + {}", a.type_name(), b.type_name())),
         }
     }
@@ -298,7 +293,6 @@ impl Sub for Value {
             (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a - b)),
             (Value::Int(a), Value::Float(b)) => Ok(Value::Float(ADFloat::from(a as f64) - b)),
             (Value::Float(a), Value::Int(b)) => Ok(Value::Float(a - ADFloat::from(b as f64))),
-            
             (a, b) => Err(format!("Type mismatch in subtraction: {} - {}", a.type_name(), b.type_name())),
         }
     }
@@ -313,7 +307,6 @@ impl Mul for Value {
             (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a * b)),
             (Value::Int(a), Value::Float(b)) => Ok(Value::Float(ADFloat::from(a as f64) * b)),
             (Value::Float(a), Value::Int(b)) => Ok(Value::Float(a * ADFloat::from(b as f64))),
-            
             (a, b) => Err(format!("Type mismatch in multiplication: {} * {}", a.type_name(), b.type_name())),
         }
     }
@@ -324,11 +317,10 @@ impl Div for Value {
 
     fn div(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a / b)), // 整数除算
+            (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a / b)),
             (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a / b)),
             (Value::Int(a), Value::Float(b)) => Ok(Value::Float(ADFloat::from(a as f64) / b)),
             (Value::Float(a), Value::Int(b)) => Ok(Value::Float(a / ADFloat::from(b as f64))),
-            
             (a, b) => Err(format!("Type mismatch in division: {} / {}", a.type_name(), b.type_name())),
         }
     }
@@ -341,17 +333,11 @@ impl Neg for Value {
         match self {
             Value::Int(a) => Ok(Value::Int(-a)),
             Value::Float(a) => Ok(Value::Float(-a)),
-            
             a => Err(format!("Type mismatch in negation: -{}", a.type_name())),
         }
     }
 }
 
-
-
-
-// Gaussianサンプリング: Box-Muller
-// Gaussianの.sample()的動作で呼ばれる関数
 fn gaussian_sample(mean: f64, std: f64) -> f64 {
     use rand::Rng;
     let mut rng = rand::thread_rng();
@@ -363,4 +349,85 @@ fn gaussian_sample(mean: f64, std: f64) -> f64 {
 pub fn gaussian_to_float(mean: f64, std: f64) -> Value {
     let val = gaussian_sample(mean, std);
     Value::Float(ADFloat::Concrete(val))
+}
+
+impl PartialEq for Value {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Value::Int(a), Value::Int(b)) => a == b,
+            (Value::Float(a), Value::Float(b)) => a == b,
+            (Value::Bool(a), Value::Bool(b)) => a == b,
+            (Value::String(a), Value::String(b)) => a == b,
+            (Value::Unit, Value::Unit) => true,
+            (Value::Handle(a), Value::Handle(b)) => a == b,
+            (Value::Tuple(a), Value::Tuple(b)) => a == b,
+            (Value::Array(a), Value::Array(b)) => *a.borrow() == *b.borrow(),
+            (Value::Struct { name: n1, fields: f1 }, Value::Struct { name: n2, fields: f2 }) => {
+                n1 == n2 && *f1.borrow() == *f2.borrow()
+            }
+            (Value::Enum { name: n1, variant: v1, fields: f1 }, Value::Enum { name: n2, variant: v2, fields: f2 }) => {
+                n1 == n2 && v1 == v2 && f1 == f2
+            }
+            (
+                Value::Function {
+                    params: p1,
+                    body: b1,
+                    closure: c1,
+                    is_async: a1,
+                },
+                Value::Function {
+                    params: p2,
+                    body: b2,
+                    closure: c2,
+                    is_async: a2,
+                },
+            ) => p1 == p2 && b1 == b2 && Rc::ptr_eq(c1, c2) && a1 == a2,
+            (Value::BytecodeFunction { name: n1, chunk_index: c1, arity: a1, upvalue_count: u1 }, 
+             Value::BytecodeFunction { name: n2, chunk_index: c2, arity: a2, upvalue_count: u2 }) => {
+                n1 == n2 && c1 == c2 && a1 == a2 && u1 == u2
+            }
+            (Value::BytecodeClosure { function: f1, upvalues: u1 }, 
+             Value::BytecodeClosure { function: f2, upvalues: u2 }) => {
+                f1 == f2 && u1 == u2
+            }
+            (Value::Gaussian { mean: m1, std: s1 }, Value::Gaussian { mean: m2, std: s2 }) => {
+                m1 == m2 && s1 == s2
+            }
+            (Value::Uniform { min: mn1, max: mx1 }, Value::Uniform { min: mn2, max: mx2 }) => {
+                mn1 == mn2 && mx1 == mx2
+            }
+            (Value::Bernoulli { p: p1 }, Value::Bernoulli { p: p2 }) => p1 == p2,
+            (Value::Beta { alpha: a1, beta: b1 }, Value::Beta { alpha: a2, beta: b2 }) => {
+                a1 == a2 && b1 == b2
+            }
+            (Value::Signal { id: i1, current_value: v1 }, Value::Signal { id: i2, current_value: v2 }) => {
+                i1 == i2 && v1 == v2
+            }
+            (Value::Range { start: s1, end: e1, inclusive: i1 }, 
+             Value::Range { start: s2, end: e2, inclusive: i2 }) => {
+                s1 == s2 && e1 == e2 && i1 == i2
+            }
+            (Value::Iterator(a), Value::Iterator(b)) => *a.borrow() == *b.borrow(),
+            (Value::Event { id: i1, latest_value: v1 }, Value::Event { id: i2, latest_value: v2 }) => {
+                i1 == i2 && v1 == v2
+            }
+            (Value::Some(a), Value::Some(b)) => a == b,
+            (Value::None, Value::None) => true,
+            (Value::Builtin(a), Value::Builtin(b)) => a == b,
+            (Value::Map(a), Value::Map(b)) => *a.borrow() == *b.borrow(),
+            (Value::Rc(a), Value::Rc(b)) => a == b,
+            (Value::Weak(_), Value::Weak(_)) => false,
+            (Value::NativeFunction { name: n1, library_index: l1, params: p1, return_type: r1, is_async: a1 },
+             Value::NativeFunction { name: n2, library_index: l2, params: p2, return_type: r2, is_async: a2 }) => {
+                n1 == n2 && l1 == l2 && p1 == p2 && r1 == r2 && a1 == a2
+            }
+            (Value::Module { name: n1 }, Value::Module { name: n2 }) => n1 == n2,
+            (Value::TraitObject { trait_name: t1, vtable: v1, data: d1 }, 
+             Value::TraitObject { trait_name: t2, vtable: v2, data: d2 }) => {
+                t1 == t2 && v1 == v2 && d1 == d2
+            }
+            (Value::Future { task_id: t1, .. }, Value::Future { task_id: t2, .. }) => t1 == t2,
+            _ => false,
+        }
+    }
 }

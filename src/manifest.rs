@@ -1,3 +1,5 @@
+// src/manifest.rs
+
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::Path;
@@ -14,7 +16,7 @@ pub struct Dependencies {
     #[serde(default)]
     pub rust: HashMap<String, toml::Value>,
     #[serde(default)]
-    pub flux: HashMap<String, DependencySpec>,
+    pub fluno: HashMap<String, DependencySpec>,
 }
 
 #[derive(Debug, Deserialize)]

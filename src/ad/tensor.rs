@@ -1,6 +1,6 @@
 // src/ad/tensor.rs
 
-use crate::ad::graph::{ADNode, BinaryOp, UnaryOp, Tape, ReduceOp};
+use crate::ad::graph::{ADNode, BinaryOp, Tape, ReduceOp};
 use crate::ad::types::ADFloat;
 use crate::ad::with_tape;
 use crate::ad::backend::{TensorBackend, TensorStorage};
@@ -55,11 +55,11 @@ impl ADTensor {
             ADTensor::Concrete(_) => ADFloat::Concrete(sum_val),
             ADTensor::Dual { tape_id, node_id, .. } => {
                 let id = with_tape(*tape_id, |tape| {
-                     tape.push(ADNode::TensorReduce {
-                         op: ReduceOp::Sum,
-                         arg: *node_id,
-                         value: sum_val,
-                     })
+                    tape.push(ADNode::TensorReduce {
+                        op: ReduceOp::Sum,
+                        arg: *node_id,
+                        value: sum_val,
+                    })
                 });
                 ADFloat::Dual {
                     value: sum_val,
@@ -132,10 +132,10 @@ pub fn evaluate_forward(tape: &Tape, node_id: usize) -> NdarrayStorage {
     let op_info = {
         let nodes = tape.nodes.borrow();
         match &nodes[node_id] {
-             ADNode::TensorBinary { op, lhs, rhs, .. } => Some((Some((*op, *lhs, *rhs)), None)),
-             ADNode::TensorFusedMulAdd { a, b, c, .. } => Some((None, Some((*a, *b, *c)))),
-             ADNode::TensorInput { value } => return value.clone(), 
-             _ => panic!("Eval: unsupported node type or not a tensor node"),
+            ADNode::TensorBinary { op, lhs, rhs, .. } => Some((Some((*op, *lhs, *rhs)), None)),
+            ADNode::TensorFusedMulAdd { a, b, c, .. } => Some((None, Some((*a, *b, *c)))),
+            ADNode::TensorInput { value } => return value.clone(), 
+            _ => panic!("Eval: unsupported node type or not a tensor node"),
         }
     };
 
@@ -170,12 +170,12 @@ pub fn evaluate_forward(tape: &Tape, node_id: usize) -> NdarrayStorage {
 }
 
 fn eval_fused_mul_add(tape: &Tape, a: usize, b: usize, c: usize) -> NdarrayStorage {
-     let val_a = evaluate_forward(tape, a);
-     let val_b = evaluate_forward(tape, b);
-     let val_c = evaluate_forward(tape, c);
-     
-     let ab = CpuBackend::mul(&val_a, &val_b);
-     CpuBackend::add(&ab, &val_c)
+    let val_a = evaluate_forward(tape, a);
+    let val_b = evaluate_forward(tape, b);
+    let val_c = evaluate_forward(tape, c);
+ 
+    let ab = CpuBackend::mul(&val_a, &val_b);
+    CpuBackend::add(&ab, &val_c)
 }
 
 fn check_value(node: &ADNode) -> Option<&NdarrayStorage> {
@@ -211,8 +211,8 @@ mod tests {
             crate::ad::with_tape(tape_id, |tape| {
                 let nodes = tape.nodes.borrow();
                 match &nodes[node_id] {
-                     ADNode::TensorBinary { value, .. } => assert!(value.is_some(), "Node value in Tape should be cached"),
-                     _ => panic!("Wrong node type"),
+                    ADNode::TensorBinary { value, .. } => assert!(value.is_some(), "Node value in Tape should be cached"),
+                    _ => panic!("Wrong node type"),
                 }
             });
         }

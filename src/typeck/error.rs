@@ -1,66 +1,37 @@
-// Type checking error definitions and formatting.
-//
-// This module provides comprehensive error types for type checking,
-// including position information and user-friendly error messages.
+// src/typeck/error.rs
 
 use crate::ast::node::{Span, Type, DefId};
 use std::fmt;
 
-// Type checking error codes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorCode {
-    // E2001: Type mismatch
     TypeMismatch,
-    // E2002: Undefined variable
     UndefinedVariable,
-    // E2003: Duplicate definition
     DuplicateDefinition,
-    // E2004: Arity mismatch (wrong number of arguments)
     ArityMismatch,
-    // E2005: Cannot infer type
     CannotInfer,
-    // E2006: Invalid unary operation
     InvalidUnaryOp,
-    // E2007: Invalid binary operation
     InvalidBinaryOp,
-    // E2008: Non-exhaustive patterns
     NonExhaustivePatterns,
-    // E2009: Unreachable pattern
     UnreachablePattern,
-    // E2010: Invalid field access
     InvalidFieldAccess,
-    // E2011: Missing field in struct initialization
     MissingField,
-    // E2012: Unknown field in struct initialization
     UnknownField,
-    // E2013: Invalid index operation
     InvalidIndex,
-    // E2014: Return type mismatch
     ReturnTypeMismatch,
-    // E2015: Break outside loop
     BreakOutsideLoop,
-    // E2016: Continue outside loop
     ContinueOutsideLoop,
-    // E2017: Not callable (not a function)
     NotCallable,
-    // E2018: Undefined type
     UndefinedType,
-    // E2019: Recursive type definition
     RecursiveType,
-    // E2020: Invalid assignment target
     InvalidAssignmentTarget,
-    // E2021: undefined field
     UndefinedField,
-    // E2022: no matching field
     NoMatchingImpl,
-    // E2023
     AmbiguousImpl,
-    // E2024: Invalid distribution parameter
     InvalidDistributionParameter,
 }
 
 impl ErrorCode {
-    // Get the error code as a string (e.g., "E2001")
     pub fn as_str(&self) -> &'static str {
         match self {
             ErrorCode::TypeMismatch => "E2001",
@@ -90,7 +61,6 @@ impl ErrorCode {
         }
     }
 
-    // Get a short description of the error
     pub fn description(&self) -> &'static str {
         match self {
             ErrorCode::TypeMismatch => "type mismatch",
@@ -127,40 +97,32 @@ impl fmt::Display for ErrorCode {
     }
 }
 
-// Type checking errors with detailed context
 #[derive(Debug, Clone)]
 pub enum TypeError {
-    // Type mismatch: expected one type but found another
     TypeMismatch {
         expected: Type,
         found: Type,
         span: Span,
     },
 
-    // Variable not defined in any scope
     UndefinedVariable { name: String, span: Span },
 
-    // Variable already defined in current scope
     DuplicateDefinition { name: String, span: Span },
 
-    // Wrong number of function arguments
     ArityMismatch {
         expected: usize,
         found: usize,
         span: Span,
     },
 
-    // Cannot infer type from context
     CannotInfer { span: Span },
 
-    // Invalid unary operation for the given type
     InvalidUnaryOp {
         op: String,
         operand_type: Type,
         span: Span,
     },
 
-    // Invalid binary operation for the given types
     InvalidBinaryOp {
         op: String,
         left_type: Type,
@@ -168,59 +130,46 @@ pub enum TypeError {
         span: Span,
     },
 
-    // Match expression has non-exhaustive patterns
     NonExhaustivePatterns { span: Span },
 
-    // Pattern is unreachable (covered by previous patterns)
     UnreachablePattern { span: Span },
 
-    // Invalid field access on non-struct type
     InvalidFieldAccess {
         field: String,
         base_type: Type,
         span: Span,
     },
 
-    // Missing required field in struct initialization
     MissingField {
         field: String,
         struct_name: String,
         span: Span,
     },
 
-    // Unknown field in struct initialization
     UnknownField {
         field: String,
         struct_name: String,
         span: Span,
     },
 
-    // Invalid index operation on non-indexable type
     InvalidIndex { base_type: Type, span: Span },
 
-    // Return type doesn't match function signature
     ReturnTypeMismatch {
         expected: Type,
         found: Type,
         span: Span,
     },
 
-    // Break statement outside of loop
     BreakOutsideLoop { span: Span },
 
-    // Continue statement outside of loop
     ContinueOutsideLoop { span: Span },
 
-    // Attempted to call a non-function value
     NotCallable { value_type: Type, span: Span },
 
-    // Type name is not defined
     UndefinedType { name: String, span: Span },
 
-    // Recursive type definition without indirection
     RecursiveType { name: String, span: Span },
 
-    // Invalid assignment target (not a variable or field)
     InvalidAssignmentTarget { span: Span },
 
     UndefinedField {
@@ -228,18 +177,19 @@ pub enum TypeError {
         field: String,
         span: Span,
     },
+
     NoMatchingImpl {
         trait_def: DefId,
         receiver: Type,
         span: Span,
     },
+
     AmbiguousImpl {
         trait_def: DefId,
         receiver: Type,
         span: Span,
     },
 
-    // Invalid distribution parameter (e.g., negative std for Gaussian)
     InvalidDistributionParameter {
         distribution: String,
         param_name: String,
@@ -249,7 +199,6 @@ pub enum TypeError {
 }
 
 impl TypeError {
-    // Get the error code for this error
     pub fn code(&self) -> ErrorCode {
         match self {
             TypeError::TypeMismatch { .. } => ErrorCode::TypeMismatch,
@@ -279,7 +228,6 @@ impl TypeError {
         }
     }
 
-    // Get the span where this error occurred
     pub fn span(&self) -> Span {
         match self {
             TypeError::TypeMismatch { span, .. }
@@ -309,7 +257,6 @@ impl TypeError {
         }
     }
 
-    // Get a detailed error message
     pub fn message(&self) -> String {
         match self {
             TypeError::TypeMismatch { expected, found, .. } => {
@@ -416,7 +363,6 @@ impl fmt::Display for TypeError {
 
 impl std::error::Error for TypeError {}
 
-// Result type for type checking operations
 pub type TypeResult<T> = Result<T, TypeError>;
 
 #[cfg(test)]

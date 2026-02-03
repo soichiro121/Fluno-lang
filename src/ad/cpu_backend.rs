@@ -4,7 +4,7 @@ use ndarray::{ArrayD, IxDyn, Ix2};
 use crate::ad::backend::{TensorBackend, TensorStorage};
 use std::ops::Deref;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct NdarrayStorage(pub ArrayD<f64>);
 
 impl Deref for NdarrayStorage {
@@ -28,7 +28,7 @@ impl TensorStorage for NdarrayStorage {
     }
     
     fn into_vec(self) -> Vec<f64> {
-        self.0.into_raw_vec()
+        self.0.into_raw_vec_and_offset().0
     }
 }
 

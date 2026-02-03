@@ -2,70 +2,39 @@
 
 use std::fmt;
 
-// Error code categories
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorCode {
-    // Runtime Errors (R1000-R1999)
-    // Division by zero
     R1001,
-    // Type mismatch at runtime
     R1002,
-    // Undefined variable
     R1003,
-    // Arity mismatch in function call
     R1004,
-    // Index out of bounds
     R1005,
-    // Null pointer dereference
     R1006,
-    // Stack overflow
     R1007,
-    // Early return (internal)
     R1008,
 
-    // Type Errors (T2000-T2999)
-    // Type mismatch in expression
     T2001,
-    // Cannot infer type
     T2002,
-    // Invalid binary operation
     T2003,
-    // Return type mismatch
     T2004,
-    // Undefined type
     T2005,
 
-    // Parse Errors (P3000-P3999)
-    // Unexpected token
     P3001,
-    // Expected token not found
     P3002,
-    // Invalid syntax
     P3003,
-    // Unterminated string
     P3004,
 
-    // I/O Errors (I4000-I4999)
-    // File not found
     I4001,
-    // Permission denied
     I4002,
-    // Read error
     I4003,
-    // Write error
     I4004,
 
-    // Panic Errors (P5000-P5999)
-    // Unrecoverable error
     P5001,
-    // Assertion failed
     P5002,
-    // Out of memory
     P5003,
 }
 
 impl ErrorCode {
-    // Get the numeric code
     pub fn code(&self) -> u32 {
         match self {
             ErrorCode::R1001 => 1001,
@@ -118,7 +87,6 @@ impl ErrorCode {
         }
     }
     
-    // Get human-readable description
     pub fn description(&self) -> &'static str {
         match self {
             ErrorCode::R1001 => "Division by zero",
@@ -150,7 +118,7 @@ impl ErrorCode {
             ErrorCode::P5002 => "Assertion failed",
             ErrorCode::P5003 => "Out of memory",
             
-            _ => "Unknown error",
+
         }
     }
 }
@@ -161,7 +129,6 @@ impl fmt::Display for ErrorCode {
     }
 }
 
-// Diagnostic message with error code
 #[derive(Debug, Clone)]
 pub struct Diagnostic {
     pub code: ErrorCode,

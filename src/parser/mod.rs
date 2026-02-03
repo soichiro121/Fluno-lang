@@ -363,7 +363,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_item(&mut self) -> ParseResult<Item> {
+    fn _parse_item(&mut self) -> ParseResult<Item> {
 
         let attributes = self.parse_attributes()?;
 
@@ -638,8 +638,11 @@ impl<'a> Parser<'a> {
                 Span::new(name_token.line, name_token.column, 0),
             );
 
-            self.expect(TokenKind::Colon)?;
-            let ty = self.parse_type()?;
+            let ty = if self.match_any(&[TokenKind::Colon]) {
+                self.parse_type()?
+            } else {
+                 Type::Infer
+            };
 
             fields.push(StructField {
                 name,
@@ -683,7 +686,16 @@ impl<'a> Parser<'a> {
 
             let data = if self.check(TokenKind::LParen) {
                 self.expect(TokenKind::LParen)?;
-                let tys = self.parse_type_list()?;
+                
+                let mut tys = Vec::new();
+                if !self.check(TokenKind::RParen) {
+                    loop {
+                        let t = self.parse_type()?;
+                        tys.push(t);
+                        if !self.match_any(&[TokenKind::Comma]) { break; }
+                    }
+                }
+
                 self.expect(TokenKind::RParen)?;
                 VariantData::Tuple(tys)
             } else if self.check(TokenKind::LBrace) {
@@ -743,7 +755,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_trait(&mut self, _attributes: Vec<Attribute>) -> ParseResult<TraitDef> {
-        let start_span = Span::new(self.current.line, self.current.column, 5);
+        let _start_span = Span::new(self.current.line, self.current.column, 5);
         self.expect(TokenKind::Trait)?;
         let name_token = self.expect(TokenKind::Identifier)?;
         let name = Identifier::new(
@@ -804,7 +816,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_impl(&mut self, attributes: Vec<Attribute>) -> ParseResult<ImplBlock> {
+    fn parse_impl(&mut self, _attributes: Vec<Attribute>) -> ParseResult<ImplBlock> {
         let start_span = Span::new(self.current.line, self.current.column, 0);
         self.expect(TokenKind::Impl)?;
         
@@ -815,11 +827,11 @@ impl<'a> Parser<'a> {
         let first_ty = self.parse_type()?;
         
         let (trait_ref, self_ty) = if self.match_any(&[TokenKind::For]) {
-             let t_ref = Some(first_ty);
-             let s_ty = self.parse_type()?;
-             (t_ref, s_ty)
+            let t_ref = Some(first_ty);
+            let s_ty = self.parse_type()?;
+            (t_ref, s_ty)
         } else {
-             (None, first_ty)
+            (None, first_ty)
         };
 
         let mut where_preds = Vec::new();
@@ -846,10 +858,10 @@ impl<'a> Parser<'a> {
         }
         
         if self.current.kind == TokenKind::Identifier && self.current.text.as_deref() == Some("where") {
-             self.advance()?; 
-             while !self.check(TokenKind::LBrace) && !self.is_at_end() {
-                 self.advance()?;
-             }
+            self.advance()?;
+            while !self.check(TokenKind::LBrace) && !self.is_at_end() {
+                self.advance()?;
+            }
         }
 
         self.expect(TokenKind::LBrace)?;
@@ -1007,26 +1019,26 @@ impl<'a> Parser<'a> {
 
                                 if self.current.kind != TokenKind::Identifier && !is_bracket {
                                 } else {
-                                     let ok_type = self.parse_type()?;
-                                     self.expect(TokenKind::Comma)?;
-                                     let err_type = self.parse_type()?;
-                                     if is_bracket {
-                                         self.expect(TokenKind::RBracket)?;
-                                     } else {
-                                         self.expect_gt_or_shr()?;
-                                     }
-                                     return Ok(Type::Result {
-                                         ok_type: Box::new(ok_type),
-                                         err_type: Box::new(err_type),
-                                     });
+                                    let ok_type = self.parse_type()?;
+                                    self.expect(TokenKind::Comma)?;
+                                    let err_type = self.parse_type()?;
+                                    if is_bracket {
+                                        self.expect(TokenKind::RBracket)?;
+                                    } else {
+                                        self.expect_gt_or_shr()?;
+                                    }
+                                    return Ok(Type::Result {
+                                        ok_type: Box::new(ok_type),
+                                        err_type: Box::new(err_type),
+                                    });
                                 }
                             }
                             "Rc" => {
-                                 if self.match_any(&[TokenKind::Lt]) {
-                                     let inner = self.parse_type()?;
-                                     self.expect_gt_or_shr()?;
-                                     return Ok(Type::Rc(Box::new(inner)));
-                                 }
+                                if self.match_any(&[TokenKind::Lt]) {
+                                    let inner = self.parse_type()?;
+                                    self.expect_gt_or_shr()?;
+                                    return Ok(Type::Rc(Box::new(inner)));
+                                }
                             }
                             "Weak" => {
                                 if self.match_any(&[TokenKind::Lt]) {
@@ -1134,18 +1146,18 @@ impl<'a> Parser<'a> {
                 Ok(Type::Array(Box::new(inner)))
             }
             _ => {
-                 if self.check(TokenKind::LBracket) {
-                     self.advance()?;
-                     let inner = self.parse_type()?;
-                     self.expect(TokenKind::RBracket)?;
-                     return Ok(Type::Array(Box::new(inner)));
-                 }
-                 Err(ParseError::UnexpectedToken {
+                if self.check(TokenKind::LBracket) {
+                    self.advance()?;
+                    let inner = self.parse_type()?;
+                    self.expect(TokenKind::RBracket)?;
+                    return Ok(Type::Array(Box::new(inner)));
+                }
+                Err(ParseError::UnexpectedToken {
                     expected: TokenKind::Identifier, 
                     found: self.current.kind.clone(),
                     line: self.current.line,
                     column: self.current.column,
-                 })
+                })
             }
         }
     }
@@ -1302,7 +1314,7 @@ impl<'a> Parser<'a> {
 
         }
 
-        let pattern = self.parse_pattern()?;
+        let pattern = self._parse_pattern()?;
         
         let ty = if self.match_any(&[TokenKind::Colon]) {
             Some(self.parse_type()?)
@@ -1362,7 +1374,7 @@ impl<'a> Parser<'a> {
         let span = Span::new(self.current.line, self.current.column, 3);
         self.expect(TokenKind::For)?;
         
-        let pattern = self.parse_pattern()?;
+        let pattern = self._parse_pattern()?;
         
         let in_token = self.expect(TokenKind::Identifier)?;
         if in_token.text() != Some("in") {
@@ -1421,20 +1433,20 @@ impl<'a> Parser<'a> {
         self.parse_expression_with_precedence(Precedence::Lowest)
     }
 
-    fn parse_primary_expression(&mut self) -> ParseResult<Expression> {
+    fn _parse_primary_expression(&mut self) -> ParseResult<Expression> {
         match &self.current.kind {
-            TokenKind::IntLiteral => self.parse_int_literal(),
-            TokenKind::FloatLiteral => self.parse_float_literal(),
-            TokenKind::StringLiteral => self.parse_string_literal(),
-            TokenKind::True | TokenKind::False => self.parse_bool_literal(),
-            TokenKind::Identifier | TokenKind::SelfLower => self.parse_identifier_or_call(),
-            TokenKind::LParen => self.parse_paren_or_tuple(),
+            TokenKind::IntLiteral => self._parse_int_literal(),
+            TokenKind::FloatLiteral => self._parse_float_literal(),
+            TokenKind::StringLiteral => self._parse_string_literal(),
+            TokenKind::True | TokenKind::False => self._parse_bool_literal(),
+            TokenKind::Identifier | TokenKind::SelfLower => self._parse_identifier_or_call(),
+            TokenKind::LParen => self._parse_paren_or_tuple(),
             TokenKind::If => self.parse_if_expression(),
-            TokenKind::LBrace => self.parse_block_expression(),
-            TokenKind::Minus | TokenKind::Not | TokenKind::BitNot => self.parse_unary_expression(),
+            TokenKind::LBrace => self._parse_block_expression(),
+            TokenKind::Minus | TokenKind::Not | TokenKind::BitNot => self._parse_unary_expression(),
             TokenKind::Match => self.parse_match_expression(),
             TokenKind::LBracket => self.parse_array_literal(),
-            TokenKind::BitOr => self.parse_closure_expression(),
+            TokenKind::BitOr => self._parse_closure_expression(),
             _ => Err(ParseError::UnexpectedToken {
                 expected: TokenKind::Identifier,
                 found: self.current.kind.clone(),
@@ -1460,7 +1472,7 @@ impl<'a> Parser<'a> {
         Ok(Expression::Array { elements, span })
     }
 
-    fn parse_closure_expression(&mut self) -> ParseResult<Expression> {
+    fn _parse_closure_expression(&mut self) -> ParseResult<Expression> {
         let span = Span::new(self.current.line, self.current.column, 1);
         self.expect(TokenKind::BitOr)?;
         
@@ -1496,7 +1508,7 @@ impl<'a> Parser<'a> {
         Ok(Expression::Closure { params, body, span })
     }
 
-    fn parse_int_literal(&mut self) -> ParseResult<Expression> {
+    fn _parse_int_literal(&mut self) -> ParseResult<Expression> {
         let span = Span::new(self.current.line, self.current.column, 0);
         let text = self.current.text().unwrap_or("0");
         
@@ -1525,7 +1537,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_float_literal(&mut self) -> ParseResult<Expression> {
+    fn _parse_float_literal(&mut self) -> ParseResult<Expression> {
         let span = Span::new(self.current.line, self.current.column, 0);
         let text = self.current.text().unwrap_or("0.0");
         let value = text.parse().map_err(|_| ParseError::InvalidLiteral {
@@ -1543,7 +1555,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_string_literal(&mut self) -> ParseResult<Expression> {
+    fn _parse_string_literal(&mut self) -> ParseResult<Expression> {
         let span = Span::new(self.current.line, self.current.column, 0);
         let text = self.current.text().unwrap_or("").to_string();
         
@@ -1555,7 +1567,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_bool_literal(&mut self) -> ParseResult<Expression> {
+    fn _parse_bool_literal(&mut self) -> ParseResult<Expression> {
         let span = Span::new(self.current.line, self.current.column, 0);
         let value = self.current.kind == TokenKind::True;
         
@@ -1567,7 +1579,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_identifier_or_call(&mut self) -> ParseResult<Expression> {
+    fn _parse_identifier_or_call(&mut self) -> ParseResult<Expression> {
         let span = Span::new(self.current.line, self.current.column, 0);
 
         let name_str = if self.current.kind == TokenKind::SelfLower {
@@ -1698,7 +1710,7 @@ impl<'a> Parser<'a> {
         Ok(Expression::Variable { name: path, span })
     }
 
-    fn parse_argument_list(&mut self) -> ParseResult<Vec<Expression>> {
+    fn _parse_argument_list(&mut self) -> ParseResult<Vec<Expression>> {
         let mut args = Vec::new();
         
         if self.check(TokenKind::RParen) {
@@ -1716,7 +1728,7 @@ impl<'a> Parser<'a> {
         Ok(args)
     }
 
-    fn parse_paren_or_tuple(&mut self) -> ParseResult<Expression> {
+    fn _parse_paren_or_tuple(&mut self) -> ParseResult<Expression> {
         let span = Span::new(self.current.line, self.current.column, 1);
         self.advance()?;
         
@@ -1795,6 +1807,17 @@ impl<'a> Parser<'a> {
             TokenKind::Gt => Some(BinaryOp::Gt),
             TokenKind::Ge => Some(BinaryOp::Ge),
             TokenKind::Assign => Some(BinaryOp::Assign),
+            
+            TokenKind::PlusAssign => Some(BinaryOp::AddAssign),
+            TokenKind::MinusAssign => Some(BinaryOp::SubAssign),
+            TokenKind::StarAssign => Some(BinaryOp::MulAssign),
+            TokenKind::SlashAssign => Some(BinaryOp::DivAssign),
+            TokenKind::PercentAssign => Some(BinaryOp::ModAssign),
+            TokenKind::BitAndAssign => Some(BinaryOp::BitAndAssign),
+            TokenKind::BitOrAssign => Some(BinaryOp::BitOrAssign),
+            TokenKind::BitXorAssign => Some(BinaryOp::BitXorAssign),
+            TokenKind::ShlAssign => Some(BinaryOp::ShlAssign),
+            TokenKind::ShrAssign => Some(BinaryOp::ShrAssign),
 
             TokenKind::And => Some(BinaryOp::And),
             TokenKind::Or => Some(BinaryOp::Or),
@@ -1813,7 +1836,7 @@ impl<'a> Parser<'a> {
         let mut arms = Vec::new();
         
         while !self.check(TokenKind::RBrace) && !self.is_at_end() {
-            let pattern = self.parse_pattern()?;
+            let pattern = self._parse_pattern()?;
             
             let guard = if self.match_any(&[TokenKind::If]) {
                 Some(self.parse_expression()?)
@@ -1846,13 +1869,13 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_block_expression(&mut self) -> ParseResult<Expression> {
+    fn _parse_block_expression(&mut self) -> ParseResult<Expression> {
         let block = self.parse_block()?;
         let span = block.span;
         Ok(Expression::Block { block, span })
     }
 
-    fn parse_unary_expression(&mut self) -> ParseResult<Expression> {
+    fn _parse_unary_expression(&mut self) -> ParseResult<Expression> {
         let span = Span::new(self.current.line, self.current.column, 1);
         let op = match self.current.kind {
             TokenKind::Minus => UnaryOp::Neg,
@@ -1871,7 +1894,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_pattern(&mut self) -> ParseResult<Pattern> {
+    fn _parse_pattern(&mut self) -> ParseResult<Pattern> {
         let span = Span::new(self.current.line, self.current.column, 1);
         
         match &self.current.kind {
@@ -1893,7 +1916,7 @@ impl<'a> Parser<'a> {
                         self.advance()?;
                         if !self.check(TokenKind::RParen) {
                             loop {
-                                args.push(self.parse_pattern()?);
+                                args.push(self._parse_pattern()?);
                                 if !self.match_any(&[TokenKind::Comma]) { break; }
                             }
                         }
@@ -1914,7 +1937,7 @@ impl<'a> Parser<'a> {
                                 let fname = Identifier::new(ftok.text.unwrap_or_default(), fspan);
 
                                 let pat = if self.match_any(&[TokenKind::Colon]) {
-                                    Some(self.parse_pattern()?)
+                                    Some(self._parse_pattern()?)
                                 } else {
                                     None
                                 };
@@ -1944,46 +1967,46 @@ impl<'a> Parser<'a> {
                 }
                 
                 if self.peek_token().kind == TokenKind::LBrace {
-                     let struct_ident = Identifier::new(name.clone(), span);
-                     self.advance()?;
-                     self.expect(TokenKind::LBrace)?;
+                    let struct_ident = Identifier::new(name.clone(), span);
+                    self.advance()?;
+                    self.expect(TokenKind::LBrace)?;
+                    
+                    let mut fields = Vec::new();
                      
-                     let mut fields = Vec::new();
+                    if !self.check(TokenKind::RBrace) {
+                        loop {
+                            let ftok = self.expect(TokenKind::Identifier)?;
+                            let fspan = Span::new(ftok.line, ftok.column, 0);
+                            let fname = Identifier::new(ftok.text.unwrap_or_default(), fspan);
+                             
+                            let pat = if self.match_any(&[TokenKind::Colon]) {
+                                Some(self._parse_pattern()?) 
+                            } else {
+                                None
+                            };
+                             
+                            fields.push(crate::ast::node::FieldPattern {
+                                name: fname,
+                                pattern: pat,
+                                span: fspan,
+                            });
+                             
+                            if !self.match_any(&[TokenKind::Comma]) { break; }
+                        }
+                    }
+                    self.expect(TokenKind::RBrace)?;
                      
-                     if !self.check(TokenKind::RBrace) {
-                         loop {
-                             let ftok = self.expect(TokenKind::Identifier)?;
-                             let fspan = Span::new(ftok.line, ftok.column, 0);
-                             let fname = Identifier::new(ftok.text.unwrap_or_default(), fspan);
-                             
-                             let pat = if self.match_any(&[TokenKind::Colon]) {
-                                 Some(self.parse_pattern()?) 
-                             } else {
-                                 None
-                             };
-                             
-                             fields.push(crate::ast::node::FieldPattern {
-                                 name: fname,
-                                 pattern: pat,
-                                 span: fspan,
-                             });
-                             
-                             if !self.match_any(&[TokenKind::Comma]) { break; }
-                         }
-                     }
-                     self.expect(TokenKind::RBrace)?;
-                     
-                     return Ok(Pattern::Struct {
-                         name: struct_ident,
-                         fields,
-                         span,
-                     });
+                    return Ok(Pattern::Struct {
+                        name: struct_ident,
+                        fields,
+                        span,
+                    });
                 }
 
                 if name == "Some" {
                     self.advance()?;
                     self.expect(TokenKind::LParen)?;
-                    let inner_pat = self.parse_pattern()?;
+                    let inner_pat = self._parse_pattern()?;
                     self.expect(TokenKind::RParen)?;
                     return Ok(Pattern::Some {
                         pattern: Box::new(inner_pat),
@@ -1999,7 +2022,7 @@ impl<'a> Parser<'a> {
                 if name == "Ok" {
                     self.advance()?;
                     self.expect(TokenKind::LParen)?;
-                    let inner_pat = self.parse_pattern()?;
+                    let inner_pat = self._parse_pattern()?;
                     self.expect(TokenKind::RParen)?;
                     return Ok(Pattern::Ok {
                         pattern: Box::new(inner_pat),
@@ -2010,7 +2033,7 @@ impl<'a> Parser<'a> {
                 if name == "Err" {
                     self.advance()?;
                     self.expect(TokenKind::LParen)?;
-                    let inner_pat = self.parse_pattern()?;
+                    let inner_pat = self._parse_pattern()?;
                     self.expect(TokenKind::RParen)?;
                     return Ok(Pattern::Err {
                         pattern: Box::new(inner_pat),
@@ -2056,7 +2079,7 @@ impl<'a> Parser<'a> {
                 let mut patterns = Vec::new();
                 
                 while !self.check(TokenKind::RParen) && !self.is_at_end() {
-                    patterns.push(self.parse_pattern()?);
+                    patterns.push(self._parse_pattern()?);
                     
                     if !self.match_any(&[TokenKind::Comma]) {
                         break;

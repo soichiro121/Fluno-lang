@@ -1,0 +1,9 @@
+// src/stdlib/reactive.fln
+
+fn Signal::new(initial_value) {
+    __builtin_signal_new(initial_value)
+}
+
+fn Signal::combine(s1, s2, combiner_func) {
+    __builtin_signal_combine(s1, s2, combiner_func)
+}

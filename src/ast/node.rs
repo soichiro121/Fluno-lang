@@ -224,8 +224,6 @@ pub struct WhereClause {
     pub span: Span,
 }
 
-
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Int,
@@ -282,6 +280,7 @@ pub enum Type {
     Rc(Box<Type>),
     Weak(Box<Type>),
     Map(Box<Type>, Box<Type>),
+    Future(Box<Type>),
 }
 
 impl Type {
@@ -400,11 +399,10 @@ impl fmt::Display for Type {
             Type::DynTrait { trait_path } => write!(f, "dyn {}", trait_path),
             Type::Map(k, v) => write!(f, "Map<{}, {}>", k, v),
             Type::Handle(t) => write!(f, "Handle<{}>", t),
+            Type::Future(t) => write!(f, "Future<{}>", t),
         }
     }
 }
-
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PathSeg {
@@ -471,10 +469,6 @@ impl fmt::Display for Path {
     }
 }
 
-
-
-
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     Let {
@@ -517,8 +511,6 @@ pub struct Block {
     pub span: Span,
 }
 
-
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Literal {
@@ -529,7 +521,6 @@ pub enum Expression {
         name: Path, 
         span: Span 
     },
-
     Binary {
         left: Box<Expression>,
         op: BinaryOp,
@@ -541,7 +532,6 @@ pub enum Expression {
         operand: Box<Expression>,
         span: Span,
     },
-
     Call {
         callee: Box<Expression>,
         args: Vec<Expression>,
@@ -564,7 +554,6 @@ pub enum Expression {
         index: Box<Expression>,
         span: Span,
     },
-
     If {
         condition: Box<Expression>,
         then_branch: Block,
@@ -590,7 +579,6 @@ pub enum Expression {
         body: Box<Expression>,
         span: Span,
     },
-
     Tuple {
         elements: Vec<Expression>,
         span: Span,
@@ -611,7 +599,6 @@ pub enum Expression {
         named_fields: Option<Vec<FieldInit>>, 
         span: Span,
     },
-
     Some {
         expr: Box<Expression>,
         span: Span,
@@ -619,7 +606,6 @@ pub enum Expression {
     None {
         span: Span,
     },
-    
     Ok {
         expr: Box<Expression>,
         span: Span,
@@ -739,8 +725,6 @@ pub struct FieldInit {
     pub span: Span,
 }
 
-
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     Int(i64),
@@ -761,8 +745,6 @@ impl fmt::Display for Literal {
         }
     }
 }
-
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinaryOp {
@@ -799,7 +781,28 @@ pub enum BinaryOp {
     BitXorAssign,
     ShlAssign,
     ShrAssign,
-    
+}
+
+impl BinaryOp {
+    pub fn assignment_op(&self) -> Option<BinaryOp> {
+        match self {
+            BinaryOp::AddAssign => Some(BinaryOp::Add),
+            BinaryOp::SubAssign => Some(BinaryOp::Sub),
+            BinaryOp::MulAssign => Some(BinaryOp::Mul),
+            BinaryOp::DivAssign => Some(BinaryOp::Div),
+            BinaryOp::ModAssign => Some(BinaryOp::Mod),
+            BinaryOp::BitAndAssign => Some(BinaryOp::BitAnd),
+            BinaryOp::BitOrAssign => Some(BinaryOp::BitOr),
+            BinaryOp::BitXorAssign => Some(BinaryOp::BitXor),
+            BinaryOp::ShlAssign => Some(BinaryOp::Shl),
+            BinaryOp::ShrAssign => Some(BinaryOp::Shr),
+            _ => None,
+        }
+    }
+
+    pub fn desugared_op(&self) -> Option<BinaryOp> {
+        self.assignment_op()
+    }
 }
 
 
@@ -857,8 +860,6 @@ impl fmt::Display for UnaryOp {
         write!(f, "{}", s)
     }
 }
-
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Pattern {
@@ -932,8 +933,6 @@ pub struct FieldPattern {
     pub span: Span,
 }
 
-
-
 #[derive(Debug, Clone, Eq, Hash)]
 pub struct Identifier {
     pub name: String,
@@ -960,8 +959,6 @@ impl fmt::Display for Identifier {
         write!(f, "{}", self.name)
     }
 }
-
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Visibility {
