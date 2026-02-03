@@ -1,31 +1,40 @@
 name: Release
+
+# リリースを作成してファイルをアップロードするための権限設定
+permissions:
+  contents: write
+
 on:
   push:
     tags:
-      - 'v*' # v1.0.0 などのタグプッシュで起動
+      - "v*" # v1.0.0 などのタグがプッシュされたら実行
 
 jobs:
-  build:
-    name: Build for ${{ matrix.target }}
+  build-and-release:
+    name: Build for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
+          # Linux
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact_name: fluno
+            binary_name: fluno
             asset_name: fluno-linux-amd64
+          # Windows
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact_name: fluno.exe
-            asset_name: fluno-windows-amd64.exe
+            binary_name: fluno.exe
+            asset_name: fluno-windows-amd64
+          # macOS
           - os: macos-latest
             target: x86_64-apple-darwin
-            artifact_name: fluno
+            binary_name: fluno
             asset_name: fluno-macos-amd64
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -33,12 +42,30 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build
+        # リリースモードで、マトリックスで指定したターゲット向けにビルド
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Upload binaries to release
+      - name: Package Binary
+        # WindowsでもBashを使って条件分岐を記述 (shell: bash を指定)
+        shell: bash
+        run: |
+          # ビルド成果物があるディレクトリへ移動
+          cd target/${{ matrix.target }}/release
+          
+          # OSに応じて圧縮コマンドを切り替え
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            # Windows: 7-Zipを使ってzip圧縮 (GitHub Actionsには7zがプリインストールされています)
+            7z a ../../../${{ matrix.asset_name }}.zip ${{ matrix.binary_name }}
+          else
+            # Linux/macOS: tarコマンドでtar.gz圧縮
+            tar -czf ../../../${{ matrix.asset_name }}.tar.gz ${{ matrix.binary_name }}
+          fi
+
+      - name: Upload to Release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
-          asset_name: ${{ matrix.asset_name }}
+          # マトリックス変数を使ってアップロードするファイルを指定
+          file: ${{ matrix.asset_name }}.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
+          asset_name: ${{ matrix.asset_name }}.${{ matrix.os == 'windows-latest' && 'zip' || 'tar.gz' }}
           tag: ${{ github.ref }}
