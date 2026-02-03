@@ -1,0 +1,112 @@
+// demo/sensor_fusion.fln
+// センサーフュージョン・シミュレータ (Kalman Filter in PPL)
+
+// --- 物理モデル ---
+fn fusion_model(prev_pos: Float, accel: Float, gps: Float) -> Float {
+    // 予測ステップ: 前回の位置 + 移動量 にノイズを加味
+    let x = sample(Gaussian(prev_pos + accel, 0.2));
+    
+    // 観測ステップ: 推定位置 x から GPS が観測される確率
+    observe(Gaussian(x, 1.0), gps);
+    
+    return x;
+}
+
+// サンプル群から事後平均を算出する
+fn calculate_posterior_mean(samples: Array<Any>) -> Float {
+    let sum = 0.0;
+    let n = samples.len();
+    if n == 0 { return 0.0; }
+    
+    let i = 0;
+    while i < n {
+        let m = samples[i];
+        let val = m.get("sample_0");
+        sum = sum + val;
+        i = i + 1;
+    }
+    return sum / n;
+}
+
+// 0.0 〜 1.0 の乱数
+fn rand() -> Float {
+    return sample(Uniform(0.0, 1.0));
+}
+
+// 標準正規分布ノイズ (Box-Muller法)
+fn normal_noise() -> Float {
+    let u1 = rand();
+    let u2 = rand();
+    return sqrt(-2.0 * ln(u1)) * cos(6.2831853 * u2);
+}
+
+fn main() {
+    println("=============================================");
+    println("   Flux Sensor Fusion Simulator (PPL)   ");
+    println("=============================================");
+    println("GPS（低精度）と加速度（高精度）を統合して推定します。");
+    println("");
+
+    // 1. シグナルの初期化 (Reactive)
+    let gps_signal = Signal_new(0.0);
+    let accel_signal = Signal_new(0.0);
+    
+    // 推論設定
+    let config = Map();
+    config.insert("num_samples", 50); 
+    config.insert("step_size", 0.1);
+    config.insert("num_leapfrog", 10);
+
+    // 2. リアクティブ統合回路
+    let estimated_pos = 0.0;
+    
+    // GPS または加速度が更新されるたびに再推論を実行する
+    let fused_signal = Signal_combine(gps_signal, accel_signal, |g, a| {
+        let samples = infer_hmc(config, || fusion_model(estimated_pos, g, a));
+        estimated_pos = calculate_posterior_mean(samples);
+        return estimated_pos;
+    });
+
+    // 3. シミュレーション実行
+    let true_pos = 0.0;
+    let total_steps = 10;
+    
+    println("Step | True Pos | GPS (Noisy) | Estimated | Status");
+    println("-----|----------|-------------|-----------|-------");
+
+    let t = 0;
+    while t < total_steps {
+        // A. 真の移動 (速度 1.0)
+        let move_val = 1.0;
+        true_pos = true_pos + move_val;
+        
+        // B. ノイズの乗ったセンサー値の生成
+        let gps_val = true_pos + normal_noise() * 1.0;
+        let accel_val = move_val + normal_noise() * 0.1;
+
+        // C. シグナルへの入力
+        Signal_set(gps_signal, gps_val);
+        Signal_set(accel_signal, accel_val);
+
+        // D. 推定結果の取得
+        let estimate = Signal_get(fused_signal);
+
+        // 結果の表示
+        print(t);        print("    | ");
+        print(true_pos); print("      | ");
+        print(gps_val);  print("       | ");
+        print(estimate); print("   | ");
+        
+        let diff = (estimate - true_pos);
+        if diff < 0.5 && diff > -0.5 {
+            println("Excellent");
+        } else {
+            println("Tracking");
+        }
+
+        t = t + 1;
+    }
+    
+    println("-----------------------------------------------------------");
+    println("シミュレーション完了");
+}
