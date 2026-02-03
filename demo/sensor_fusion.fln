@@ -42,7 +42,7 @@ fn normal_noise() -> Float {
 
 fn main() {
     println("=============================================");
-    println("   Flux Sensor Fusion Simulator (PPL)   ");
+    println("   Fluno Sensor Fusion Simulator (PPL)   ");
     println("=============================================");
     println("GPS（低精度）と加速度（高精度）を統合して推定します。");
     println("");
