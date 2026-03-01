@@ -1,0 +1,30 @@
+
+// stdlib/neuro.fln
+
+struct NeuroNode {
+    phase: Signal
+}
+
+impl NeuroNode {
+    fn new(initial_phase) {
+        NeuroNode {
+            phase: Signal::new(initial_phase)
+        }
+    }
+
+    fn receive(self, input_phase) {
+        // Simple wave interference/propagation logic
+        // Pull current phase towards input phase (diffusion-like)
+        let current = self.phase.get();
+        let diff = input_phase - current;
+        // damping factor 0.1
+        self.phase.set(current + diff * 0.1);
+    }
+
+    fn tick(self, dt) {
+        // Time evolution
+        // Phase rotation
+        let current = self.phase.get();
+        self.phase.set(current + dt);
+    }
+}

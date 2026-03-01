@@ -49,20 +49,19 @@ pub enum DependencySpec {
 
 impl FlunoManifest {
     pub fn from_file(path: &Path) -> Result<Self, String> {
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| format!("Failed to read manifest: {}", e))?;
-        
-        toml::from_str(&content)
-            .map_err(|e| format!("Failed to parse manifest: {}", e))
+        let content =
+            std::fs::read_to_string(path).map_err(|e| format!("Failed to read manifest: {}", e))?;
+
+        toml::from_str(&content).map_err(|e| format!("Failed to parse manifest: {}", e))
     }
-    
+
     pub fn generate_cargo_toml(&self, fluno_path: &str) -> String {
         let mut deps = String::new();
-        
+
         deps.push_str("rand = \"0.8\"\n");
         deps.push_str("tokio = { version = \"1.0\", features = [\"full\"] }\n");
         deps.push_str(&format!("fluno = {{ path = \"{}\" }}\n", fluno_path));
-        
+
         for (name, spec) in &self.dependencies.rust {
             match spec {
                 toml::Value::String(version) => {
@@ -75,8 +74,9 @@ impl FlunoManifest {
                 _ => {}
             }
         }
-        
-        format!(r#"[package]
+
+        format!(
+            r#"[package]
 name = "{}"
 version = "{}"
 edition = "{}"
@@ -85,7 +85,9 @@ edition = "{}"
 {}
 [profile.dev]
 debug = false
-"#, self.package.name, self.package.version, self.package.edition, deps)
+"#,
+            self.package.name, self.package.version, self.package.edition, deps
+        )
     }
 }
 
@@ -108,7 +110,7 @@ serde = "1.0"
         assert_eq!(manifest.package.version, "0.1.0");
         assert!(manifest.dependencies.rust.contains_key("serde"));
     }
-    
+
     #[test]
     fn test_generate_cargo_toml() {
         let toml_str = r#"
@@ -121,7 +123,7 @@ serde = "1.0"
 "#;
         let manifest: FlunoManifest = toml::from_str(toml_str).unwrap();
         let cargo = manifest.generate_cargo_toml("/path/to/fluno");
-        
+
         assert!(cargo.contains("name = \"my_app\""));
         assert!(cargo.contains("serde = \"1.0\""));
         assert!(cargo.contains("fluno = { path = \"/path/to/fluno\" }"));

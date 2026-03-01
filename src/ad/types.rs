@@ -1,8 +1,8 @@
 // src/ad/types.rs
 
-use std::cmp::Ordering;
-use std::ops::{Add, Sub, Mul, Div, Neg};
 use crate::ad::HashMap;
+use std::cmp::Ordering;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::ad::graph::{ADNode, BinaryOp, UnaryOp};
 use crate::ad::with_tape;
@@ -17,7 +17,6 @@ pub enum ADFloat {
         node_id: usize,
     },
 }
-
 
 #[derive(Debug, Clone)]
 pub enum ADGradient {
@@ -43,16 +42,22 @@ impl ADFloat {
     }
 
     pub fn new_input(value: f64, tape_id: usize) -> Self {
-        let node_id = with_tape(tape_id, |tape| {
-            tape.push(ADNode::Input { value })
-        });
-        ADFloat::Dual { value, tape_id, node_id }
+        let node_id = with_tape(tape_id, |tape| tape.push(ADNode::Input { value }));
+        ADFloat::Dual {
+            value,
+            tape_id,
+            node_id,
+        }
     }
 
     fn unary_op(self, op: UnaryOp, f: fn(f64) -> f64) -> Self {
         match self {
             ADFloat::Concrete(v) => ADFloat::Concrete(f(v)),
-            ADFloat::Dual { value, tape_id, node_id } => {
+            ADFloat::Dual {
+                value,
+                tape_id,
+                node_id,
+            } => {
                 let new_val = f(value);
                 let new_id = with_tape(tape_id, |tape| {
                     tape.push(ADNode::Unary {
@@ -61,7 +66,11 @@ impl ADFloat {
                         value: new_val,
                     })
                 });
-                ADFloat::Dual { value: new_val, tape_id, node_id: new_id }
+                ADFloat::Dual {
+                    value: new_val,
+                    tape_id,
+                    node_id: new_id,
+                }
             }
         }
     }
@@ -116,7 +125,11 @@ impl ADFloat {
 
     pub fn softplus(self) -> Self {
         self.unary_op(UnaryOp::Softplus, |x| {
-            if x > 20.0 { x } else { (1.0 + x.exp()).ln() }
+            if x > 20.0 {
+                x
+            } else {
+                (1.0 + x.exp()).ln()
+            }
         })
     }
 
@@ -136,13 +149,20 @@ impl ADFloat {
         let base = self.value();
         ADFloat::Concrete(base.powf(exp))
     }
-    
+
     pub fn beta_sample(self, rhs: Self, z: f64) -> Self {
         use crate::ad::graph::{ADNode, BinaryOp};
         match (self, rhs) {
             (ADFloat::Concrete(_), ADFloat::Concrete(_)) => ADFloat::Concrete(z),
 
-            (ADFloat::Dual { tape_id: ta, node_id: lhs_id, .. }, ADFloat::Concrete(b)) => {
+            (
+                ADFloat::Dual {
+                    tape_id: ta,
+                    node_id: lhs_id,
+                    ..
+                },
+                ADFloat::Concrete(b),
+            ) => {
                 let id = with_tape(ta, |tape| {
                     let rhs_id = tape.push(ADNode::Constant { value: b });
                     tape.push(ADNode::Binary {
@@ -152,10 +172,21 @@ impl ADFloat {
                         value: z,
                     })
                 });
-                ADFloat::Dual { value: z, tape_id: ta, node_id: id }
+                ADFloat::Dual {
+                    value: z,
+                    tape_id: ta,
+                    node_id: id,
+                }
             }
 
-            (ADFloat::Concrete(a), ADFloat::Dual { tape_id: tb, node_id: rhs_id, .. }) => {
+            (
+                ADFloat::Concrete(a),
+                ADFloat::Dual {
+                    tape_id: tb,
+                    node_id: rhs_id,
+                    ..
+                },
+            ) => {
                 let id = with_tape(tb, |tape| {
                     let lhs_id = tape.push(ADNode::Constant { value: a });
                     tape.push(ADNode::Binary {
@@ -165,11 +196,25 @@ impl ADFloat {
                         value: z,
                     })
                 });
-                ADFloat::Dual { value: z, tape_id: tb, node_id: id }
+                ADFloat::Dual {
+                    value: z,
+                    tape_id: tb,
+                    node_id: id,
+                }
             }
 
-            (ADFloat::Dual { tape_id: ta, node_id: lhs_id, .. }, 
-             ADFloat::Dual { tape_id: tb, node_id: rhs_id, .. }) => {
+            (
+                ADFloat::Dual {
+                    tape_id: ta,
+                    node_id: lhs_id,
+                    ..
+                },
+                ADFloat::Dual {
+                    tape_id: tb,
+                    node_id: rhs_id,
+                    ..
+                },
+            ) => {
                 if ta != tb {
                     panic!("ADFloat: beta_sample across different tapes");
                 }
@@ -181,7 +226,11 @@ impl ADFloat {
                         value: z,
                     })
                 });
-                ADFloat::Dual { value: z, tape_id: ta, node_id: id }
+                ADFloat::Dual {
+                    value: z,
+                    tape_id: ta,
+                    node_id: id,
+                }
             }
         }
     }
@@ -189,39 +238,38 @@ impl ADFloat {
     pub fn backward(&self) -> HashMap<usize, ADGradient> {
         match self {
             ADFloat::Concrete(_) => HashMap::new(),
-            ADFloat::Dual { node_id, tape_id, .. } => {
-                crate::ad::with_tape(*tape_id, |tape| {
-                    crate::ad::backward::backward(tape, *node_id)
-                })
-            }
+            ADFloat::Dual {
+                node_id, tape_id, ..
+            } => crate::ad::with_tape(*tape_id, |tape| {
+                crate::ad::backward::backward(tape, *node_id)
+            }),
         }
     }
-    
+
     pub fn apply_custom_vjp(name: &str, args: Vec<ADFloat>) -> Self {
         let input_vals: Vec<f64> = args.iter().map(|a| a.value()).collect();
-        
+
         let output_val = crate::ad::call_forward(name, &input_vals)
             .expect(&format!("Custom VJP '{}' not registered", name));
-        
+
         let tape_id_opt = args.iter().find_map(|a| match a {
             ADFloat::Dual { tape_id, .. } => Some(*tape_id),
             _ => None,
         });
-        
+
         match tape_id_opt {
             None => ADFloat::Concrete(output_val),
             Some(tape_id) => {
-                let arg_node_ids: Vec<usize> = args.iter().map(|a| {
-                    match a {
+                let arg_node_ids: Vec<usize> = args
+                    .iter()
+                    .map(|a| match a {
                         ADFloat::Dual { node_id, .. } => *node_id,
-                        ADFloat::Concrete(v) => {
-                            crate::ad::with_tape(tape_id, |tape| {
-                                tape.push(ADNode::Constant { value: *v })
-                            })
-                        }
-                    }
-                }).collect();
-                
+                        ADFloat::Concrete(v) => crate::ad::with_tape(tape_id, |tape| {
+                            tape.push(ADNode::Constant { value: *v })
+                        }),
+                    })
+                    .collect();
+
                 let node_id = crate::ad::with_tape(tape_id, |tape| {
                     tape.push(ADNode::CustomVjp {
                         name: name.to_string(),
@@ -229,8 +277,12 @@ impl ADFloat {
                         value: output_val,
                     })
                 });
-                
-                ADFloat::Dual { value: output_val, tape_id, node_id }
+
+                ADFloat::Dual {
+                    value: output_val,
+                    tape_id,
+                    node_id,
+                }
             }
         }
     }
@@ -248,17 +300,18 @@ impl PartialOrd for ADFloat {
     }
 }
 
-fn binary_op(
-    lhs: ADFloat,
-    rhs: ADFloat,
-    op: BinaryOp,
-    f: fn(f64, f64) -> f64,
-) -> ADFloat {
+fn binary_op(lhs: ADFloat, rhs: ADFloat, op: BinaryOp, f: fn(f64, f64) -> f64) -> ADFloat {
     match (lhs, rhs) {
         (ADFloat::Concrete(a), ADFloat::Concrete(b)) => ADFloat::Concrete(f(a, b)),
 
-        (ADFloat::Dual { value: a, tape_id, node_id: lhs_id },
-         ADFloat::Concrete(b)) => {
+        (
+            ADFloat::Dual {
+                value: a,
+                tape_id,
+                node_id: lhs_id,
+            },
+            ADFloat::Concrete(b),
+        ) => {
             let v = f(a, b);
             let id = with_tape(tape_id, |tape| {
                 let rhs_id = tape.push(ADNode::Constant { value: b });
@@ -269,11 +322,21 @@ fn binary_op(
                     value: v,
                 })
             });
-            ADFloat::Dual { value: v, tape_id, node_id: id }
+            ADFloat::Dual {
+                value: v,
+                tape_id,
+                node_id: id,
+            }
         }
 
-        (ADFloat::Concrete(a),
-         ADFloat::Dual { value: b, tape_id, node_id: rhs_id }) => {
+        (
+            ADFloat::Concrete(a),
+            ADFloat::Dual {
+                value: b,
+                tape_id,
+                node_id: rhs_id,
+            },
+        ) => {
             let v = f(a, b);
             let id = with_tape(tape_id, |tape| {
                 let lhs_id = tape.push(ADNode::Constant { value: a });
@@ -284,11 +347,25 @@ fn binary_op(
                     value: v,
                 })
             });
-            ADFloat::Dual { value: v, tape_id, node_id: id }
+            ADFloat::Dual {
+                value: v,
+                tape_id,
+                node_id: id,
+            }
         }
 
-        (ADFloat::Dual { value: a, tape_id: ta, node_id: lhs_id },
-         ADFloat::Dual { value: b, tape_id: tb, node_id: rhs_id }) => {
+        (
+            ADFloat::Dual {
+                value: a,
+                tape_id: ta,
+                node_id: lhs_id,
+            },
+            ADFloat::Dual {
+                value: b,
+                tape_id: tb,
+                node_id: rhs_id,
+            },
+        ) => {
             if ta != tb {
                 panic!("ADFloat: binary op across different tapes is unsupported");
             }
@@ -301,7 +378,11 @@ fn binary_op(
                     value: v,
                 })
             });
-            ADFloat::Dual { value: v, tape_id: ta, node_id: id }
+            ADFloat::Dual {
+                value: v,
+                tape_id: ta,
+                node_id: id,
+            }
         }
     }
 }
@@ -435,7 +516,7 @@ mod tests {
     fn test_concrete_arithmetic() {
         let a = ADFloat::Concrete(3.0);
         let b = ADFloat::Concrete(2.0);
-        
+
         assert!(approx_eq((a + b).value(), 5.0, 1e-10));
         assert!(approx_eq((a - b).value(), 1.0, 1e-10));
         assert!(approx_eq((a * b).value(), 6.0, 1e-10));
@@ -446,7 +527,7 @@ mod tests {
     #[test]
     fn test_unary_ops_forward() {
         let x = ADFloat::Concrete(2.0);
-        
+
         assert!(approx_eq(x.sqrt().value(), 2.0_f64.sqrt(), 1e-10));
         assert!(approx_eq(x.exp().value(), 2.0_f64.exp(), 1e-10));
         assert!(approx_eq(x.ln().value(), 2.0_f64.ln(), 1e-10));
@@ -455,7 +536,7 @@ mod tests {
         assert!(approx_eq(x.tan().value(), 2.0_f64.tan(), 1e-10));
         assert!(approx_eq(x.abs().value(), 2.0_f64.abs(), 1e-10));
         assert!(approx_eq(x.tanh().value(), 2.0_f64.tanh(), 1e-10));
-        
+
         // Sigmoid: 1 / (1 + exp(-x))
         let expected_sigmoid = 1.0 / (1.0 + (-2.0_f64).exp());
         assert!(approx_eq(x.sigmoid().value(), expected_sigmoid, 1e-10));
@@ -468,16 +549,16 @@ mod tests {
         let x = ADFloat::new_input(3.0, tape_id);
         let y = ADFloat::new_input(4.0, tape_id);
         let z = x + y;
-        
+
         assert!(approx_eq(z.value(), 7.0, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let y_id = y.node_id().unwrap();
-        
+
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
         let dy = grads.get(&y_id).unwrap().as_scalar().unwrap();
-        
+
         assert!(approx_eq(dx, 1.0, 1e-10));
         assert!(approx_eq(dy, 1.0, 1e-10));
     }
@@ -489,16 +570,16 @@ mod tests {
         let x = ADFloat::new_input(3.0, tape_id);
         let y = ADFloat::new_input(4.0, tape_id);
         let z = x * y;
-        
+
         assert!(approx_eq(z.value(), 12.0, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let y_id = y.node_id().unwrap();
-        
+
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
         let dy = grads.get(&y_id).unwrap().as_scalar().unwrap();
-        
+
         assert!(approx_eq(dx, 4.0, 1e-10));
         assert!(approx_eq(dy, 3.0, 1e-10));
     }
@@ -510,13 +591,13 @@ mod tests {
         let x = ADFloat::new_input(5.0, tape_id);
         let x2 = x * x;
         let z = x2 + x;
-        
+
         assert!(approx_eq(z.value(), 30.0, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
-        
+
         assert!(approx_eq(dx, 11.0, 1e-10));
     }
 
@@ -526,14 +607,14 @@ mod tests {
         let tape_id = create_tape();
         let x = ADFloat::new_input(2.0, tape_id);
         let z = x.exp();
-        
+
         let expected = 2.0_f64.exp();
         assert!(approx_eq(z.value(), expected, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
-        
+
         assert!(approx_eq(dx, expected, 1e-10));
     }
 
@@ -543,13 +624,13 @@ mod tests {
         let tape_id = create_tape();
         let x = ADFloat::new_input(1.0, tape_id);
         let z = x.sin();
-        
+
         assert!(approx_eq(z.value(), 1.0_f64.sin(), 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
-        
+
         assert!(approx_eq(dx, 1.0_f64.cos(), 1e-10));
     }
 
@@ -560,16 +641,16 @@ mod tests {
         let x = ADFloat::new_input(6.0, tape_id);
         let y = ADFloat::new_input(2.0, tape_id);
         let z = x / y;
-        
+
         assert!(approx_eq(z.value(), 3.0, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let y_id = y.node_id().unwrap();
-        
+
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
         let dy = grads.get(&y_id).unwrap().as_scalar().unwrap();
-        
+
         assert!(approx_eq(dx, 0.5, 1e-10));
         assert!(approx_eq(dy, -1.5, 1e-10));
     }
@@ -580,13 +661,13 @@ mod tests {
         let tape_id = create_tape();
         let x = ADFloat::new_input(4.0, tape_id);
         let z = x.sqrt();
-        
+
         assert!(approx_eq(z.value(), 2.0, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
-        
+
         assert!(approx_eq(dx, 0.25, 1e-10));
     }
 
@@ -596,13 +677,13 @@ mod tests {
         let tape_id = create_tape();
         let x = ADFloat::new_input(5.0, tape_id);
         let z = -x;
-        
+
         assert!(approx_eq(z.value(), -5.0, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
-        
+
         assert!(approx_eq(dx, -1.0, 1e-10));
     }
 
@@ -612,14 +693,14 @@ mod tests {
         let tape_id = create_tape();
         let x = ADFloat::new_input(1.0, tape_id);
         let z = x.tanh();
-        
+
         let tanh_val = 1.0_f64.tanh();
         assert!(approx_eq(z.value(), tanh_val, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
-        
+
         let expected_grad = 1.0 - tanh_val * tanh_val;
         assert!(approx_eq(dx, expected_grad, 1e-10));
     }
@@ -630,14 +711,14 @@ mod tests {
         let tape_id = create_tape();
         let x = ADFloat::new_input(1.0, tape_id);
         let z = x.sigmoid();
-        
+
         let sig_val = 1.0 / (1.0 + (-1.0_f64).exp());
         assert!(approx_eq(z.value(), sig_val, 1e-10));
-        
+
         let grads = z.backward();
         let x_id = x.node_id().unwrap();
         let dx = grads.get(&x_id).unwrap().as_scalar().unwrap();
-        
+
         let expected_grad = sig_val * (1.0 - sig_val);
         assert!(approx_eq(dx, expected_grad, 1e-10));
     }
@@ -648,7 +729,7 @@ mod tests {
         let tape_id = create_tape();
         let x = ADFloat::new_input(1.0, tape_id);
         let z = (x * x) * x.exp() - x.sin();
-        
+
         let _grads = z.backward();
     }
 }

@@ -1,28 +1,53 @@
 // src/ad/graph.rs
 
-use std::cell::RefCell;
-use crate::ad::types::ADFloat;
 use crate::ad::cpu_backend::NdarrayStorage;
+use crate::ad::types::ADFloat;
+use std::cell::RefCell;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BinaryOp {
-    Add, Sub, Mul, Div, Pow, Atan2, BetaSample, MatMul
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Pow,
+    Atan2,
+    BetaSample,
+    MatMul,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum UnaryOp {
-    Neg, Exp, Log, Sin, Cos, Tan, Sqrt, Abs, Tanh, Sigmoid, LGamma, Softplus
+    Neg,
+    Exp,
+    Log,
+    Sin,
+    Cos,
+    Tan,
+    Sqrt,
+    Abs,
+    Tanh,
+    Sigmoid,
+    LGamma,
+    Softplus,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ReduceOp {
-    Sum, Mean, Max, Min
+    Sum,
+    Mean,
+    Max,
+    Min,
 }
 
 #[derive(Debug, Clone)]
 pub enum ADNode {
-    Input { value: f64 },
-    Constant { value: f64 },
+    Input {
+        value: f64,
+    },
+    Constant {
+        value: f64,
+    },
     Binary {
         op: BinaryOp,
         lhs: usize,
@@ -36,8 +61,12 @@ pub enum ADNode {
         value: f64,
     },
 
-    TensorInput { value: NdarrayStorage },
-    TensorConstant { value: NdarrayStorage },
+    TensorInput {
+        value: NdarrayStorage,
+    },
+    TensorConstant {
+        value: NdarrayStorage,
+    },
     TensorBinary {
         op: BinaryOp,
         lhs: usize,
@@ -52,7 +81,7 @@ pub enum ADNode {
     TensorReduce {
         op: ReduceOp,
         arg: usize,
-        value: f64, 
+        value: f64,
     },
     TensorFusedMulAdd {
         a: usize,
@@ -60,7 +89,7 @@ pub enum ADNode {
         c: usize,
         value: Option<NdarrayStorage>,
     },
-    
+
     CustomVjp {
         name: String,
         args: Vec<usize>,
@@ -72,13 +101,13 @@ impl ADNode {
     pub fn new_input(value: f64) -> Self {
         ADNode::Input { value }
     }
-    
+
     pub fn new_tensor_input(value: NdarrayStorage) -> Self {
         ADNode::TensorInput { value }
     }
 }
 
-#[derive(Debug)] 
+#[derive(Debug)]
 pub struct Tape {
     pub nodes: RefCell<Vec<ADNode>>,
 }

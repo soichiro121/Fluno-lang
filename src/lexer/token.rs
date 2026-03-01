@@ -1,7 +1,7 @@
 // src/lexer/token.rs
 
-use std::fmt;
 use crate::ast::node::Span;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
@@ -33,7 +33,7 @@ impl Token {
     pub fn text(&self) -> Option<&str> {
         self.text.as_deref()
     }
-    
+
     pub fn span(&self) -> Span {
         let len = self.text.as_ref().map(|s| s.len()).unwrap_or(0);
         Span::new(self.line, self.column, len)
@@ -190,7 +190,7 @@ pub enum TokenKind {
     BitAndAssign,
     BitOrAssign,
     BitXorAssign,
-            
+
     ShlAssign,
     ShrAssign,
 
@@ -455,7 +455,6 @@ impl TokenKind {
                 | TokenKind::ShrAssign
         )
     }
-
 }
 
 #[cfg(test)]

@@ -1,7 +1,7 @@
 // src/ad/cpu_backend.rs
 
-use ndarray::{ArrayD, IxDyn, Ix2};
 use crate::ad::backend::{TensorBackend, TensorStorage};
+use ndarray::{ArrayD, Ix2, IxDyn};
 use std::ops::Deref;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -18,15 +18,15 @@ impl TensorStorage for NdarrayStorage {
     fn shape(&self) -> &[usize] {
         self.0.shape()
     }
-    
+
     fn get(&self, index: &[usize]) -> f64 {
         self.0[IxDyn(index)]
     }
-    
+
     fn sum(&self) -> f64 {
         self.0.sum()
     }
-    
+
     fn into_vec(self) -> Vec<f64> {
         self.0.into_raw_vec_and_offset().0
     }
@@ -53,7 +53,7 @@ impl TensorBackend for CpuBackend {
     fn from_elem(shape: &[usize], value: f64) -> Self::Storage {
         NdarrayStorage(ArrayD::from_elem(IxDyn(shape), value))
     }
-    
+
     fn from_vec(shape: &[usize], data: Vec<f64>) -> Self::Storage {
         NdarrayStorage(ArrayD::from_shape_vec(IxDyn(shape), data).expect("Shape mismatch"))
     }
@@ -75,8 +75,14 @@ impl TensorBackend for CpuBackend {
     }
 
     fn matmul(a: &Self::Storage, b: &Self::Storage) -> Self::Storage {
-        let l = a.0.view().into_dimensionality::<Ix2>().expect("matmul requires 2D");
-        let r = b.0.view().into_dimensionality::<Ix2>().expect("matmul requires 2D");
+        let l =
+            a.0.view()
+                .into_dimensionality::<Ix2>()
+                .expect("matmul requires 2D");
+        let r =
+            b.0.view()
+                .into_dimensionality::<Ix2>()
+                .expect("matmul requires 2D");
         NdarrayStorage(l.dot(&r).into_dyn())
     }
 

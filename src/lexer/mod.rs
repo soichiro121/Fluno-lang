@@ -1,13 +1,13 @@
 //src/lexer/mod.rs
 
-mod token;
 mod error;
+mod token;
 
+pub use error::{LexError, LexErrorContext, LexResult};
 pub use token::{Token, TokenKind};
-pub use error::{LexError, LexResult, LexErrorContext};
 
-use std::str::Chars;
 use std::iter::Peekable;
+use std::str::Chars;
 
 pub struct Lexer<'a> {
     input: &'a str,
@@ -84,17 +84,17 @@ impl<'a> Lexer<'a> {
 
     pub fn tokenize(&mut self) -> LexResult<Vec<Token>> {
         let mut tokens = Vec::new();
-        
+
         loop {
             let token = self.next_token()?;
             let is_eof = token.kind == TokenKind::Eof;
             tokens.push(token);
-            
+
             if is_eof {
                 break;
             }
         }
-        
+
         Ok(tokens)
     }
 
@@ -109,14 +109,14 @@ impl<'a> Lexer<'a> {
     fn advance(&mut self) -> Option<char> {
         if let Some(ch) = self.chars.next() {
             self.position += ch.len_utf8();
-            
+
             if ch == '\n' {
                 self.line += 1;
                 self.column = 1;
             } else {
                 self.column += 1;
             }
-            
+
             Some(ch)
         } else {
             None
@@ -138,7 +138,7 @@ impl<'a> Lexer<'a> {
                 Some(' ') | Some('\t') | Some('\n') | Some('\r') => {
                     self.advance();
                 }
-                
+
                 Some('/') => {
                     if self.peek_char_n(1) == Some('/') {
                         self.skip_line_comment();
@@ -148,18 +148,18 @@ impl<'a> Lexer<'a> {
                         break;
                     }
                 }
-                
+
                 _ => break,
             }
         }
-        
+
         Ok(())
     }
 
     fn skip_line_comment(&mut self) {
         self.advance();
         self.advance();
-        
+
         while let Some(ch) = self.peek_char() {
             if ch == '\n' {
                 break;
@@ -174,9 +174,9 @@ impl<'a> Lexer<'a> {
 
         self.advance();
         self.advance();
-        
+
         let mut depth = 1;
-        
+
         while depth > 0 {
             match self.peek_char() {
                 None => {
@@ -202,7 +202,7 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
-        
+
         Ok(())
     }
 
@@ -230,9 +230,9 @@ impl<'a> Lexer<'a> {
 
     fn read_identifier(&mut self) -> LexResult<Token> {
         let start = self.position;
-        
+
         self.advance();
-        
+
         while let Some(ch) = self.peek_char() {
             if ch.is_alphanumeric() || ch == '_' {
                 self.advance();
@@ -240,20 +240,20 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-        
+
         let text = &self.input[start..self.position];
-        
+
         let kind = TokenKind::from_keyword(text).unwrap_or(TokenKind::Identifier);
-        
+
         Ok(self.make_token_with_text(kind, text.to_string()))
     }
 
     fn read_number(&mut self) -> LexResult<Token> {
         let start = self.position;
-        
+
         if self.peek_char() == Some('0') {
             self.advance();
-            
+
             match self.peek_char() {
                 Some('x') | Some('X') => {
                     self.advance();
@@ -270,15 +270,14 @@ impl<'a> Lexer<'a> {
                 Some('.') => {
                     return self.read_float_number(start);
                 }
-                Some('0'..='9') => {
-                }
+                Some('0'..='9') => {}
                 _ => {
                     let text = &self.input[start..self.position];
                     return Ok(self.make_token_with_text(TokenKind::IntLiteral, text.to_string()));
                 }
             }
         }
-        
+
         while let Some(ch) = self.peek_char() {
             if ch.is_ascii_digit() {
                 self.advance();
@@ -286,22 +285,24 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-        
-        if self.peek_char() == Some('.') && self.peek_char_n(1).map_or(false, |c| c.is_ascii_digit()) {
+
+        if self.peek_char() == Some('.')
+            && self.peek_char_n(1).map_or(false, |c| c.is_ascii_digit())
+        {
             return self.read_float_number(start);
         }
-        
+
         if matches!(self.peek_char(), Some('e') | Some('E')) {
             return self.read_float_number(start);
         }
-        
+
         let text = &self.input[start..self.position];
         Ok(self.make_token_with_text(TokenKind::IntLiteral, text.to_string()))
     }
 
     fn read_hex_number(&mut self, start: usize) -> LexResult<Token> {
         let _start_pos = self.position;
-        
+
         let mut has_digits = false;
         while let Some(ch) = self.peek_char() {
             if ch.is_ascii_hexdigit() {
@@ -311,7 +312,7 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-        
+
         if !has_digits {
             return Err(LexError::ExpectedDigitsAfterPrefix {
                 prefix: "0x".to_string(),
@@ -319,14 +320,14 @@ impl<'a> Lexer<'a> {
                 column: self.token_column,
             });
         }
-        
+
         let text = &self.input[start..self.position];
         Ok(self.make_token_with_text(TokenKind::IntLiteral, text.to_string()))
     }
 
     fn read_octal_number(&mut self, start: usize) -> LexResult<Token> {
         let mut has_digits = false;
-        
+
         while let Some(ch) = self.peek_char() {
             if ('0'..='7').contains(&ch) {
                 self.advance();
@@ -342,7 +343,7 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-        
+
         if !has_digits {
             return Err(LexError::ExpectedDigitsAfterPrefix {
                 prefix: "0o".to_string(),
@@ -350,14 +351,14 @@ impl<'a> Lexer<'a> {
                 column: self.token_column,
             });
         }
-        
+
         let text = &self.input[start..self.position];
         Ok(self.make_token_with_text(TokenKind::IntLiteral, text.to_string()))
     }
 
     fn read_binary_number(&mut self, start: usize) -> LexResult<Token> {
         let mut has_digits = false;
-        
+
         while let Some(ch) = self.peek_char() {
             if ch == '0' || ch == '1' {
                 self.advance();
@@ -373,7 +374,7 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-        
+
         if !has_digits {
             return Err(LexError::ExpectedDigitsAfterPrefix {
                 prefix: "0b".to_string(),
@@ -381,7 +382,7 @@ impl<'a> Lexer<'a> {
                 column: self.token_column,
             });
         }
-        
+
         let text = &self.input[start..self.position];
         Ok(self.make_token_with_text(TokenKind::IntLiteral, text.to_string()))
     }
@@ -389,7 +390,7 @@ impl<'a> Lexer<'a> {
     fn read_float_number(&mut self, start: usize) -> LexResult<Token> {
         if self.peek_char() == Some('.') {
             self.advance();
-            
+
             while let Some(ch) = self.peek_char() {
                 if ch.is_ascii_digit() {
                     self.advance();
@@ -398,14 +399,14 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
-        
+
         if matches!(self.peek_char(), Some('e') | Some('E')) {
             self.advance();
-            
+
             if matches!(self.peek_char(), Some('+') | Some('-')) {
                 self.advance();
             }
-            
+
             let mut has_exp_digits = false;
             while let Some(ch) = self.peek_char() {
                 if ch.is_ascii_digit() {
@@ -415,7 +416,7 @@ impl<'a> Lexer<'a> {
                     break;
                 }
             }
-            
+
             if !has_exp_digits {
                 return Err(LexError::InvalidExponent {
                     reason: "Expected digits after exponent".to_string(),
@@ -424,7 +425,7 @@ impl<'a> Lexer<'a> {
                 });
             }
         }
-        
+
         let text = &self.input[start..self.position];
         Ok(self.make_token_with_text(TokenKind::FloatLiteral, text.to_string()))
     }
@@ -432,11 +433,11 @@ impl<'a> Lexer<'a> {
     fn read_string(&mut self) -> LexResult<Token> {
         let start_line = self.line;
         let start_column = self.column;
-        
+
         self.advance();
-        
+
         let mut string_content = String::new();
-        
+
         loop {
             match self.peek_char() {
                 None | Some('\n') => {
@@ -460,14 +461,14 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
-        
+
         Ok(self.make_token_with_text(TokenKind::StringLiteral, string_content))
     }
 
     fn read_escape_sequence(&mut self) -> LexResult<char> {
         let line = self.line;
         let column = self.column;
-        
+
         match self.peek_char() {
             Some('n') => {
                 self.advance();
@@ -509,7 +510,7 @@ impl<'a> Lexer<'a> {
     fn read_unicode_escape(&mut self) -> LexResult<char> {
         let line = self.line;
         let column = self.column;
-        
+
         if !self.match_char('{') {
             return Err(LexError::InvalidUnicodeEscape {
                 sequence: String::new(),
@@ -518,9 +519,9 @@ impl<'a> Lexer<'a> {
                 column,
             });
         }
-        
+
         let mut hex_str = String::new();
-        
+
         loop {
             match self.peek_char() {
                 Some('}') => {
@@ -541,7 +542,7 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
-        
+
         if hex_str.is_empty() {
             return Err(LexError::InvalidUnicodeEscape {
                 sequence: String::new(),
@@ -550,16 +551,15 @@ impl<'a> Lexer<'a> {
                 column,
             });
         }
-        
-        let code_point = u32::from_str_radix(&hex_str, 16).map_err(|_| {
-            LexError::InvalidUnicodeEscape {
+
+        let code_point =
+            u32::from_str_radix(&hex_str, 16).map_err(|_| LexError::InvalidUnicodeEscape {
                 sequence: hex_str.clone(),
                 reason: "Invalid hex number".to_string(),
                 line,
                 column,
-            }
-        })?;
-        
+            })?;
+
         char::from_u32(code_point).ok_or_else(|| LexError::InvalidUnicodeEscape {
             sequence: hex_str,
             reason: "Invalid Unicode code point".to_string(),
@@ -739,7 +739,7 @@ mod tests {
     fn test_keywords() {
         let input = "fn let if else while for return";
         let tokens = tokenize(input).unwrap();
-        
+
         assert_eq!(tokens[0].kind, TokenKind::Fn);
         assert_eq!(tokens[1].kind, TokenKind::Let);
         assert_eq!(tokens[2].kind, TokenKind::If);
@@ -753,7 +753,7 @@ mod tests {
     fn test_identifiers() {
         let input = "myVar _private add123";
         let tokens = tokenize(input).unwrap();
-        
+
         assert_eq!(tokens[0].kind, TokenKind::Identifier);
         assert_eq!(tokens[0].text(), Some("myVar"));
         assert_eq!(tokens[1].kind, TokenKind::Identifier);
@@ -766,7 +766,7 @@ mod tests {
     fn test_integer_literals() {
         let input = "42 0xFF 0o755 0b1010";
         let tokens = tokenize(input).unwrap();
-        
+
         assert_eq!(tokens[0].kind, TokenKind::IntLiteral);
         assert_eq!(tokens[0].text(), Some("42"));
         assert_eq!(tokens[1].kind, TokenKind::IntLiteral);
@@ -781,7 +781,7 @@ mod tests {
     fn test_float_literals() {
         let input = "3.14 1.0e-10 6.022e23";
         let tokens = tokenize(input).unwrap();
-        
+
         assert_eq!(tokens[0].kind, TokenKind::FloatLiteral);
         assert_eq!(tokens[0].text(), Some("3.14"));
         assert_eq!(tokens[1].kind, TokenKind::FloatLiteral);
@@ -794,7 +794,7 @@ mod tests {
     fn test_string_literals() {
         let input = r#""Hello, World!" "Line 1\nLine 2""#;
         let tokens = tokenize(input).unwrap();
-        
+
         assert_eq!(tokens[0].kind, TokenKind::StringLiteral);
         assert_eq!(tokens[0].text(), Some("Hello, World!"));
         assert_eq!(tokens[1].kind, TokenKind::StringLiteral);

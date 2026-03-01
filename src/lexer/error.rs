@@ -14,12 +14,11 @@ pub enum LexError {
     },
 
     #[error("[E0002] Unterminated string literal starting at line {line}, column {column}")]
-    UnterminatedString {
-        line: usize,
-        column: usize,
-    },
+    UnterminatedString { line: usize, column: usize },
 
-    #[error("[E0003] Invalid escape sequence '\\{sequence}' in string at line {line}, column {column}")]
+    #[error(
+        "[E0003] Invalid escape sequence '\\{sequence}' in string at line {line}, column {column}"
+    )]
     InvalidEscapeSequence {
         sequence: String,
         line: usize,
@@ -34,7 +33,9 @@ pub enum LexError {
         column: usize,
     },
 
-    #[error("[E0005] Invalid integer literal '{literal}' at line {line}, column {column}: {reason}")]
+    #[error(
+        "[E0005] Invalid integer literal '{literal}' at line {line}, column {column}: {reason}"
+    )]
     InvalidIntegerLiteral {
         literal: String,
         reason: String,
@@ -57,7 +58,9 @@ pub enum LexError {
         column: usize,
     },
 
-    #[error("[E0008] Invalid digit '{digit}' for base-{base} number at line {line}, column {column}")]
+    #[error(
+        "[E0008] Invalid digit '{digit}' for base-{base} number at line {line}, column {column}"
+    )]
     InvalidDigitForBase {
         digit: char,
         base: u32,
@@ -66,16 +69,10 @@ pub enum LexError {
     },
 
     #[error("[E0009] Unterminated block comment starting at line {line}, column {column}")]
-    UnterminatedBlockComment {
-        line: usize,
-        column: usize,
-    },
+    UnterminatedBlockComment { line: usize, column: usize },
 
     #[error("[E0010] Invalid UTF-8 encoding at line {line}, column {column}")]
-    InvalidUtf8 {
-        line: usize,
-        column: usize,
-    },
+    InvalidUtf8 { line: usize, column: usize },
 
     #[error("[E0011] Invalid identifier '{identifier}' at line {line}, column {column}: {reason}")]
     InvalidIdentifier {
@@ -93,10 +90,7 @@ pub enum LexError {
     },
 
     #[error("[E0013] Multiple decimal points in number literal at line {line}, column {column}")]
-    MultipleDecimalPoints {
-        line: usize,
-        column: usize,
-    },
+    MultipleDecimalPoints { line: usize, column: usize },
 
     #[error("[E0014] Invalid exponent in float literal at line {line}, column {column}: {reason}")]
     InvalidExponent {
@@ -106,35 +100,29 @@ pub enum LexError {
     },
 
     #[error("[E0015] Unexpected end of file at line {line}, column {column}")]
-    UnexpectedEof {
-        line: usize,
-        column: usize,
-    },
+    UnexpectedEof { line: usize, column: usize },
 
     #[error("[E0016] Byte Order Mark (BOM) is not allowed in Flux source files at line {line}, column {column}")]
-    BomNotAllowed {
-        line: usize,
-        column: usize,
-    },
+    BomNotAllowed { line: usize, column: usize },
 
-    #[error("[E0017] Tab character found at line {line}, column {column}; use spaces for indentation")]
-    TabInIndentation {
-        line: usize,
-        column: usize,
-    },
+    #[error(
+        "[E0017] Tab character found at line {line}, column {column}; use spaces for indentation"
+    )]
+    TabInIndentation { line: usize, column: usize },
 
-    #[error("[E0018] Invalid suffix '{suffix}' on numeric literal at line {line}, column {column}")]
+    #[error(
+        "[E0018] Invalid suffix '{suffix}' on numeric literal at line {line}, column {column}"
+    )]
     InvalidNumberSuffix {
         suffix: String,
         line: usize,
         column: usize,
     },
 
-    #[error("[E0019] Bare carriage return (CR) without line feed (LF) at line {line}, column {column}")]
-    BareCarriageReturn {
-        line: usize,
-        column: usize,
-    },
+    #[error(
+        "[E0019] Bare carriage return (CR) without line feed (LF) at line {line}, column {column}"
+    )]
+    BareCarriageReturn { line: usize, column: usize },
 
     #[error("[E0020] Lexical error at line {line}, column {column}: {message}")]
     Generic {
@@ -223,32 +211,36 @@ impl LexError {
     pub fn format_with_source(&self, source: &str) -> String {
         let line_num = self.line();
         let col_num = self.column();
-        
+
         let lines: Vec<&str> = source.lines().collect();
         let mut output = String::new();
-        
+
         output.push_str(&format!("error[{}]: {}\n", self.error_code(), self));
         output.push_str(&format!("  --> line {}, column {}\n", line_num, col_num));
-        
+
         if line_num > 0 && line_num <= lines.len() {
             if line_num > 1 {
                 output.push_str(&format!("{:4} | {}\n", line_num - 1, lines[line_num - 2]));
             }
-            
+
             let error_line = lines[line_num - 1];
             output.push_str(&format!("{:4} | {}\n", line_num, error_line));
-            
-            output.push_str(&format!("     | {}{}\n", " ".repeat(col_num.saturating_sub(1)), "^"));
-            
+
+            output.push_str(&format!(
+                "     | {}{}\n",
+                " ".repeat(col_num.saturating_sub(1)),
+                "^"
+            ));
+
             if line_num < lines.len() {
                 output.push_str(&format!("{:4} | {}\n", line_num + 1, lines[line_num]));
             }
         }
-        
+
         if let Some(hint) = self.hint() {
             output.push_str(&format!("\nHelp: {}\n", hint));
         }
-        
+
         output
     }
 
@@ -313,11 +305,11 @@ impl LexErrorContext {
 
     pub fn format_error(&self, error: &LexError) -> String {
         let mut output = String::new();
-        
+
         if let Some(path) = &self.file_path {
             output.push_str(&format!("In file: {}\n", path));
         }
-        
+
         output.push_str(&error.format_with_source(&self.source));
         output
     }
@@ -336,7 +328,10 @@ mod tests {
         };
         assert_eq!(err.error_code(), "E0001");
 
-        let err = LexError::UnterminatedString { line: 2, column: 10 };
+        let err = LexError::UnterminatedString {
+            line: 2,
+            column: 10,
+        };
         assert_eq!(err.error_code(), "E0002");
 
         let err = LexError::InvalidEscapeSequence {
@@ -373,7 +368,10 @@ mod tests {
 
     #[test]
     fn test_unterminated_string() {
-        let err = LexError::UnterminatedString { line: 5, column: 10 };
+        let err = LexError::UnterminatedString {
+            line: 5,
+            column: 10,
+        };
         assert_eq!(err.error_code(), "E0002");
         assert!(err.hint().is_some());
     }
@@ -407,7 +405,7 @@ mod tests {
             line: 2,
             column: 13,
         };
-        
+
         let formatted = err.format_with_source(source);
         assert!(formatted.contains("E0001"));
         assert!(formatted.contains("line 2"));
@@ -418,10 +416,13 @@ mod tests {
     fn test_error_context() {
         let source = "fn main() {\n    println(\"Hello, World!\n}\n".to_string();
         let context = LexErrorContext::with_file(source, "main.flux".to_string());
-        
-        let err = LexError::UnterminatedString { line: 2, column: 13 };
+
+        let err = LexError::UnterminatedString {
+            line: 2,
+            column: 13,
+        };
         let formatted = context.format_error(&err);
-        
+
         assert!(formatted.contains("main.flux"));
         assert!(formatted.contains("E0002"));
     }
@@ -429,26 +430,79 @@ mod tests {
     #[test]
     fn test_all_error_variants_have_codes() {
         let errors = vec![
-            LexError::InvalidCharacter { character: 'x', line: 1, column: 1 },
+            LexError::InvalidCharacter {
+                character: 'x',
+                line: 1,
+                column: 1,
+            },
             LexError::UnterminatedString { line: 1, column: 1 },
-            LexError::InvalidEscapeSequence { sequence: "x".into(), line: 1, column: 1 },
-            LexError::InvalidUnicodeEscape { sequence: "x".into(), reason: "test".into(), line: 1, column: 1 },
-            LexError::InvalidIntegerLiteral { literal: "x".into(), reason: "test".into(), line: 1, column: 1 },
-            LexError::InvalidFloatLiteral { literal: "x".into(), reason: "test".into(), line: 1, column: 1 },
-            LexError::IntegerOverflow { literal: "x".into(), line: 1, column: 1 },
-            LexError::InvalidDigitForBase { digit: 'x', base: 10, line: 1, column: 1 },
+            LexError::InvalidEscapeSequence {
+                sequence: "x".into(),
+                line: 1,
+                column: 1,
+            },
+            LexError::InvalidUnicodeEscape {
+                sequence: "x".into(),
+                reason: "test".into(),
+                line: 1,
+                column: 1,
+            },
+            LexError::InvalidIntegerLiteral {
+                literal: "x".into(),
+                reason: "test".into(),
+                line: 1,
+                column: 1,
+            },
+            LexError::InvalidFloatLiteral {
+                literal: "x".into(),
+                reason: "test".into(),
+                line: 1,
+                column: 1,
+            },
+            LexError::IntegerOverflow {
+                literal: "x".into(),
+                line: 1,
+                column: 1,
+            },
+            LexError::InvalidDigitForBase {
+                digit: 'x',
+                base: 10,
+                line: 1,
+                column: 1,
+            },
             LexError::UnterminatedBlockComment { line: 1, column: 1 },
             LexError::InvalidUtf8 { line: 1, column: 1 },
-            LexError::InvalidIdentifier { identifier: "x".into(), reason: "test".into(), line: 1, column: 1 },
-            LexError::ExpectedDigitsAfterPrefix { prefix: "0x".into(), line: 1, column: 1 },
+            LexError::InvalidIdentifier {
+                identifier: "x".into(),
+                reason: "test".into(),
+                line: 1,
+                column: 1,
+            },
+            LexError::ExpectedDigitsAfterPrefix {
+                prefix: "0x".into(),
+                line: 1,
+                column: 1,
+            },
             LexError::MultipleDecimalPoints { line: 1, column: 1 },
-            LexError::InvalidExponent { reason: "test".into(), line: 1, column: 1 },
+            LexError::InvalidExponent {
+                reason: "test".into(),
+                line: 1,
+                column: 1,
+            },
             LexError::UnexpectedEof { line: 1, column: 1 },
             LexError::BomNotAllowed { line: 1, column: 1 },
             LexError::TabInIndentation { line: 1, column: 1 },
-            LexError::InvalidNumberSuffix { suffix: "x".into(), line: 1, column: 1 },
+            LexError::InvalidNumberSuffix {
+                suffix: "x".into(),
+                line: 1,
+                column: 1,
+            },
             LexError::BareCarriageReturn { line: 1, column: 1 },
-            LexError::Generic { message: "test".into(), line: 1, column: 1 },
+            LexError::Generic {
+                message: "test".into(),
+                line: 1,
+                column: 1,
+            },
         ];
 
         for err in errors {

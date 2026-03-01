@@ -1,0 +1,46 @@
+// stdlib/vision.fln
+import stdlib::neuro;
+
+// 2次元のニューロン格子（網膜）
+struct Retina {
+    width: Int,
+    height: Int,
+    nodes: Array // Array<NeuroNode>
+}
+
+impl Retina {
+    fn new(w: Int, h: Int): Retina {
+        let nodes = [];
+        // ニューロンを格子状に配置
+        let count = w * h;
+        let i = 0;
+        while i < count {
+            // 初期状態は位相0（無信号）で作っておく
+            nodes.push(NeuroNode::new(0.0));
+            i = i + 1;
+        }
+        Retina { width: w, height: h, nodes: nodes }
+    }
+
+    // 画像データ（輝度配列）を入力し、初期位相をセットする
+    // image_data: 0.0(黒) 〜 1.0(白) の1次元配列
+    fn load_image(self, image_data: Array) {
+        let n = image_data.len();
+        let i = 0;
+        while i < n {
+            let brightness = image_data[i];
+            // 明るいほど位相が進んでいる（あるいは特定の位相を持つ）とする
+            let phase = brightness * 2.0 * 3.14159;
+            
+            // ニューロンの位相を強制セット（外部入力）
+            self.nodes[i].phase.set(phase);
+            i = i + 1;
+        }
+    }
+
+    // 指定座標のニューロンを取得
+    fn get_node(self, x: Int, y: Int): NeuroNode {
+        let idx = y * self.width + x;
+        self.nodes[idx]
+    }
+}

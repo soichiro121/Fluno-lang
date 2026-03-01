@@ -1,11 +1,11 @@
-use std::ptr::NonNull;
+use crate::gc::weak::Weak;
 use std::alloc::{alloc, dealloc, Layout};
 use std::cell::Cell;
-use std::ops::Deref;
-use std::fmt;
 use std::cmp::Ordering;
+use std::fmt;
 use std::mem::ManuallyDrop;
-use crate::gc::weak::Weak;
+use std::ops::Deref;
+use std::ptr::NonNull;
 
 const MAX_REFCOUNT: usize = usize::MAX / 2;
 
@@ -64,13 +64,16 @@ impl<T> Rc<T> {
         if ptr.is_null() {
             std::alloc::handle_alloc_error(layout);
         }
-        
+
         unsafe {
-            std::ptr::write(ptr, RcBox {
-                strong_count: Cell::new(1),
-                weak_count: Cell::new(0),
-                value: ManuallyDrop::new(value),
-            });
+            std::ptr::write(
+                ptr,
+                RcBox {
+                    strong_count: Cell::new(1),
+                    weak_count: Cell::new(0),
+                    value: ManuallyDrop::new(value),
+                },
+            );
 
             Rc {
                 ptr: NonNull::new_unchecked(ptr),
@@ -112,10 +115,10 @@ impl<T> Drop for Rc<T> {
     fn drop(&mut self) {
         let inner = self.inner();
         let new_strong = inner.dec_strong();
-        
+
         if new_strong == 0 {
             let weak_count = inner.weak_count.get();
-            
+
             unsafe {
                 ManuallyDrop::drop(&mut self.ptr.as_mut().value);
             }
@@ -157,7 +160,9 @@ impl<T: fmt::Debug> fmt::Debug for Rc<T> {
 
 impl<T: PartialEq> PartialEq for Rc<T> {
     fn eq(&self, other: &Self) -> bool {
-        if self.ptr == other.ptr { return true; }
+        if self.ptr == other.ptr {
+            return true;
+        }
         **self == **other
     }
 }

@@ -1,15 +1,15 @@
 // src/lsp/server.rs
 
+use crate::lexer::Lexer;
+use crate::parser::Parser;
+use crate::typeck::TypeChecker;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
-use crate::lexer::Lexer;
-use crate::parser::Parser;
-use crate::typeck::TypeChecker;
 
-use crate::lsp::symbol::{SymbolTable, SymbolKind as FlunoSymbolKind};
+use crate::lsp::symbol::{SymbolKind as FlunoSymbolKind, SymbolTable};
 
 pub struct Backend {
     pub client: Client,
@@ -42,15 +42,23 @@ impl Backend {
             Err(e) => {
                 diagnostics.push(Diagnostic {
                     range: Range::new(
-                        Position::new(e.line().unwrap_or(1).saturating_sub(1) as u32, e.column().unwrap_or(1).saturating_sub(1) as u32),
-                        Position::new(e.line().unwrap_or(1).saturating_sub(1) as u32, e.column().unwrap_or(1).saturating_sub(1) as u32 + 1),
+                        Position::new(
+                            e.line().unwrap_or(1).saturating_sub(1) as u32,
+                            e.column().unwrap_or(1).saturating_sub(1) as u32,
+                        ),
+                        Position::new(
+                            e.line().unwrap_or(1).saturating_sub(1) as u32,
+                            e.column().unwrap_or(1).saturating_sub(1) as u32 + 1,
+                        ),
                     ),
                     severity: Some(DiagnosticSeverity::ERROR),
                     code: Some(NumberOrString::String(e.error_code().to_string())),
                     message: e.to_string(),
                     ..Default::default()
                 });
-                self.client.publish_diagnostics(uri, diagnostics, None).await;
+                self.client
+                    .publish_diagnostics(uri, diagnostics, None)
+                    .await;
                 return;
             }
         };
@@ -65,8 +73,14 @@ impl Backend {
                         let span = err.span();
                         diagnostics.push(Diagnostic {
                             range: Range::new(
-                                Position::new(span.line.saturating_sub(1) as u32, span.column.saturating_sub(1) as u32),
-                                Position::new(span.line.saturating_sub(1) as u32, (span.column.saturating_sub(1) + span.length) as u32),
+                                Position::new(
+                                    span.line.saturating_sub(1) as u32,
+                                    span.column.saturating_sub(1) as u32,
+                                ),
+                                Position::new(
+                                    span.line.saturating_sub(1) as u32,
+                                    (span.column.saturating_sub(1) + span.length) as u32,
+                                ),
                             ),
                             severity: Some(DiagnosticSeverity::ERROR),
                             code: Some(NumberOrString::String(err.code().as_str().to_string())),
@@ -79,8 +93,14 @@ impl Backend {
             Err(e) => {
                 diagnostics.push(Diagnostic {
                     range: Range::new(
-                        Position::new(e.line().unwrap_or(1).saturating_sub(1) as u32, e.column().unwrap_or(1).saturating_sub(1) as u32),
-                        Position::new(e.line().unwrap_or(1).saturating_sub(1) as u32, e.column().unwrap_or(1).saturating_sub(1) as u32 + 1),
+                        Position::new(
+                            e.line().unwrap_or(1).saturating_sub(1) as u32,
+                            e.column().unwrap_or(1).saturating_sub(1) as u32,
+                        ),
+                        Position::new(
+                            e.line().unwrap_or(1).saturating_sub(1) as u32,
+                            e.column().unwrap_or(1).saturating_sub(1) as u32 + 1,
+                        ),
                     ),
                     severity: Some(DiagnosticSeverity::ERROR),
                     code: Some(NumberOrString::String(e.error_code().to_string())),
@@ -95,7 +115,9 @@ impl Backend {
             state.symbols = symbols;
         }
 
-        self.client.publish_diagnostics(uri, diagnostics, None).await;
+        self.client
+            .publish_diagnostics(uri, diagnostics, None)
+            .await;
     }
 
     fn collect_symbols(&self, items: &[crate::ast::node::Item], symbols: &mut SymbolTable) {
@@ -104,32 +126,74 @@ impl Backend {
                 crate::ast::node::Item::Function(f) => {
                     let range = self.span_to_range(f.span);
                     let sel_range = self.span_to_range(f.name.span);
-                    symbols.add(f.name.name.clone(), FlunoSymbolKind::Function, f.name.span, range, sel_range, Some(format!("fn {}", f.name.name)));
+                    symbols.add(
+                        f.name.name.clone(),
+                        FlunoSymbolKind::Function,
+                        f.name.span,
+                        range,
+                        sel_range,
+                        Some(format!("fn {}", f.name.name)),
+                    );
                 }
                 crate::ast::node::Item::Struct(s) => {
                     let range = self.span_to_range(s.span);
                     let sel_range = self.span_to_range(s.name.span);
-                    symbols.add(s.name.name.clone(), FlunoSymbolKind::Struct, s.name.span, range, sel_range, Some(format!("struct {}", s.name.name)));
+                    symbols.add(
+                        s.name.name.clone(),
+                        FlunoSymbolKind::Struct,
+                        s.name.span,
+                        range,
+                        sel_range,
+                        Some(format!("struct {}", s.name.name)),
+                    );
                 }
                 crate::ast::node::Item::Enum(e) => {
                     let range = self.span_to_range(e.span);
                     let sel_range = self.span_to_range(e.name.span);
-                    symbols.add(e.name.name.clone(), FlunoSymbolKind::Enum, e.name.span, range, sel_range, Some(format!("enum {}", e.name.name)));
+                    symbols.add(
+                        e.name.name.clone(),
+                        FlunoSymbolKind::Enum,
+                        e.name.span,
+                        range,
+                        sel_range,
+                        Some(format!("enum {}", e.name.name)),
+                    );
                 }
                 crate::ast::node::Item::Trait(t) => {
                     let range = self.span_to_range(t.span);
                     let sel_range = self.span_to_range(t.name.span);
-                    symbols.add(t.name.name.clone(), FlunoSymbolKind::Trait, t.name.span, range, sel_range, Some(format!("trait {}", t.name.name)));
+                    symbols.add(
+                        t.name.name.clone(),
+                        FlunoSymbolKind::Trait,
+                        t.name.span,
+                        range,
+                        sel_range,
+                        Some(format!("trait {}", t.name.name)),
+                    );
                 }
                 crate::ast::node::Item::TypeAlias(t) => {
                     let range = self.span_to_range(t.span);
                     let sel_range = self.span_to_range(t.name.span);
-                    symbols.add(t.name.name.clone(), FlunoSymbolKind::TypeAlias, t.name.span, range, sel_range, Some(format!("type {}", t.name.name)));
+                    symbols.add(
+                        t.name.name.clone(),
+                        FlunoSymbolKind::TypeAlias,
+                        t.name.span,
+                        range,
+                        sel_range,
+                        Some(format!("type {}", t.name.name)),
+                    );
                 }
                 crate::ast::node::Item::Module(m) => {
                     let range = self.span_to_range(m.span);
                     let sel_range = self.span_to_range(m.name.span);
-                    symbols.add(m.name.name.clone(), FlunoSymbolKind::Module, m.name.span, range, sel_range, Some(format!("mod {}", m.name.name)));
+                    symbols.add(
+                        m.name.name.clone(),
+                        FlunoSymbolKind::Module,
+                        m.name.span,
+                        range,
+                        sel_range,
+                        Some(format!("mod {}", m.name.name)),
+                    );
                     self.collect_symbols(&m.items, symbols);
                 }
                 _ => {}
@@ -139,8 +203,14 @@ impl Backend {
 
     fn span_to_range(&self, span: crate::ast::node::Span) -> Range {
         Range::new(
-            Position::new(span.line.saturating_sub(1) as u32, span.column.saturating_sub(1) as u32),
-            Position::new(span.line.saturating_sub(1) as u32, (span.column.saturating_sub(1) + span.length) as u32),
+            Position::new(
+                span.line.saturating_sub(1) as u32,
+                span.column.saturating_sub(1) as u32,
+            ),
+            Position::new(
+                span.line.saturating_sub(1) as u32,
+                (span.column.saturating_sub(1) + span.length) as u32,
+            ),
         )
     }
 }
@@ -202,13 +272,16 @@ impl LanguageServer for Backend {
     async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
         let position = params.text_document_position_params.position;
         let state = self.document_state.lock().await;
-        
+
         for sym in &state.symbols.symbols {
-            if sym.span.line == (position.line + 1) as usize &&
-               sym.span.column <= (position.character + 1) as usize &&
-               (sym.span.column + sym.name.len()) >= (position.character + 1) as usize {
+            if sym.span.line == (position.line + 1) as usize
+                && sym.span.column <= (position.character + 1) as usize
+                && (sym.span.column + sym.name.len()) >= (position.character + 1) as usize
+            {
                 return Ok(Some(Hover {
-                    contents: HoverContents::Scalar(MarkedString::String(sym.detail.clone().unwrap_or_else(|| sym.name.clone()))),
+                    contents: HoverContents::Scalar(MarkedString::String(
+                        sym.detail.clone().unwrap_or_else(|| sym.name.clone()),
+                    )),
                     range: Some(sym.selection_range),
                 }));
             }
@@ -216,15 +289,19 @@ impl LanguageServer for Backend {
         Ok(None)
     }
 
-    async fn goto_definition(&self, params: GotoDefinitionParams) -> Result<Option<GotoDefinitionResponse>> {
+    async fn goto_definition(
+        &self,
+        params: GotoDefinitionParams,
+    ) -> Result<Option<GotoDefinitionResponse>> {
         let position = params.text_document_position_params.position;
         let uri = params.text_document_position_params.text_document.uri;
         let state = self.document_state.lock().await;
 
         for sym in &state.symbols.symbols {
-            if sym.span.line == (position.line + 1) as usize &&
-               sym.span.column <= (position.character + 1) as usize &&
-               (sym.span.column + sym.name.len()) >= (position.character + 1) as usize {
+            if sym.span.line == (position.line + 1) as usize
+                && sym.span.column <= (position.character + 1) as usize
+                && (sym.span.column + sym.name.len()) >= (position.character + 1) as usize
+            {
                 return Ok(Some(GotoDefinitionResponse::Scalar(Location::new(
                     uri,
                     sym.selection_range,
@@ -234,7 +311,10 @@ impl LanguageServer for Backend {
         Ok(None)
     }
 
-    async fn document_symbol(&self, _params: DocumentSymbolParams) -> Result<Option<DocumentSymbolResponse>> {
+    async fn document_symbol(
+        &self,
+        _params: DocumentSymbolParams,
+    ) -> Result<Option<DocumentSymbolResponse>> {
         let state = self.document_state.lock().await;
         let mut symbols = Vec::new();
 
@@ -268,8 +348,9 @@ impl LanguageServer for Backend {
         let mut items = Vec::new();
 
         let keywords = vec![
-            "fn", "let", "if", "else", "match", "while", "for", "loop", "break", "continue", 
-            "return", "struct", "enum", "impl", "trait", "type", "mod", "use", "import", "async", "await"
+            "fn", "let", "if", "else", "match", "while", "for", "loop", "break", "continue",
+            "return", "struct", "enum", "impl", "trait", "type", "mod", "use", "import", "async",
+            "await",
         ];
         for kw in keywords {
             items.push(CompletionItem {

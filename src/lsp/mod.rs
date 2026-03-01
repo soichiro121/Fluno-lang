@@ -3,8 +3,8 @@
 pub mod server;
 pub mod symbol;
 
-use tower_lsp::{LspService, Server};
 use crate::lsp::server::Backend;
+use tower_lsp::{LspService, Server};
 
 pub async fn run_server() {
     let stdin = tokio::io::stdin();

@@ -1,7 +1,7 @@
 // src/parser/error.rs
 
-use thiserror::Error;
 use crate::lexer::{LexError, TokenKind};
+use thiserror::Error;
 
 pub type ParseResult<T> = Result<T, ParseError>;
 
@@ -65,14 +65,18 @@ pub enum ParseError {
         column: usize,
     },
 
-    #[error("[E0029] Mismatched braces at line {line}, column {column}: expected '}}', found {found}")]
+    #[error(
+        "[E0029] Mismatched braces at line {line}, column {column}: expected '}}', found {found}"
+    )]
     MismatchedBraces {
         found: TokenKind,
         line: usize,
         column: usize,
     },
 
-    #[error("[E0030] Mismatched brackets at line {line}, column {column}: expected ']', found {found}")]
+    #[error(
+        "[E0030] Mismatched brackets at line {line}, column {column}: expected ']', found {found}"
+    )]
     MismatchedBrackets {
         found: TokenKind,
         line: usize,
@@ -146,10 +150,7 @@ pub enum ParseError {
     },
 
     #[error("[E0040] Unreachable pattern at line {line}, column {column}")]
-    UnreachablePattern {
-        line: usize,
-        column: usize,
-    },
+    UnreachablePattern { line: usize, column: usize },
 
     #[error("[E0041] Non-exhaustive patterns at line {line}, column {column}: missing {missing}")]
     NonExhaustivePatterns {
@@ -166,28 +167,16 @@ pub enum ParseError {
     },
 
     #[error("[E0043] 'break' statement outside loop at line {line}, column {column}")]
-    BreakOutsideLoop {
-        line: usize,
-        column: usize,
-    },
+    BreakOutsideLoop { line: usize, column: usize },
 
     #[error("[E0044] 'continue' statement outside loop at line {line}, column {column}")]
-    ContinueOutsideLoop {
-        line: usize,
-        column: usize,
-    },
+    ContinueOutsideLoop { line: usize, column: usize },
 
     #[error("[E0045] 'return' statement outside function at line {line}, column {column}")]
-    ReturnOutsideFunction {
-        line: usize,
-        column: usize,
-    },
+    ReturnOutsideFunction { line: usize, column: usize },
 
     #[error("[E0046] 'await' expression outside async function at line {line}, column {column}")]
-    AwaitOutsideAsync {
-        line: usize,
-        column: usize,
-    },
+    AwaitOutsideAsync { line: usize, column: usize },
 
     #[error("[E0047] Invalid function signature at line {line}, column {column}: {message}")]
     InvalidFunctionSignature {
@@ -232,10 +221,7 @@ pub enum ParseError {
     },
 
     #[error("[E0053] Invalid visibility modifier at line {line}, column {column}")]
-    InvalidVisibility {
-        line: usize,
-        column: usize,
-    },
+    InvalidVisibility { line: usize, column: usize },
 
     #[error("[E0054] Expected semicolon at line {line}, column {column}, found {found}")]
     ExpectedSemicolon {
@@ -265,7 +251,9 @@ pub enum ParseError {
         column: usize,
     },
 
-    #[error("[E0058] Invalid cast at line {line}, column {column}: cannot cast from {from} to {to}")]
+    #[error(
+        "[E0058] Invalid cast at line {line}, column {column}: cannot cast from {from} to {to}"
+    )]
     InvalidCast {
         from: String,
         to: String,
@@ -450,36 +438,41 @@ impl ParseError {
 
     pub fn hint(&self) -> Option<String> {
         match self {
-            ParseError::UnexpectedToken { expected, .. } => {
-                Some(format!("Try adding or changing the token to '{}'", expected))
-            }
-            ParseError::UnexpectedEof { expected, .. } => {
-                Some(format!("The parser expected {} before the end of the file", expected))
-            }
-            ParseError::MismatchedParens { expected, .. } => {
-                Some(format!("Make sure all parentheses are properly matched. Expected '{}'", expected))
-            }
+            ParseError::UnexpectedToken { expected, .. } => Some(format!(
+                "Try adding or changing the token to '{}'",
+                expected
+            )),
+            ParseError::UnexpectedEof { expected, .. } => Some(format!(
+                "The parser expected {} before the end of the file",
+                expected
+            )),
+            ParseError::MismatchedParens { expected, .. } => Some(format!(
+                "Make sure all parentheses are properly matched. Expected '{}'",
+                expected
+            )),
             ParseError::MismatchedBraces { .. } => {
                 Some("Make sure all braces '{{' and '}}' are properly matched".to_string())
             }
             ParseError::MismatchedBrackets { .. } => {
                 Some("Make sure all brackets '[' and ']' are properly matched".to_string())
             }
-            ParseError::BreakOutsideLoop { .. } => {
-                Some("'break' can only be used inside 'while', 'for', or 'loop' statements".to_string())
-            }
-            ParseError::ContinueOutsideLoop { .. } => {
-                Some("'continue' can only be used inside 'while', 'for', or 'loop' statements".to_string())
-            }
+            ParseError::BreakOutsideLoop { .. } => Some(
+                "'break' can only be used inside 'while', 'for', or 'loop' statements".to_string(),
+            ),
+            ParseError::ContinueOutsideLoop { .. } => Some(
+                "'continue' can only be used inside 'while', 'for', or 'loop' statements"
+                    .to_string(),
+            ),
             ParseError::ReturnOutsideFunction { .. } => {
                 Some("'return' can only be used inside a function body".to_string())
             }
             ParseError::AwaitOutsideAsync { .. } => {
                 Some("'await' can only be used inside an async function".to_string())
             }
-            ParseError::DuplicateField { field, .. } => {
-                Some(format!("Remove the duplicate field '{}' or rename it", field))
-            }
+            ParseError::DuplicateField { field, .. } => Some(format!(
+                "Remove the duplicate field '{}' or rename it",
+                field
+            )),
             ParseError::ExpectedSemicolon { .. } => {
                 Some("Statements in Fluno typically end with a semicolon ';'".to_string())
             }
@@ -496,33 +489,37 @@ impl ParseError {
 
     pub fn format_with_source(&self, source: &str) -> String {
         let mut output = String::new();
-        
+
         output.push_str(&format!("error[{}]: {}\n", self.error_code(), self));
-        
+
         if let (Some(line), Some(column)) = (self.line(), self.column()) {
             output.push_str(&format!("  --> line {}, column {}\n", line, column));
-            
+
             let lines: Vec<&str> = source.lines().collect();
             if line > 0 && line <= lines.len() {
                 if line > 1 {
                     output.push_str(&format!("{:4} | {}\n", line - 1, lines[line - 2]));
                 }
-                
+
                 let error_line = lines[line - 1];
                 output.push_str(&format!("{:4} | {}\n", line, error_line));
-                
-                output.push_str(&format!("     | {}{}\n", " ".repeat(column.saturating_sub(1)), "^"));
-                
+
+                output.push_str(&format!(
+                    "     | {}{}\n",
+                    " ".repeat(column.saturating_sub(1)),
+                    "^"
+                ));
+
                 if line < lines.len() {
                     output.push_str(&format!("{:4} | {}\n", line + 1, lines[line]));
                 }
             }
         }
-        
+
         if let Some(hint) = self.hint() {
             output.push_str(&format!("\nHelp: {}\n", hint));
         }
-        
+
         output
     }
 }
@@ -554,21 +551,21 @@ impl _ParseErrorContext {
     pub fn _add_error(&mut self, error: ParseError) -> () {
         self.errors.push(error);
     }
-    
+
     pub fn _format_errors(&self) -> String {
         let mut output = String::new();
-        
+
         if let Some(path) = &self.file_path {
             output.push_str(&format!("In file: {}\n\n", path));
         }
-        
+
         for (i, error) in self.errors.iter().enumerate() {
             if i > 0 {
                 output.push_str("\n");
             }
             output.push_str(&error.format_with_source(&self.source));
         }
-        
+
         output.push_str(&format!("\n{} error(s) found\n", self.errors.len()));
         output
     }
@@ -639,7 +636,7 @@ mod tests {
             line: 3,
             column: 5,
         };
-        
+
         let formatted = err.format_with_source(source);
         assert!(formatted.contains("E0054"));
         assert!(formatted.contains("line 3"));
@@ -650,9 +647,12 @@ mod tests {
     fn test_error_context() {
         let source = "fn test() { break; }".to_string();
         let mut context = _ParseErrorContext::_with_file(source, "test.fln".to_string());
-        
-        context._add_error(ParseError::BreakOutsideLoop { line: 1, column: 13 });
-        
+
+        context._add_error(ParseError::BreakOutsideLoop {
+            line: 1,
+            column: 13,
+        });
+
         let formatted = context._format_errors();
         assert!(formatted.contains("test.fln"));
         assert!(formatted.contains("E0043"));
@@ -663,7 +663,7 @@ mod tests {
     fn test_multiple_errors() {
         let source = "fn test() {}".to_string();
         let mut context = _ParseErrorContext::_new(source);
-        
+
         context._add_error(ParseError::ExpectedSemicolon {
             found: TokenKind::RBrace,
             line: 1,
@@ -674,7 +674,7 @@ mod tests {
             line: 1,
             column: 13,
         });
-        
+
         assert_eq!(context.errors.len(), 2);
     }
 }

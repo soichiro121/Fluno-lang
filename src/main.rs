@@ -5,7 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process;
 
-use fluno::{Lexer, Parser as FlunoParser, Interpreter, ast, Token, TokenKind};
+use fluno::{ast, Interpreter, Lexer, Parser as FlunoParser, Token, TokenKind};
 
 use fluno::typeck::TypeChecker;
 
@@ -88,36 +88,45 @@ fn main() {
     let cli = Cli::parse();
 
     let exit_code = match cli.command {
-        Commands::Run { file, show_tokens, show_ast, verbose, bytecode, show_bytecode } => {
-            run_file(&file, show_tokens, show_ast, verbose, bytecode, show_bytecode)
-        }
-        Commands::Lex { file, pretty } => {
-            lex_file(&file, pretty)
-        }
-        Commands::Parse { file, pretty } => {
-            parse_file(&file, pretty)
-        }
-        Commands::Check { file } => {
-            check_file(&file)
-        }
-        Commands::Compile { input, output, opt_level } => {
-            compile_file(&input, output.as_deref(), opt_level)
-        }
-        Commands::Repl { verbose } => {
-            start_repl(verbose)
-        }
-        Commands::Build { path, opt_level } => {
-            build_project(&path, opt_level)
-        }
-        Commands::Lsp => {
-            run_lsp_server()
-        }
+        Commands::Run {
+            file,
+            show_tokens,
+            show_ast,
+            verbose,
+            bytecode,
+            show_bytecode,
+        } => run_file(
+            &file,
+            show_tokens,
+            show_ast,
+            verbose,
+            bytecode,
+            show_bytecode,
+        ),
+        Commands::Lex { file, pretty } => lex_file(&file, pretty),
+        Commands::Parse { file, pretty } => parse_file(&file, pretty),
+        Commands::Check { file } => check_file(&file),
+        Commands::Compile {
+            input,
+            output,
+            opt_level,
+        } => compile_file(&input, output.as_deref(), opt_level),
+        Commands::Repl { verbose } => start_repl(verbose),
+        Commands::Build { path, opt_level } => build_project(&path, opt_level),
+        Commands::Lsp => run_lsp_server(),
     };
 
     process::exit(exit_code);
 }
 
-fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, use_bytecode: bool, show_bytecode: bool) -> i32 {
+fn run_file(
+    path: &PathBuf,
+    show_tokens: bool,
+    show_ast: bool,
+    verbose: bool,
+    use_bytecode: bool,
+    show_bytecode: bool,
+) -> i32 {
     if verbose {
         println!("Running file: {}", path.display());
         if use_bytecode {
@@ -126,7 +135,6 @@ fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, us
             println!("  Using: Tree-Walking Interpreter");
         }
     }
-
 
     let source = match read_file(path) {
         Ok(s) => s,
@@ -137,7 +145,6 @@ fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, us
         println!("Source length: {} bytes", source.len());
     }
 
-
     let tokens = match lex_source(&source, path, show_tokens) {
         Ok(t) => t,
         Err(code) => return code,
@@ -146,7 +153,6 @@ fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, us
     if verbose {
         println!("Tokens: {} found", tokens.len());
     }
-
 
     let mut program = match parse_source(&source, path, show_ast) {
         Ok(p) => p,
@@ -182,9 +188,9 @@ fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, us
                 eprintln!("  → {}", err.message());
             }
             if use_bytecode {
-                 eprintln!("Warning: Proceeding despite type check errors (Bytecode mode)");
+                eprintln!("Warning: Proceeding despite type check errors (Bytecode mode)");
             } else {
-                 return 1;
+                return 1;
             }
         }
     }
@@ -195,8 +201,9 @@ fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, us
 
     if use_bytecode {
         use fluno::bytecode::{BytecodeCompiler, BytecodeVM};
-        
-        let compiler = BytecodeCompiler::new(path.file_stem().unwrap_or_default().to_string_lossy());
+
+        let compiler =
+            BytecodeCompiler::new(path.file_stem().unwrap_or_default().to_string_lossy());
         let chunks = match compiler.compile_program(&program) {
             Ok(c) => c,
             Err(e) => {
@@ -205,7 +212,7 @@ fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, us
                 return 1;
             }
         };
-        
+
         if show_bytecode {
             println!("\n=== Bytecode ===");
             for (i, chunk) in chunks.iter().enumerate() {
@@ -213,12 +220,12 @@ fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, us
                 println!("{}", chunk);
             }
         }
-        
+
         let mut vm = BytecodeVM::new();
         for chunk in chunks {
             vm.load_chunk(chunk);
         }
-        
+
         match vm.execute(0) {
             Ok(result) => {
                 if verbose {
@@ -237,7 +244,7 @@ fn run_file(path: &PathBuf, show_tokens: bool, show_ast: bool, verbose: bool, us
         let mut interpreter = Interpreter::new();
 
         interpreter.load_program_defs(&program);
-        
+
         match interpreter.execute(program) {
             Ok(()) => {
                 if verbose {
@@ -369,7 +376,11 @@ fn lex_source(source: &str, path: &PathBuf, print_output: bool) -> Result<Vec<To
     }
 }
 
-fn parse_source(source: &str, path: &PathBuf, print_output: bool) -> Result<ast::node::Program, i32> {
+fn parse_source(
+    source: &str,
+    path: &PathBuf,
+    print_output: bool,
+) -> Result<ast::node::Program, i32> {
     let lexer = Lexer::new(source);
     let mut parser = FlunoParser::new(lexer).map_err(|e| {
         eprintln!("\nParser Initialization Error in '{}':", path.display());
@@ -404,7 +415,10 @@ fn print_tokens(tokens: &[Token]) {
 }
 
 fn print_tokens_pretty(tokens: &[Token]) {
-    println!("\n{:<6} {:<4} {:<4} {:<20} {:<30}", "Index", "Line", "Col", "Kind", "Text");
+    println!(
+        "\n{:<6} {:<4} {:<4} {:<20} {:<30}",
+        "Index", "Line", "Col", "Kind", "Text"
+    );
     println!("{}", "-".repeat(70));
 
     for (i, token) in tokens.iter().enumerate() {
@@ -457,7 +471,11 @@ fn describe_item(item: &ast::node::Item) -> String {
             format!("Struct '{}' with {} field(s)", s.name.name, s.fields.len())
         }
         ast::node::Item::Enum(e) => {
-            format!("Enum '{}' with {} variant(s)", e.name.name, e.variants.len())
+            format!(
+                "Enum '{}' with {} variant(s)",
+                e.name.name,
+                e.variants.len()
+            )
         }
         ast::node::Item::TypeAlias(t) => {
             format!("Type alias '{}'", t.name.name)
@@ -472,13 +490,21 @@ fn describe_item(item: &ast::node::Item) -> String {
             format!("Module '{}' with {} item(s)", m.name.name, m.items.len())
         }
         ast::node::Item::Import(imp) => {
-            format!("Import: {}", imp.path.iter_idents()
-                .map(|id| id.name.as_str())
-                .collect::<Vec<_>>()
-                .join("::"))
+            format!(
+                "Import: {}",
+                imp.path
+                    .iter_idents()
+                    .map(|id| id.name.as_str())
+                    .collect::<Vec<_>>()
+                    .join("::")
+            )
         }
         ast::node::Item::Extern(ext) => {
-            format!("Extern block ({}) with {} function(s)", ext.abi, ext.functions.len())
+            format!(
+                "Extern block ({}) with {} function(s)",
+                ext.abi,
+                ext.functions.len()
+            )
         }
     }
 }
@@ -486,12 +512,10 @@ fn describe_item(item: &ast::node::Item) -> String {
 fn compile_file(input: &PathBuf, output: Option<&std::path::Path>, opt_level: u8) -> i32 {
     println!("Compiling: {}", input.display());
 
-
     let source = match read_file(input) {
         Ok(s) => s,
         Err(code) => return code,
     };
-
 
     let mut program = match parse_source(&source, input, false) {
         Ok(p) => p,
@@ -507,7 +531,6 @@ fn compile_file(input: &PathBuf, output: Option<&std::path::Path>, opt_level: u8
         }
     }
 
-
     let output_path = if let Some(path) = output {
         path.to_path_buf()
     } else {
@@ -517,7 +540,6 @@ fn compile_file(input: &PathBuf, output: Option<&std::path::Path>, opt_level: u8
             input.with_extension("")
         }
     };
-
 
     use fluno::compiler::Compiler;
     let compiler = Compiler::new(opt_level);
@@ -535,17 +557,17 @@ fn compile_file(input: &PathBuf, output: Option<&std::path::Path>, opt_level: u8
 
 fn build_project(project_path: &PathBuf, opt_level: u8) -> i32 {
     use fluno::manifest::FlunoManifest;
-    
+
     use fluno::typeck::TypeChecker;
-    
+
     let manifest_path = project_path.join("fluno.toml");
-    
+
     if !manifest_path.exists() {
         eprintln!("Error: fluno.toml not found in {}", project_path.display());
         eprintln!("Hint: Create a fluno.toml file or use 'fluno compile <file>' for single-file compilation.");
         return 1;
     }
-    
+
     println!("Building project: {}", project_path.display());
 
     let manifest = match FlunoManifest::from_file(&manifest_path) {
@@ -555,28 +577,31 @@ fn build_project(project_path: &PathBuf, opt_level: u8) -> i32 {
             return 1;
         }
     };
-    
-    println!("  Package: {} v{}", manifest.package.name, manifest.package.version);
-    
+
+    println!(
+        "  Package: {} v{}",
+        manifest.package.name, manifest.package.version
+    );
+
     let src_dir = project_path.join("src");
     let main_file = src_dir.join("main.fln");
-    
+
     if !main_file.exists() {
         eprintln!("Error: src/main.fln not found");
         eprintln!("Hint: Create src/main.fln with your main function.");
         return 1;
     }
-    
+
     let source = match read_file(&main_file) {
         Ok(s) => s,
         Err(code) => return code,
     };
-    
+
     let mut program = match parse_source(&source, &main_file, false) {
         Ok(p) => p,
         Err(code) => return code,
     };
-    
+
     let mut type_checker = TypeChecker::new();
     if let Err(errors) = type_checker.check_program(&mut program) {
         eprintln!("Type checking warnings:");
@@ -584,21 +609,21 @@ fn build_project(project_path: &PathBuf, opt_level: u8) -> i32 {
             eprintln!(" - {}", err.message());
         }
     }
-    
+
     let build_dir = project_path.join(format!("{}_build", manifest.package.name));
     let src_build_dir = build_dir.join("src");
     std::fs::create_dir_all(&src_build_dir).ok();
-    
+
     let current_dir = std::env::current_dir().unwrap_or_default();
     let fluno_path = current_dir.to_string_lossy().replace("\\", "/");
     let cargo_toml_content = manifest.generate_cargo_toml(&fluno_path);
-    
+
     let cargo_toml_path = build_dir.join("Cargo.toml");
     if let Err(e) = std::fs::write(&cargo_toml_path, cargo_toml_content) {
         eprintln!("Failed to write Cargo.toml: {}", e);
         return 1;
     }
-    
+
     let mut codegen = fluno::compiler::codegen::CodeGenerator::new();
     let (rust_code, _source_map) = match codegen.generate(&program) {
         Ok(r) => r,
@@ -607,25 +632,25 @@ fn build_project(project_path: &PathBuf, opt_level: u8) -> i32 {
             return 1;
         }
     };
-    
+
     let main_rs_path = src_build_dir.join("main.rs");
     if let Err(e) = std::fs::write(&main_rs_path, rust_code) {
         eprintln!("Failed to write main.rs: {}", e);
         return 1;
     }
-    
+
     println!("Generated Cargo project at: {}", build_dir.display());
-    
+
     let mut cmd = std::process::Command::new("cargo");
     cmd.arg("build").current_dir(&build_dir);
-    
+
     if opt_level > 0 {
         println!("Running: cargo build --release");
         cmd.arg("--release");
     } else {
         println!("Running: cargo build");
     }
-    
+
     let output = match cmd.output() {
         Ok(o) => o,
         Err(e) => {
@@ -633,31 +658,35 @@ fn build_project(project_path: &PathBuf, opt_level: u8) -> i32 {
             return 1;
         }
     };
-    
+
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         eprintln!("{}", stderr);
         return 1;
     }
-    
-    let bin_name = if cfg!(windows) { 
-        format!("{}.exe", manifest.package.name) 
-    } else { 
-        manifest.package.name.clone() 
+
+    let bin_name = if cfg!(windows) {
+        format!("{}.exe", manifest.package.name)
+    } else {
+        manifest.package.name.clone()
     };
     let target_subdir = if opt_level > 0 { "release" } else { "debug" };
-    let _src_bin_name = if cfg!(windows) { "generated_app.exe" } else { "generated_app" };
-    
+    let _src_bin_name = if cfg!(windows) {
+        "generated_app.exe"
+    } else {
+        "generated_app"
+    };
+
     let target_bin = build_dir.join("target").join(target_subdir).join(&bin_name);
     let output_bin = project_path.join(&bin_name);
-    
+
     if let Err(e) = std::fs::copy(&target_bin, &output_bin) {
         eprintln!("Failed to copy binary: {}", e);
         eprintln!("  From: {}", target_bin.display());
         eprintln!("  To: {}", output_bin.display());
         return 1;
     }
-    
+
     println!("Build successful: {}", output_bin.display());
     0
 }

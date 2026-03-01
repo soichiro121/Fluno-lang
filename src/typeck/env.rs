@@ -14,22 +14,21 @@ pub struct TypeEnv {
     pub impls: Vec<ImplDef>,
 }
 
-
 #[derive(Debug, Clone)]
 pub struct ImplDef {
-  pub impl_id: usize,
-  pub trait_def: DefId,
-  pub typeparams: Vec<TypeParameter>,
-  pub self_ty: Type,
-  pub where_preds: Vec<WherePredicate>,
-  pub assoc_bindings: HashMap<String, Type>,
-  pub methods: HashMap<String, (Type, DefId)>,
-  pub span: Span,
+    pub impl_id: usize,
+    pub trait_def: DefId,
+    pub typeparams: Vec<TypeParameter>,
+    pub self_ty: Type,
+    pub where_preds: Vec<WherePredicate>,
+    pub assoc_bindings: HashMap<String, Type>,
+    pub methods: HashMap<String, (Type, DefId)>,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone)]
 pub enum WherePred {
-  TraitBound { ty: Type, trait_def: DefId },
+    TraitBound { ty: Type, trait_def: DefId },
 }
 
 #[derive(Debug, Clone)]
@@ -38,14 +37,12 @@ pub struct TypeAliasDef {
     pub ty: Type,
 }
 
-
 #[derive(Debug, Clone)]
 pub struct TraitDefInfo {
     pub typeparams: Vec<crate::ast::node::TypeParameter>,
     pub assoc_types: HashMap<String, Type>,
     pub methods: HashMap<String, Type>,
 }
-
 
 #[derive(Debug, Clone)]
 pub struct EnumDefInfo {
@@ -111,7 +108,6 @@ impl TypeEnv {
         Ok(())
     }
 
-
     pub fn lookup_trait_method(&self, traitid: DefId, name: &str) -> Option<Type> {
         match self.get_def(traitid)? {
             ItemDef::Trait(info) => info.methods.get(name).cloned(),
@@ -125,7 +121,7 @@ impl TypeEnv {
             _ => None,
         }
     }
-    
+
     pub fn lookup(&self, name: &str) -> Option<Type> {
         for scope in self.scopes.iter().rev() {
             if let Some(ty) = scope.get(name) {
@@ -228,7 +224,7 @@ impl TypeEnv {
                 span,
             });
         }
-        entry.insert(method_name, (method_ty, method_def_id)); 
+        entry.insert(method_name, (method_ty, method_def_id));
         Ok(method_def_id)
     }
 
@@ -238,23 +234,16 @@ impl TypeEnv {
         DefId(id)
     }
 
-
     pub fn lookup_method_defid(&self, self_type_def: DefId, method_name: &str) -> Option<DefId> {
         self.lookup_method(self_type_def, method_name)
             .map(|(_, defid)| *defid)
     }
 
-    pub fn lookup_method(
-        &self,
-        self_type_def: DefId,
-        method_name: &str,
-    ) -> Option<&(Type, DefId)> {
+    pub fn lookup_method(&self, self_type_def: DefId, method_name: &str) -> Option<&(Type, DefId)> {
         self.methods
             .get(&self_type_def)
             .and_then(|m| m.get(method_name))
     }
-
-
 }
 
 impl Default for TypeEnv {

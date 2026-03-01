@@ -1,8 +1,8 @@
 // src/vm/reactive.rs
 
-use std::collections::{HashMap, HashSet, BinaryHeap};
-use std::cmp::Ordering;
 use crate::vm::value::Value;
+use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap, HashSet};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NodeKind {
@@ -14,16 +14,22 @@ pub enum NodeKind {
 pub struct SignalNode {
     pub id: usize,
     pub current_value: Value,
-    pub kind: NodeKind, 
+    pub kind: NodeKind,
     pub dependencies: Vec<usize>,
     pub dependents: Vec<usize>,
     pub rank: usize,
     pub update_fn: Option<Value>,
 }
 
-
 impl SignalNode {
-    fn new(id: usize, value: Value, rank: usize, update_fn: Option<Value>, dependencies: Vec<usize>, kind: NodeKind) -> Self {
+    fn new(
+        id: usize,
+        value: Value,
+        rank: usize,
+        update_fn: Option<Value>,
+        dependencies: Vec<usize>,
+        kind: NodeKind,
+    ) -> Self {
         Self {
             id,
             current_value: value,
@@ -76,10 +82,16 @@ impl ReactiveRuntime {
         id
     }
 
-    pub fn create_computed(&mut self, dependencies: Vec<usize>, initial_value: Value, update_fn: Value, kind: NodeKind) -> usize {
+    pub fn create_computed(
+        &mut self,
+        dependencies: Vec<usize>,
+        initial_value: Value,
+        update_fn: Value,
+        kind: NodeKind,
+    ) -> usize {
         let id = self.next_id;
         self.next_id += 1;
-        
+
         let mut max_rank = 0;
         for dep_id in &dependencies {
             if let Some(node) = self.nodes.get(dep_id) {
@@ -101,8 +113,7 @@ impl ReactiveRuntime {
         }
         id
     }
-    
-    
+
     pub fn get_node_kind(&self, id: usize) -> Option<NodeKind> {
         self.nodes.get(&id).map(|n| n.kind)
     }
@@ -110,7 +121,7 @@ impl ReactiveRuntime {
     pub fn get_value(&self, id: usize) -> Option<Value> {
         self.nodes.get(&id).map(|n| n.current_value.clone())
     }
-    
+
     pub fn set_value(&mut self, id: usize, value: Value) {
         if let Some(node) = self.nodes.get_mut(&id) {
             node.current_value = value;
@@ -128,27 +139,46 @@ impl ReactiveRuntime {
         }
 
         while let Some(item) = queue.pop() {
-            order.push(item.id);            
+            order.push(item.id);
             if let Some(node) = self.nodes.get(&item.id) {
                 for &child_id in &node.dependents {
                     self.enqueue_if_needed(child_id, &mut queue, &mut visited);
                 }
             }
         }
-        
+
         order
     }
-    
-    fn enqueue_if_needed(&self, id: usize, queue: &mut BinaryHeap<UpdateItem>, visited: &mut HashSet<usize>) {
+
+    fn enqueue_if_needed(
+        &self,
+        id: usize,
+        queue: &mut BinaryHeap<UpdateItem>,
+        visited: &mut HashSet<usize>,
+    ) {
         if !visited.contains(&id) {
             if let Some(node) = self.nodes.get(&id) {
                 visited.insert(id);
-                queue.push(UpdateItem { id, rank: node.rank });
+                queue.push(UpdateItem {
+                    id,
+                    rank: node.rank,
+                });
             }
         }
     }
-    
+
     pub fn get_node(&self, id: usize) -> Option<&SignalNode> {
         self.nodes.get(&id)
+    }
+
+    pub fn get_all_values(&self) -> Vec<&Value> {
+        let mut values = Vec::new();
+        for node in self.nodes.values() {
+            values.push(&node.current_value);
+            if let Some(ref update_fn) = node.update_fn {
+                values.push(update_fn);
+            }
+        }
+        values
     }
 }

@@ -1,11 +1,15 @@
 // src/typeck/infer.rs
 
-use crate::ast::node::{BinaryOp, Expression, Literal, Span, Type, Block, UnaryOp, Pattern, Path, VariantData, DefId, ImplItem, WherePredicate};
 use crate::ast::node::PathSeg;
-use crate::typeck::env::{TypeEnv, ItemDef, TypeAliasDef, TraitDefInfo, EnumDefInfo, VariantInfo, ImplDef, StructDefInfo};
+use crate::ast::node::{
+    BinaryOp, Block, DefId, Expression, ImplItem, Literal, Path, Pattern, Span, Type, UnaryOp,
+    VariantData, WherePredicate,
+};
+use crate::typeck::env::{
+    EnumDefInfo, ImplDef, ItemDef, StructDefInfo, TraitDefInfo, TypeAliasDef, TypeEnv, VariantInfo,
+};
 use crate::typeck::error::{TypeError, TypeResult};
 use std::collections::HashMap;
-
 
 #[derive(Debug, Clone)]
 pub struct TypeInfer {
@@ -21,307 +25,389 @@ pub struct SelectedImpl {
 impl TypeInfer {
     pub fn new() -> Self {
         let mut type_env = TypeEnv::new();
-        
-        type_env.define(
-            "println".to_string(),
-            Type::Function {
-                params: vec![Type::Variadic(Box::new(Type::Any))],
-                return_type: Box::new(Type::Unit),
-            },
-        ).ok();
-        type_env.define(
-            "print".to_string(),
-            Type::Function {
-                params: vec![Type::Variadic(Box::new(Type::Any))],
-                return_type: Box::new(Type::Unit),
-            },
-        ).ok();
-        type_env.define(
-            "nearly_eq".to_string(), 
-            Type::Function { 
-                params: vec![Type::Float, Type::Float], 
-                return_type: Box::new(Type::Bool) 
-            }
-        ).ok();
-        type_env.define(
-            "Signal_new".to_string(),
-            Type::Function {
-                params: vec![Type::Any],
-                return_type: Box::new(Type::Signal(Box::new(Type::Any))),
-            },
-        ).ok();
-        type_env.define(
-            "Signal_set".to_string(),
-            Type::Function {
-                params: vec![
-                    Type::Signal(Box::new(Type::Any)),
-                    Type::Any,
-                ],
-                return_type: Box::new(Type::Unit),
-            },
-        ).ok();
-        type_env.define(
-            "Signal_get".to_string(),
-            Type::Function {
-                params: vec![Type::Signal(Box::new(Type::Any))],
-                return_type: Box::new(Type::Any),
-            },
-        ).ok();
-        type_env.define(
-            "Signal_map".to_string(),
-            Type::Function {
-                params: vec![
-                    Type::Signal(Box::new(Type::Any)),
-                    Type::Function {
-                        params: vec![Type::Any],
-                        return_type: Box::new(Type::Any),
-                    },
-                ],
-                return_type: Box::new(Type::Signal(Box::new(Type::Any))),
-            },
-        ).ok();
 
-        type_env.define(
-            "Signal_filter".to_string(),
-            Type::Function {
-                params: vec![
-                    Type::Signal(Box::new(Type::Any)),
-                    Type::Function {
-                        params: vec![Type::Any],
-                        return_type: Box::new(Type::Bool),
-                    },
-                ],
-                return_type: Box::new(Type::Signal(Box::new(Type::Any))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "println".to_string(),
+                Type::Function {
+                    params: vec![Type::Variadic(Box::new(Type::Any))],
+                    return_type: Box::new(Type::Unit),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "print".to_string(),
+                Type::Function {
+                    params: vec![Type::Variadic(Box::new(Type::Any))],
+                    return_type: Box::new(Type::Unit),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "nearly_eq".to_string(),
+                Type::Function {
+                    params: vec![Type::Float, Type::Float],
+                    return_type: Box::new(Type::Bool),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "Signal_new".to_string(),
+                Type::Function {
+                    params: vec![Type::Any],
+                    return_type: Box::new(Type::Signal(Box::new(Type::Any))),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "Signal_set".to_string(),
+                Type::Function {
+                    params: vec![Type::Signal(Box::new(Type::Any)), Type::Any],
+                    return_type: Box::new(Type::Unit),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "Signal_get".to_string(),
+                Type::Function {
+                    params: vec![Type::Signal(Box::new(Type::Any))],
+                    return_type: Box::new(Type::Any),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "Signal_map".to_string(),
+                Type::Function {
+                    params: vec![
+                        Type::Signal(Box::new(Type::Any)),
+                        Type::Function {
+                            params: vec![Type::Any],
+                            return_type: Box::new(Type::Any),
+                        },
+                    ],
+                    return_type: Box::new(Type::Signal(Box::new(Type::Any))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Signal_combine".to_string(),
-            Type::Function {
-                params: vec![
-                    Type::Signal(Box::new(Type::Any)),
-                    Type::Signal(Box::new(Type::Any)),
-                    Type::Function {
-                        params: vec![Type::Any, Type::Any],
-                        return_type: Box::new(Type::Any),
-                    },
-                ],
-                return_type: Box::new(Type::Signal(Box::new(Type::Any))),
-            },
-        ).ok();
-        type_env.define(
-            "Event_new".to_string(),
-            Type::Function {
-                params: vec![],
-                return_type: Box::new(Type::Event(Box::new(Type::Any))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Signal_filter".to_string(),
+                Type::Function {
+                    params: vec![
+                        Type::Signal(Box::new(Type::Any)),
+                        Type::Function {
+                            params: vec![Type::Any],
+                            return_type: Box::new(Type::Bool),
+                        },
+                    ],
+                    return_type: Box::new(Type::Signal(Box::new(Type::Any))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Event_emit".to_string(),
-            Type::Function {
-                params: vec![Type::Event(Box::new(Type::Any)), Type::Any],
-                return_type: Box::new(Type::Unit),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Signal_combine".to_string(),
+                Type::Function {
+                    params: vec![
+                        Type::Signal(Box::new(Type::Any)),
+                        Type::Signal(Box::new(Type::Any)),
+                        Type::Function {
+                            params: vec![Type::Any, Type::Any],
+                            return_type: Box::new(Type::Any),
+                        },
+                    ],
+                    return_type: Box::new(Type::Signal(Box::new(Type::Any))),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "Event_new".to_string(),
+                Type::Function {
+                    params: vec![],
+                    return_type: Box::new(Type::Event(Box::new(Type::Any))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Event_fold".to_string(),
-            Type::Function {
-                params: vec![
-                    Type::Event(Box::new(Type::Any)),
-                    Type::Any,
-                    Type::Function {
-                        params: vec![Type::Any, Type::Any],
-                        return_type: Box::new(Type::Any),
-                    },
-                ],
-                return_type: Box::new(Type::Signal(Box::new(Type::Any))),
-            },
-        ).ok();
-        type_env.define(
-            "Gaussian".to_string(),
-            Type::Function {
-                params: vec![Type::Float, Type::Float],
-                return_type: Box::new(Type::Gaussian),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Event_emit".to_string(),
+                Type::Function {
+                    params: vec![Type::Event(Box::new(Type::Any)), Type::Any],
+                    return_type: Box::new(Type::Unit),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Uniform".to_string(),
-            Type::Function {
-                params: vec![Type::Float, Type::Float],
-                return_type: Box::new(Type::Uniform),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Event_fold".to_string(),
+                Type::Function {
+                    params: vec![
+                        Type::Event(Box::new(Type::Any)),
+                        Type::Any,
+                        Type::Function {
+                            params: vec![Type::Any, Type::Any],
+                            return_type: Box::new(Type::Any),
+                        },
+                    ],
+                    return_type: Box::new(Type::Signal(Box::new(Type::Any))),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "Gaussian".to_string(),
+                Type::Function {
+                    params: vec![Type::Float, Type::Float],
+                    return_type: Box::new(Type::Gaussian),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "sample".to_string(),
-            Type::Function {
-                params: vec![Type::Any],
-                return_type: Box::new(Type::Float),
-            },
-        ).ok();
-        type_env.define(
-            "observe".to_string(),
-            Type::Function {
-                params: vec![Type::Any, Type::Float],
-                return_type: Box::new(Type::Unit),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Uniform".to_string(),
+                Type::Function {
+                    params: vec![Type::Float, Type::Float],
+                    return_type: Box::new(Type::Uniform),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Bernoulli".to_string(),
-            Type::Function {
-                params: vec![Type::Float],
-                return_type: Box::new(Type::Bernoulli),
-            },
-        ).ok();
+        type_env
+            .define(
+                "sample".to_string(),
+                Type::Function {
+                    params: vec![Type::Any],
+                    return_type: Box::new(Type::Float),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "observe".to_string(),
+                Type::Function {
+                    params: vec![Type::Any, Type::Float],
+                    return_type: Box::new(Type::Unit),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Beta".to_string(),
-            Type::Function {
-                params: vec![Type::Float, Type::Float],
-                return_type: Box::new(Type::Beta),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Bernoulli".to_string(),
+                Type::Function {
+                    params: vec![Type::Float],
+                    return_type: Box::new(Type::Bernoulli),
+                },
+            )
+            .ok();
+
+        type_env
+            .define(
+                "Beta".to_string(),
+                Type::Function {
+                    params: vec![Type::Float, Type::Float],
+                    return_type: Box::new(Type::Beta),
+                },
+            )
+            .ok();
+
+        type_env
+            .define(
+                "VonMises".to_string(),
+                Type::Function {
+                    params: vec![Type::Float, Type::Float], // mu, kappa
+                    return_type: Box::new(Type::VonMises),
+                },
+            )
+            .ok();
 
         let unary_float = Type::Function {
-             params: vec![Type::Float],
-             return_type: Box::new(Type::Float),
+            params: vec![Type::Float],
+            return_type: Box::new(Type::Float),
         };
         for name in &["exp", "ln", "sin", "cos", "tan", "sqrt"] {
-             type_env.define(name.to_string(), unary_float.clone()).ok();
+            type_env.define(name.to_string(), unary_float.clone()).ok();
         }
-        
-        type_env.define("pow".to_string(), Type::Function {
-             params: vec![Type::Float, Type::Float],
-             return_type: Box::new(Type::Float),
-        }).ok();
 
-        type_env.define("to_json".to_string(), Type::Function {
-             params: vec![Type::Any],
-             return_type: Box::new(Type::String),
-        }).ok();
-        type_env.define("from_json".to_string(), Type::Function {
-             params: vec![Type::String],
-             return_type: Box::new(Type::Any),
-        }).ok();
+        type_env
+            .define(
+                "pow".to_string(),
+                Type::Function {
+                    params: vec![Type::Float, Type::Float],
+                    return_type: Box::new(Type::Float),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "infer".to_string(),
-            Type::Function {
-                params: vec![
-                    Type::Int,
-                    Type::Any,
-                ],
-                return_type: Box::new(Type::Array(Box::new(Type::Any))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "to_json".to_string(),
+                Type::Function {
+                    params: vec![Type::Any],
+                    return_type: Box::new(Type::String),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "from_json".to_string(),
+                Type::Function {
+                    params: vec![Type::String],
+                    return_type: Box::new(Type::Any),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "infer_vi".to_string(),
-            Type::Function {
-                params: vec![
-                    Type::Map(Box::new(Type::String), Box::new(Type::Any)),
-                    Type::Any,
-                    Type::Any,
-                ],
-                return_type: Box::new(Type::Map(Box::new(Type::String), Box::new(Type::Float))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "infer".to_string(),
+                Type::Function {
+                    params: vec![Type::Int, Type::Any],
+                    return_type: Box::new(Type::Array(Box::new(Type::Any))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "infer_hmc".to_string(),
-            Type::Function {
-                params: vec![
-                    Type::Map(Box::new(Type::String), Box::new(Type::Any)),
-                    Type::Any,
-                ],
-                return_type: Box::new(Type::Array(Box::new(
-                    Type::Map(Box::new(Type::String), Box::new(Type::Float))
-                ))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "infer_vi".to_string(),
+                Type::Function {
+                    params: vec![
+                        Type::Map(Box::new(Type::String), Box::new(Type::Any)),
+                        Type::Any,
+                        Type::Any,
+                    ],
+                    return_type: Box::new(Type::Map(Box::new(Type::String), Box::new(Type::Float))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "param".to_string(),
-            Type::Function {
-                params: vec![Type::String, Type::Float],
-                return_type: Box::new(Type::Float),
-            },
-        ).ok();
+        type_env
+            .define(
+                "infer_hmc".to_string(),
+                Type::Function {
+                    params: vec![
+                        Type::Map(Box::new(Type::String), Box::new(Type::Any)),
+                        Type::Any,
+                    ],
+                    return_type: Box::new(Type::Array(Box::new(Type::Map(
+                        Box::new(Type::String),
+                        Box::new(Type::Float),
+                    )))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Map".to_string(),
-            Type::Function {
-                params: vec![],
-                return_type: Box::new(Type::Map(Box::new(Type::String), Box::new(Type::Any))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "param".to_string(),
+                Type::Function {
+                    params: vec![Type::String, Type::Float],
+                    return_type: Box::new(Type::Float),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "exp".to_string(),
-            Type::Function {
-                params: vec![Type::Float],
-                return_type: Box::new(Type::Float),
-            },
-        ).ok();
-        type_env.define(
-            "Rc_new".to_string(),
-            Type::Function {
-                params: vec![Type::Any],
-                return_type: Box::new(Type::Rc(Box::new(Type::Any))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Map".to_string(),
+                Type::Function {
+                    params: vec![],
+                    return_type: Box::new(Type::Map(Box::new(Type::String), Box::new(Type::Any))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Rc_downgrade".to_string(),
-            Type::Function {
-                params: vec![Type::Rc(Box::new(Type::Any))],
-                return_type: Box::new(Type::Weak(Box::new(Type::Any))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "exp".to_string(),
+                Type::Function {
+                    params: vec![Type::Float],
+                    return_type: Box::new(Type::Float),
+                },
+            )
+            .ok();
+        type_env
+            .define(
+                "Rc_new".to_string(),
+                Type::Function {
+                    params: vec![Type::Any],
+                    return_type: Box::new(Type::Rc(Box::new(Type::Any))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "Weak_upgrade".to_string(),
-            Type::Function {
-                params: vec![Type::Weak(Box::new(Type::Any))],
-                return_type: Box::new(Type::Option(Box::new(Type::Rc(Box::new(Type::Any))))),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Rc_downgrade".to_string(),
+                Type::Function {
+                    params: vec![Type::Rc(Box::new(Type::Any))],
+                    return_type: Box::new(Type::Weak(Box::new(Type::Any))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "create_tape".to_string(),
-            Type::Function {
-                params: vec![],
-                return_type: Box::new(Type::Int),
-            },
-        ).ok();
+        type_env
+            .define(
+                "Weak_upgrade".to_string(),
+                Type::Function {
+                    params: vec![Type::Weak(Box::new(Type::Any))],
+                    return_type: Box::new(Type::Option(Box::new(Type::Rc(Box::new(Type::Any))))),
+                },
+            )
+            .ok();
 
-        type_env.define(
-            "param".to_string(),
-            Type::Function {
-                params: vec![Type::Float, Type::Int],
-                return_type: Box::new(Type::Float),
-            },
-        ).ok();
-        
-        type_env.define(
-            "backward".to_string(),
-            Type::Function {
-                params: vec![Type::Float],
-                return_type: Box::new(Type::Unit),
-            },
-        ).ok();
-        
-        type_env.define(
-            "grad".to_string(),
-            Type::Function {
-                params: vec![Type::Float],
-                return_type: Box::new(Type::Float),
-            },
-        ).ok();
+        type_env
+            .define(
+                "create_tape".to_string(),
+                Type::Function {
+                    params: vec![],
+                    return_type: Box::new(Type::Int),
+                },
+            )
+            .ok();
+
+        type_env
+            .define(
+                "param".to_string(),
+                Type::Function {
+                    params: vec![Type::Float, Type::Int],
+                    return_type: Box::new(Type::Float),
+                },
+            )
+            .ok();
+
+        type_env
+            .define(
+                "backward".to_string(),
+                Type::Function {
+                    params: vec![Type::Float],
+                    return_type: Box::new(Type::Unit),
+                },
+            )
+            .ok();
+
+        type_env
+            .define(
+                "grad".to_string(),
+                Type::Function {
+                    params: vec![Type::Float],
+                    return_type: Box::new(Type::Float),
+                },
+            )
+            .ok();
 
         TypeInfer {
             env: type_env,
@@ -334,15 +420,12 @@ impl TypeInfer {
         path.last_ident().unwrap().name.clone()
     }
 
-
     fn resolve_trait_def_from_path(&self, path: &Path, span: Span) -> TypeResult<DefId> {
         if let Some(id) = path.resolved {
             return Ok(id);
         }
 
-        let ident = path
-            .last_ident()
-            .ok_or(TypeError::CannotInfer { span })?;
+        let ident = path.last_ident().ok_or(TypeError::CannotInfer { span })?;
         let _key = ident.name.clone();
 
         self.env
@@ -378,57 +461,68 @@ impl TypeInfer {
                     let enum_name_seg = &name.segments[name.segments.len() - 2];
                     if let PathSeg::Ident(enum_ident) = enum_name_seg {
                         if let Some(def_id) = self.env.resolve_def(&enum_ident.name) {
-                            let enum_data = if let Some(ItemDef::Enum(info)) = self.env.get_def(def_id) {
-                                Some((info.variants.clone(), info.typeparams.clone()))
-                            } else {
-                                None
-                            };
+                            let enum_data =
+                                if let Some(ItemDef::Enum(info)) = self.env.get_def(def_id) {
+                                    Some((info.variants.clone(), info.typeparams.clone()))
+                                } else {
+                                    None
+                                };
 
                             if let Some((variants, typeparams)) = enum_data {
                                 let variant_seg = name.segments.last().unwrap();
                                 if let PathSeg::Ident(variant_ident) = variant_seg {
                                     if let Some(variant_info) = variants.get(&variant_ident.name) {
-                                        name.resolved = Some(def_id); 
-                                          
-                                        println!("[DEBUG] Found Enum Variant: {:?}, typeparams len: {}", enum_ident.name, typeparams.len());
+                                        name.resolved = Some(def_id);
+
+                                        println!(
+                                            "[DEBUG] Found Enum Variant: {:?}, typeparams len: {}",
+                                            enum_ident.name,
+                                            typeparams.len()
+                                        );
 
                                         let mut typeargs = Vec::new();
                                         for _ in &typeparams {
                                             typeargs.push(self.fresh_meta());
                                         }
-                                          
+
                                         let mut subst = std::collections::HashMap::new();
                                         for (i, param) in typeparams.iter().enumerate() {
-                                            subst.insert(param.name.name.clone(), typeargs[i].clone());
+                                            subst.insert(
+                                                param.name.name.clone(),
+                                                typeargs[i].clone(),
+                                            );
                                         }
 
-                                        let enum_path = Path { 
-                                            segments: name.segments[..name.segments.len()-1].to_vec(),
+                                        let enum_path = Path {
+                                            segments: name.segments[..name.segments.len() - 1]
+                                                .to_vec(),
                                             span: *span,
-                                            resolved: Some(def_id) 
+                                            resolved: Some(def_id),
                                         };
                                         let enum_ty = Type::Named {
                                             name: enum_path,
-                                            type_args: typeargs, 
+                                            type_args: typeargs,
                                         };
-                                          
+
                                         match variant_info {
                                             VariantInfo::Unit => return Ok(enum_ty),
                                             VariantInfo::Tuple(tys) => {
                                                 let mut func_params = Vec::new();
                                                 for t in tys {
-                                                    func_params.push(self.subst_typevars(t.clone(), &subst));
+                                                    func_params.push(
+                                                        self.subst_typevars(t.clone(), &subst),
+                                                    );
                                                 }
 
                                                 return Ok(Type::Function {
                                                     params: func_params,
                                                     return_type: Box::new(enum_ty),
                                                 });
-                                            },
+                                            }
                                             VariantInfo::Struct(_) => {
                                                 return Err(TypeError::CannotInfer { span: *span });
                                             }
-                                        }    
+                                        }
                                     }
                                 }
                             }
@@ -456,12 +550,10 @@ impl TypeInfer {
 
                 match self.env.get_def(defid) {
                     Some(ItemDef::Function(ty)) => Ok(ty.clone()),
-                    Some(ItemDef::Struct(_)) => {
-                        Err(TypeError::UndefinedVariable {
-                            name: id.name.clone(),
-                            span: *span,
-                        })
-                    }
+                    Some(ItemDef::Struct(_)) => Err(TypeError::UndefinedVariable {
+                        name: id.name.clone(),
+                        span: *span,
+                    }),
                     _ => Err(TypeError::UndefinedVariable {
                         name: id.name.clone(),
                         span: *span,
@@ -469,35 +561,49 @@ impl TypeInfer {
                 }
             }
 
-
-            Expression::Binary { op, left, right, span } => {
-                self.infer_binary(*op, left, right, *span)
-            }
-            Expression::Unary { op, operand, span } => {
-                self.infer_unary(op, operand, *span)
-            }
-            Expression::If { condition, then_branch, else_branch, .. } => {
-                self.infer_if_expression(condition, then_branch, else_branch.as_mut())
-            }
+            Expression::Binary {
+                op,
+                left,
+                right,
+                span,
+            } => self.infer_binary(*op, left, right, *span),
+            Expression::Unary { op, operand, span } => self.infer_unary(op, operand, *span),
+            Expression::If {
+                condition,
+                then_branch,
+                else_branch,
+                ..
+            } => self.infer_if_expression(condition, then_branch, else_branch.as_mut()),
             Expression::Call { callee, args, span } => {
                 let mut desugared: Option<(Expression, Type)> = None;
                 {
-                    if let Expression::UfcsMethod { trait_path, method, span: ufcs_span } = callee.as_mut() {
+                    if let Expression::UfcsMethod {
+                        trait_path,
+                        method,
+                        span: ufcs_span,
+                    } = callee.as_mut()
+                    {
                         let traitpath = trait_path.clone();
                         let method = method.clone();
                         let call_span = *span;
                         let ufcs_span = *ufcs_span;
 
                         if args.is_empty() {
-                            return Err(TypeError::ArityMismatch { expected: 1, found: 0, span: ufcs_span });
+                            return Err(TypeError::ArityMismatch {
+                                expected: 1,
+                                found: 0,
+                                span: ufcs_span,
+                            });
                         }
 
                         let receiverty = {
                             let t = self.infer_expression(args.first_mut().unwrap())?;
                             self.apply(t)
                         };
-                        let mut traitdefid = self.resolve_trait_def_from_path(&traitpath, ufcs_span)?;
-                        let is_trait = matches!(self.env.get_def(traitdefid), Some(ItemDef::Trait(_)));
+                        let mut traitdefid =
+                            self.resolve_trait_def_from_path(&traitpath, ufcs_span)?;
+                        let is_trait =
+                            matches!(self.env.get_def(traitdefid), Some(ItemDef::Trait(_)));
                         if !is_trait {
                             let base = self.trait_key_from_path(&traitpath);
                             let fallback = format!("{base}Trait");
@@ -508,7 +614,8 @@ impl TypeInfer {
                             }
                         }
 
-                        let selected = self.select_impl(traitdefid, receiverty.clone(), ufcs_span)?;
+                        let selected =
+                            self.select_impl(traitdefid, receiverty.clone(), ufcs_span)?;
                         let (methodty, methoddefid) = selected
                             .impl_def
                             .methods
@@ -517,19 +624,29 @@ impl TypeInfer {
                             .clone();
 
                         let (params, returntype) = match methodty {
-                            Type::Function { params, return_type } => (params, return_type),
-                            other => return Err(TypeError::NotCallable { value_type: other, span: ufcs_span }),
+                            Type::Function {
+                                params,
+                                return_type,
+                            } => (params, return_type),
+                            other => {
+                                return Err(TypeError::NotCallable {
+                                    value_type: other,
+                                    span: ufcs_span,
+                                })
+                            }
                         };
                         self.unify(receiverty.clone(), params[0].clone(), ufcs_span)?;
                         for (i, argexpr) in args.iter_mut().enumerate() {
-                            if i == 0 { continue; }
+                            if i == 0 {
+                                continue;
+                            }
                             let argty = self.infer_expression(argexpr)?;
                             self.unify(argty, params[i].clone(), argexpr.span())?;
                         }
 
                         let receiver_expr = args.remove(0);
                         let method_args = std::mem::take(args);
-                        
+
                         desugared = Some((
                             Expression::MethodCall {
                                 receiver: Box::new(receiver_expr),
@@ -538,7 +655,7 @@ impl TypeInfer {
                                 span: call_span,
                                 resolved: Some(methoddefid),
                             },
-                            self.apply(*returntype)
+                            self.apply(*returntype),
                         ));
                     }
                     if let Expression::FieldAccess { object, field, .. } = callee.as_mut() {
@@ -548,22 +665,25 @@ impl TypeInfer {
                         if matches!(obj_ty, Type::String) {
                             let receiver_expr = std::mem::replace(
                                 object,
-                                Box::new(Expression::Literal { value: Literal::Unit, span: *span }),
+                                Box::new(Expression::Literal {
+                                    value: Literal::Unit,
+                                    span: *span,
+                                }),
                             );
-                            
+
                             let (ret_type, is_method) = match field.name.as_str() {
                                 "trim" => (Type::String, true),
                                 "split" => (Type::Array(Box::new(Type::String)), true),
                                 "replace" => (Type::String, true),
                                 "contains" => (Type::Bool, true),
-                                _ => (Type::Unit, false), 
+                                _ => (Type::Unit, false),
                             };
-                            
+
                             if is_method {
                                 for arg in args.iter_mut() {
                                     let _ = self.infer_expression(arg)?;
                                 }
-                                
+
                                 desugared = Some((
                                     Expression::MethodCall {
                                         receiver: receiver_expr,
@@ -572,7 +692,7 @@ impl TypeInfer {
                                         span: *span,
                                         resolved: None,
                                     },
-                                    ret_type
+                                    ret_type,
                                 ));
                             }
                         }
@@ -586,7 +706,7 @@ impl TypeInfer {
                                         span: *span,
                                     }),
                                 );
-                                
+
                                 desugared = Some((
                                     Expression::MethodCall {
                                         receiver: receiver_expr,
@@ -595,7 +715,7 @@ impl TypeInfer {
                                         span: *span,
                                         resolved: None,
                                     },
-                                    Type::Float
+                                    Type::Float,
                                 ));
                             }
                         }
@@ -610,7 +730,10 @@ impl TypeInfer {
                             if found {
                                 let receiver_expr = std::mem::replace(
                                     object,
-                                    Box::new(Expression::Literal { value: Literal::Unit, span: *span }),
+                                    Box::new(Expression::Literal {
+                                        value: Literal::Unit,
+                                        span: *span,
+                                    }),
                                 );
                                 for arg in args.iter_mut() {
                                     let _ = self.infer_expression(arg)?;
@@ -623,7 +746,7 @@ impl TypeInfer {
                                         span: *span,
                                         resolved: None,
                                     },
-                                    ret_type
+                                    ret_type,
                                 ));
                             }
                         }
@@ -631,9 +754,7 @@ impl TypeInfer {
                         let path_opt = match &obj_ty {
                             Type::Named { name, .. } => Some(name),
                             Type::DynTrait { trait_path } => Some(trait_path),
-                            _ => {
-                                None
-                            }
+                            _ => None,
                         };
 
                         if let Some(path) = path_opt {
@@ -646,11 +767,15 @@ impl TypeInfer {
                             };
 
                             let mut method_sig: Option<(Type, Option<DefId>)> = None;
-                            if let Some((ty, defid)) = self.env.lookup_method(selfdefid, field.name.as_str()) {
+                            if let Some((ty, defid)) =
+                                self.env.lookup_method(selfdefid, field.name.as_str())
+                            {
                                 method_sig = Some((ty.clone(), Some(*defid)));
                             }
                             if method_sig.is_none() {
-                                if let Some(ItemDef::Trait(trait_info)) = self.env.get_def(selfdefid) {
+                                if let Some(ItemDef::Trait(trait_info)) =
+                                    self.env.get_def(selfdefid)
+                                {
                                     if let Some(ty) = trait_info.methods.get(field.name.as_str()) {
                                         method_sig = Some((ty.clone(), None));
                                     }
@@ -660,20 +785,22 @@ impl TypeInfer {
                             if method_sig.is_none() {
                                 for impl_def in &self.env.impls {
                                     let is_matching_type = match &impl_def.self_ty {
-                                        Type::Named { name: impl_name, .. } => {
-                                            impl_name
-                                                .resolved
-                                                .or_else(|| {
-                                                    self.env.resolve_def(
-                                                        impl_name.last_ident().unwrap().name.as_str(),
-                                                    )
-                                                }) == Some(selfdefid)
+                                        Type::Named {
+                                            name: impl_name, ..
+                                        } => {
+                                            impl_name.resolved.or_else(|| {
+                                                self.env.resolve_def(
+                                                    impl_name.last_ident().unwrap().name.as_str(),
+                                                )
+                                            }) == Some(selfdefid)
                                         }
                                         _ => false,
                                     };
 
                                     if is_matching_type {
-                                        if let Some((mty, mdefid)) = impl_def.methods.get(&field.name) {
+                                        if let Some((mty, mdefid)) =
+                                            impl_def.methods.get(&field.name)
+                                        {
                                             method_sig = Some((mty.clone(), Some(*mdefid)));
                                             break;
                                         }
@@ -682,7 +809,11 @@ impl TypeInfer {
                             }
 
                             if let Some((method_ty, resolved_defid)) = method_sig {
-                                if let Type::Function { params, return_type } = method_ty {
+                                if let Type::Function {
+                                    params,
+                                    return_type,
+                                } = method_ty
+                                {
                                     let is_variadic = params
                                         .last()
                                         .map_or(false, |t| matches!(t, Type::Variadic(_)));
@@ -781,8 +912,6 @@ impl TypeInfer {
                 self.infer_function_call(callee, args)
             }
 
-
-
             Expression::Block { block, .. } => self.infer_block(block),
 
             Expression::MethodCall {
@@ -790,19 +919,19 @@ impl TypeInfer {
                 method,
                 args,
                 span,
-                ref mut resolved, 
+                ref mut resolved,
             } => {
                 let recv_ty_raw = self.infer_expression(receiver)?;
                 let recv_ty = self.apply(recv_ty_raw);
                 let objty = recv_ty.clone();
                 if matches!(objty, Type::Int) {
-                     for arg in args.iter_mut() {
-                         let _ = self.infer_expression(arg)?;
-                     }
-                     match method.name.as_str() {
-                         "to_string" => return Ok(Type::String),
-                         _ => {},
-                     }
+                    for arg in args.iter_mut() {
+                        let _ = self.infer_expression(arg)?;
+                    }
+                    match method.name.as_str() {
+                        "to_string" => return Ok(Type::String),
+                        _ => {}
+                    }
                 }
 
                 if matches!(objty, Type::String) {
@@ -817,7 +946,7 @@ impl TypeInfer {
                         "contains" => return Ok(Type::Bool),
                         "len" => return Ok(Type::Int),
                         "slice" => return Ok(Type::String),
-                        _ => {},
+                        _ => {}
                     }
                 }
 
@@ -826,21 +955,26 @@ impl TypeInfer {
                         let _ = self.infer_expression(arg)?;
                     }
                     match method.name.as_str() {
-                        "abs" | "exp" | "ln" | "sqrt" | "sin" | "cos" | "tan" | "ceil" | "floor" | "round" => return Ok(Type::Float),
+                        "abs" | "exp" | "ln" | "sqrt" | "sin" | "cos" | "tan" | "ceil"
+                        | "floor" | "round" => return Ok(Type::Float),
                         "pow" | "powf" => return Ok(Type::Float),
-                        _ => {},
+                        _ => {}
                     }
                 }
 
                 if objty.is_probabilistic() {
-                    if method.name == "sample" {
-                        return Ok(Type::Float);
+                    let mut arg_types = Vec::new();
+                    for arg in args.iter_mut() {
+                        arg_types.push(self.infer_expression(arg)?);
                     }
-                    if method.name == "clone" {
-                        return Ok(objty.clone());
-                    }
+                    return crate::typeck::prob::infer_distribution_method(
+                        &method.name,
+                        &objty,
+                        &arg_types,
+                        *span,
+                    );
                 }
-                
+
                 if let Type::Named { name, .. } = &objty {
                     let is_distribution = if let Some(ident) = name.last_ident() {
                         ident.name == "Distribution"
@@ -858,7 +992,11 @@ impl TypeInfer {
                     }
                     if method.name == "push" {
                         if args.len() != 1 {
-                            return Err(TypeError::ArityMismatch { expected: 1, found: args.len(), span: *span });
+                            return Err(TypeError::ArityMismatch {
+                                expected: 1,
+                                found: args.len(),
+                                span: *span,
+                            });
                         }
                         return Ok(Type::Array(elem_ty.clone()));
                     }
@@ -868,32 +1006,44 @@ impl TypeInfer {
                     match method.name.as_str() {
                         "insert" => {
                             if args.len() != 2 {
-                                return Err(TypeError::ArityMismatch { expected: 2, found: args.len(), span: *span });
+                                return Err(TypeError::ArityMismatch {
+                                    expected: 2,
+                                    found: args.len(),
+                                    span: *span,
+                                });
                             }
                             let k_ty = self.infer_expression(&mut args[0])?;
                             self.unify(k_ty, *key_ty.clone(), args[0].span())?;
-                            
+
                             let v_ty = self.infer_expression(&mut args[1])?;
                             self.unify(v_ty, *val_ty.clone(), args[1].span())?;
-                            
+
                             return Ok(Type::Unit);
                         }
                         "get" => {
                             if args.len() != 1 {
-                                return Err(TypeError::ArityMismatch { expected: 1, found: args.len(), span: *span });
+                                return Err(TypeError::ArityMismatch {
+                                    expected: 1,
+                                    found: args.len(),
+                                    span: *span,
+                                });
                             }
                             let k_ty = self.infer_expression(&mut args[0])?;
                             self.unify(k_ty, *key_ty.clone(), args[0].span())?;
-                            
+
                             return Ok(*val_ty.clone());
                         }
                         "contains_key" => {
                             if args.len() != 1 {
-                                return Err(TypeError::ArityMismatch { expected: 1, found: args.len(), span: *span });
+                                return Err(TypeError::ArityMismatch {
+                                    expected: 1,
+                                    found: args.len(),
+                                    span: *span,
+                                });
                             }
                             let k_ty = self.infer_expression(&mut args[0])?;
                             self.unify(k_ty, *key_ty.clone(), args[0].span())?;
-                            
+
                             return Ok(Type::Bool);
                         }
                         _ => {}
@@ -909,17 +1059,22 @@ impl TypeInfer {
                     }
                 }
 
-                if let Type::Named { name: type_name, .. } = &dispatch_ty {
+                if let Type::Named {
+                    name: type_name, ..
+                } = &dispatch_ty
+                {
                     let type_def_id = if let Some(id) = type_name.resolved {
                         id
                     } else {
                         let ident = type_name
                             .last_ident()
                             .ok_or(TypeError::CannotInfer { span: *span })?;
-                        self.env.resolve_def(&ident.name).ok_or(TypeError::UndefinedVariable {
-                            name: ident.name.clone(),
-                            span: *span,
-                        })?
+                        self.env
+                            .resolve_def(&ident.name)
+                            .ok_or(TypeError::UndefinedVariable {
+                                name: ident.name.clone(),
+                                span: *span,
+                            })?
                     };
 
                     if let Some((method_ty, method_def_id)) =
@@ -927,7 +1082,11 @@ impl TypeInfer {
                     {
                         *resolved = Some(method_def_id);
 
-                        if let Type::Function { params, return_type } = method_ty {
+                        if let Type::Function {
+                            params,
+                            return_type,
+                        } = method_ty
+                        {
                             if params.is_empty() {
                                 return Err(TypeError::CannotInfer { span: *span });
                             }
@@ -989,14 +1148,16 @@ impl TypeInfer {
                     }
 
                     let impls = self.env.impls.clone();
-                    let mut trait_defs: std::collections::HashSet<DefId> = std::collections::HashSet::new();
+                    let mut trait_defs: std::collections::HashSet<DefId> =
+                        std::collections::HashSet::new();
                     for impl_def in impls.iter() {
                         if impl_def.methods.contains_key(&method.name) {
                             trait_defs.insert(impl_def.trait_def);
                         }
                     }
 
-                    let mut matches: Vec<(SelectedImpl, std::collections::HashMap<usize, Type>)> = Vec::new();
+                    let mut matches: Vec<(SelectedImpl, std::collections::HashMap<usize, Type>)> =
+                        Vec::new();
 
                     for trait_def in trait_defs.into_iter() {
                         let saved_subst = self.subst.clone();
@@ -1021,7 +1182,7 @@ impl TypeInfer {
                             span: *span,
                         });
                     }
-                    
+
                     if let Some((selected, subst_after)) = matches.pop() {
                         self.subst = subst_after;
                         let (mut method_ty, method_def_id) = selected
@@ -1035,16 +1196,20 @@ impl TypeInfer {
 
                         method_ty = self.subst_typevars(method_ty, &selected.subst);
                         method_ty = self.apply(method_ty);
-                        
+
                         let mut solved_assoc = selected.assoc_bindings.clone();
                         for (_k, v) in solved_assoc.iter_mut() {
                             *v = self.apply(self.subst_typevars(v.clone(), &selected.subst));
                         }
-                        
+
                         method_ty = self.subst_assoc(method_ty, &solved_assoc);
                         method_ty = self.apply(method_ty);
 
-                        if let Type::Function { params, return_type } = method_ty {
+                        if let Type::Function {
+                            params,
+                            return_type,
+                        } = method_ty
+                        {
                             if params.is_empty() {
                                 return Err(TypeError::CannotInfer { span: *span });
                             }
@@ -1136,17 +1301,31 @@ impl TypeInfer {
                         let fresh = self.instantiate_typeparams(&trait_typeparams);
                         let method_ty = self.apply(self.subst_typevars(method_ty_raw, &fresh));
 
-                        if let Type::Function { params, return_type } = method_ty {
+                        if let Type::Function {
+                            params,
+                            return_type,
+                        } = method_ty
+                        {
                             if params.is_empty() {
                                 return Err(TypeError::CannotInfer { span: *span });
                             }
-                            let is_variadic = params.last().map_or(false, |t| matches!(t, Type::Variadic(_)));
+                            let is_variadic = params
+                                .last()
+                                .map_or(false, |t| matches!(t, Type::Variadic(_)));
                             let expected_min = params.len().saturating_sub(1);
                             if !is_variadic && args.len() != expected_min {
-                                return Err(TypeError::ArityMismatch { expected: expected_min, found: args.len(), span: *span });
+                                return Err(TypeError::ArityMismatch {
+                                    expected: expected_min,
+                                    found: args.len(),
+                                    span: *span,
+                                });
                             }
                             if is_variadic && args.len() < expected_min.saturating_sub(1) {
-                                return Err(TypeError::ArityMismatch { expected: expected_min.saturating_sub(1), found: args.len(), span: *span });
+                                return Err(TypeError::ArityMismatch {
+                                    expected: expected_min.saturating_sub(1),
+                                    found: args.len(),
+                                    span: *span,
+                                });
                             }
                             self.unify(recv_ty.clone(), params[0].clone(), receiver.span())?;
                             let args_len = args.len();
@@ -1163,7 +1342,11 @@ impl TypeInfer {
                                         _ => unreachable!(),
                                     }
                                 } else {
-                                    return Err(TypeError::ArityMismatch { expected: expected_min, found: args_len, span: argexpr.span() });
+                                    return Err(TypeError::ArityMismatch {
+                                        expected: expected_min,
+                                        found: args_len,
+                                        span: argexpr.span(),
+                                    });
                                 };
                                 self.unify(arg_ty, expected_ty, argexpr.span())?;
                             }
@@ -1179,9 +1362,7 @@ impl TypeInfer {
                 let inner_ty = self.infer_expression(expr)?;
                 Ok(Type::Option(Box::new(inner_ty)))
             }
-            Expression::None { .. } => {
-                Ok(Type::Option(Box::new(Type::Any)))
-            }
+            Expression::None { .. } => Ok(Type::Option(Box::new(Type::Any))),
             Expression::Ok { expr, .. } => {
                 let inner = self.infer_expression(expr.as_mut())?;
                 Ok(Type::Result {
@@ -1202,7 +1383,10 @@ impl TypeInfer {
                 let t = self.infer_expression(expr.as_mut())?;
                 let t = self.apply(t);
                 match t {
-                    Type::Result { ok_type, err_type: _ } => Ok(*ok_type),
+                    Type::Result {
+                        ok_type,
+                        err_type: _,
+                    } => Ok(*ok_type),
                     other => Err(TypeError::TypeMismatch {
                         expected: Type::Result {
                             ok_type: Box::new(self.fresh_meta()),
@@ -1213,7 +1397,11 @@ impl TypeInfer {
                     }),
                 }
             }
-            Expression::Index { object, index, span } => {
+            Expression::Index {
+                object,
+                index,
+                span,
+            } => {
                 let idx_ty = self.infer_expression(index)?;
                 self.unify(idx_ty, Type::Int, *span)?;
 
@@ -1225,44 +1413,53 @@ impl TypeInfer {
 
                 Ok(self.apply(elem_ty))
             }
-            Expression::Match { scrutinee, arms, span } => {
-                self.infer_match_expression(scrutinee, arms, *span)
-            }
-            Expression::Array { elements, span: _span } => {
+            Expression::Match {
+                scrutinee,
+                arms,
+                span,
+            } => self.infer_match_expression(scrutinee, arms, *span),
+            Expression::Array {
+                elements,
+                span: _span,
+            } => {
                 if elements.is_empty() {
-                    return Ok(Type::Array(Box::new(Type::Unit)));
+                    return Ok(Type::Array(Box::new(self.fresh_meta())));
                 }
-                
+
                 let mut elem_types = Vec::new();
                 for elem in &mut *elements {
                     let ty = self.infer_expression(elem)?;
                     elem_types.push(ty);
                 }
-                
-                let unified_ty = elem_types[0].clone();
-                
-                for (i, elem_ty) in elem_types.iter().enumerate().skip(1) {
-                    if let Err(_) = self.unify(elem_ty.clone(), unified_ty.clone(), elements[i].span()) {
 
+                let unified_ty = elem_types[0].clone();
+
+                for (i, elem_ty) in elem_types.iter().enumerate().skip(1) {
+                    if let Err(_) =
+                        self.unify(elem_ty.clone(), unified_ty.clone(), elements[i].span())
+                    {
                     }
                 }
-                
+
                 Ok(Type::Array(Box::new(self.apply(unified_ty))))
             }
 
             Expression::Closure { params, body, .. } => {
                 self.env.push_scope();
-                
-                let param_types: Vec<Type> = params.iter().map(|p| {
-                    let ty = p.ty.clone();
-                    self.env.define(p.name.name.clone(), ty.clone()).ok();
-                    ty
-                }).collect();
-                
+
+                let param_types: Vec<Type> = params
+                    .iter()
+                    .map(|p| {
+                        let ty = p.ty.clone();
+                        self.env.define(p.name.name.clone(), ty.clone()).ok();
+                        ty
+                    })
+                    .collect();
+
                 let return_type = self.infer_expression(body)?;
-                
+
                 self.env.pop_scope();
-                
+
                 Ok(Type::Function {
                     params: param_types,
                     return_type: Box::new(return_type),
@@ -1289,42 +1486,37 @@ impl TypeInfer {
             }
             Expression::Struct { name, fields, span } => {
                 let struct_name = &name.name;
-                
+
                 let defid = match self.env.resolve_def(struct_name) {
-                    Some(id) => {
-                        id
-                    }
+                    Some(id) => id,
                     None => {
-                        return Err(TypeError::CannotInfer {
-                            span: *span,
-                        });
+                        return Err(TypeError::CannotInfer { span: *span });
                     }
                 };
-                                        
+
                 let info = match self.env.get_def(defid).cloned() {
                     Some(ItemDef::Struct(info)) => info,
                     _ => {
-                        return Err(TypeError::CannotInfer {
-                            span: *span,
-                        });
+                        return Err(TypeError::CannotInfer { span: *span });
                     }
                 };
-                
+
                 let mut typeargs = Vec::new();
                 for _param in &info.typeparams {
                     typeargs.push(self.fresh_meta());
                 }
-                
+
                 let mut subst = HashMap::new();
                 for (i, param) in info.typeparams.iter().enumerate() {
                     subst.insert(param.name.name.clone(), typeargs[i].clone());
                 }
-                
+
                 for field in fields.iter_mut() {
                     let field_ty = self.infer_expression(&mut field.value)?;
-                    
+
                     if let Some(expected_ty) = info.fields.get(&field.name.name) {
-                        let expected_instantiated = self.subst_typevars(expected_ty.clone(), &subst);
+                        let expected_instantiated =
+                            self.subst_typevars(expected_ty.clone(), &subst);
                         self.unify(field_ty, expected_instantiated, field.value.span())?;
                     } else {
                         return Err(TypeError::UndefinedField {
@@ -1334,54 +1526,61 @@ impl TypeInfer {
                         });
                     }
                 }
-                
+
                 let mut resolved_path = Path::from_ident(name.clone());
                 resolved_path.resolved = Some(defid);
-                
+
                 Ok(Type::Named {
                     name: resolved_path,
                     type_args: typeargs.into_iter().map(|t| self.apply(t)).collect(),
                 })
             }
 
-
-
-
-            Expression::FieldAccess{ object, field, span } => {
+            Expression::FieldAccess {
+                object,
+                field,
+                span,
+            } => {
                 let objtyraw = self.infer_expression(object.as_mut())?;
                 let objty = self.apply(objtyraw);
-                
+
                 if objty == Type::Gaussian && field.name == "sample" {
                     return Ok(Type::Function {
                         params: vec![],
                         return_type: Box::new(Type::Float),
                     });
                 }
-                
-                if let Type::Named{ ref name, .. } = objty {
+
+                if let Type::Named { ref name, .. } = objty {
                     let self_defid = if let Some(defid) = name.resolved {
                         defid
                     } else {
-                        self.env.resolve_def(name.last_ident().unwrap().name.as_str())
+                        self.env
+                            .resolve_def(name.last_ident().unwrap().name.as_str())
                             .ok_or(TypeError::CannotInfer { span: *span })?
                     };
-                    
+
                     if let Some(ItemDef::Struct(struct_info)) = self.env.get_def(self_defid) {
                         if let Some(field_ty) = struct_info.fields.get(&field.name) {
                             return Ok(field_ty.clone());
                         }
                     }
-                    
-                    if let Some((method_ty, _method_defid)) = self.env.lookup_method(self_defid, field.name.as_str()) {
+
+                    if let Some((method_ty, _method_defid)) =
+                        self.env.lookup_method(self_defid, field.name.as_str())
+                    {
                         return Ok(method_ty.clone());
                     }
                     for impl_def in &self.env.impls {
                         let is_matching_type = match &impl_def.self_ty {
-                            Type::Named{ name: impl_name, .. } => {
-                                impl_name.resolved.or_else(|| 
-                                    self.env.resolve_def(impl_name.last_ident().unwrap().name.as_str())
-                                ) == Some(self_defid)
-                            },
+                            Type::Named {
+                                name: impl_name, ..
+                            } => {
+                                impl_name.resolved.or_else(|| {
+                                    self.env
+                                        .resolve_def(impl_name.last_ident().unwrap().name.as_str())
+                                }) == Some(self_defid)
+                            }
                             _ => false,
                         };
 
@@ -1391,7 +1590,7 @@ impl TypeInfer {
                             }
                         }
                     }
-                    
+
                     if name.last_ident().map(|id| id.name.as_str()) == Some("Vector2") {
                         return match field.name.as_str() {
                             "x" | "y" => Ok(Type::Float),
@@ -1399,7 +1598,7 @@ impl TypeInfer {
                         };
                     }
                 }
-                
+
                 Err(TypeError::UndefinedField {
                     field: field.name.clone(),
                     structname: format!("{:?}", objty),
@@ -1407,10 +1606,7 @@ impl TypeInfer {
                 })
             }
 
-
-            Expression::Paren { expr, .. } => {
-                self.infer_expression(expr)
-            }
+            Expression::Paren { expr, .. } => self.infer_expression(expr),
 
             Expression::Tuple { elements, .. } => {
                 if elements.is_empty() {
@@ -1430,7 +1626,12 @@ impl TypeInfer {
                     Ok(first)
                 }
             }
-            Expression::With { name, initializer, body, span: _ } => {
+            Expression::With {
+                name,
+                initializer,
+                body,
+                span: _,
+            } => {
                 let init_ty = self.infer_expression(initializer)?;
                 self.env.push_scope();
                 self.env.define(name.name.clone(), init_ty)?;
@@ -1438,7 +1639,6 @@ impl TypeInfer {
                 self.env.pop_scope();
                 Ok(self.apply(body_ty))
             }
-
 
             Expression::Enum {
                 name,
@@ -1458,7 +1658,8 @@ impl TypeInfer {
 
                 let (variant_info, typeparams) = match self.env.get_def(def_id) {
                     Some(ItemDef::Enum(info)) => {
-                        let v = info.variants
+                        let v = info
+                            .variants
                             .get(&variant.name)
                             .ok_or(TypeError::CannotInfer { span: *span })?
                             .clone();
@@ -1534,7 +1735,10 @@ impl TypeInfer {
                     resolved: Some(def_id),
                 };
 
-                Ok(Type::Named { name: path, type_args: enum_type_args })
+                Ok(Type::Named {
+                    name: path,
+                    type_args: enum_type_args,
+                })
             }
 
             Expression::Spawn { expr, span: _span } => {
@@ -1546,7 +1750,7 @@ impl TypeInfer {
                 let future_ty = self.infer_expression(expr)?;
                 match self.apply(future_ty) {
                     Type::Future(inner) => Ok(*inner),
-                    other => Err(TypeError::TypeMismatch { 
+                    other => Err(TypeError::TypeMismatch {
                         expected: Type::Future(Box::new(Type::Any)),
                         found: other,
                         span: *span,
@@ -1554,11 +1758,7 @@ impl TypeInfer {
                 }
             }
 
-
-            _ => {
-                Err(TypeError::CannotInfer { span: expr.span() })
-            }
-
+            _ => Err(TypeError::CannotInfer { span: expr.span() }),
         }
     }
 
@@ -1583,7 +1783,13 @@ impl TypeInfer {
                     self.env.pop_scope();
                     return Ok(result);
                 }
-                crate::ast::node::Statement::Let { ty, init, pattern, span, .. } => {
+                crate::ast::node::Statement::Let {
+                    ty,
+                    init,
+                    pattern,
+                    span,
+                    ..
+                } => {
                     if let Some(initializer) = init {
                         let inferred = self.infer_expression(initializer)?;
 
@@ -1596,12 +1802,12 @@ impl TypeInfer {
                                         initializer.span(),
                                     )?;
 
-                                    self.env
-                                        .define(name.name.clone(), annot.clone())
-                                        .map_err(|_| TypeError::DuplicateDefinition {
+                                    self.env.define(name.name.clone(), annot.clone()).map_err(
+                                        |_| TypeError::DuplicateDefinition {
                                             name: name.name.clone(),
                                             span: initializer.span(),
-                                        })?;
+                                        },
+                                    )?;
                                 } else {
                                     self.env
                                         .define(name.name.clone(), inferred.clone())
@@ -1619,12 +1825,12 @@ impl TypeInfer {
                         if let Some(annot) = ty.clone() {
                             match pattern {
                                 crate::ast::node::Pattern::Identifier { name, .. } => {
-                                    self.env
-                                        .define(name.name.clone(), annot.clone())
-                                        .map_err(|_| TypeError::DuplicateDefinition {
+                                    self.env.define(name.name.clone(), annot.clone()).map_err(
+                                        |_| TypeError::DuplicateDefinition {
                                             name: name.name.clone(),
                                             span: *span,
-                                        })?;
+                                        },
+                                    )?;
                                 }
                                 _ => return Err(TypeError::CannotInfer { span: *span }),
                             }
@@ -1642,33 +1848,33 @@ impl TypeInfer {
     }
 
     fn infer_match_expression(
-        &mut self, 
-        scrutinee: &mut Expression, 
-        arms: &mut [crate::ast::node::MatchArm], 
-        _span: Span
+        &mut self,
+        scrutinee: &mut Expression,
+        arms: &mut [crate::ast::node::MatchArm],
+        _span: Span,
     ) -> TypeResult<Type> {
         let scrutinee_ty = self.infer_expression(scrutinee)?;
-        
+
         let mut ret_ty: Option<Type> = None;
 
         for arm in arms.iter_mut() {
             self.env.push_scope();
-            
+
             self.check_pattern(&arm.pattern, &scrutinee_ty, arm.span)?;
-            
+
             if let Some(guard) = &mut arm.guard {
                 let guard_ty = self.infer_expression(guard)?;
                 if guard_ty != Type::Bool {
-                     return Err(TypeError::TypeMismatch {
+                    return Err(TypeError::TypeMismatch {
                         expected: Type::Bool,
                         found: guard_ty,
                         span: arm.span,
                     });
                 }
             }
-            
+
             let body_ty = self.infer_expression(&mut arm.body)?;
-            
+
             self.env.pop_scope();
             if let Some(prev) = ret_ty.take() {
                 let unified = self.unify(prev, body_ty, arm.span)?;
@@ -1712,16 +1918,27 @@ impl TypeInfer {
                 err_type: Box::new(self.apply(*err_type)),
             },
 
-            Type::Function { params, return_type } => Type::Function {
+            Type::Function {
+                params,
+                return_type,
+            } => Type::Function {
                 params: params.into_iter().map(|p| self.apply(p)).collect(),
                 return_type: Box::new(self.apply(*return_type)),
             },
 
             Type::Tuple(ts) => Type::Tuple(ts.into_iter().map(|t| self.apply(t)).collect()),
-            Type::Assoc { trait_def, self_ty, name } => {
+            Type::Assoc {
+                trait_def,
+                self_ty,
+                name,
+            } => {
                 let self_ty = Box::new(self.apply(*self_ty));
-                Type::Assoc { trait_def, self_ty, name }
-            },
+                Type::Assoc {
+                    trait_def,
+                    self_ty,
+                    name,
+                }
+            }
 
             other => other,
         }
@@ -1740,11 +1957,14 @@ impl TypeInfer {
             | Type::Handle(inner)
             | Type::Variadic(inner) => self.occurs(id, &inner),
 
-            Type::Result { ok_type, err_type } => self.occurs(id, &ok_type) || self.occurs(id, &err_type),
-
-            Type::Function { params, return_type } => {
-                params.iter().any(|p| self.occurs(id, p)) || self.occurs(id, &return_type)
+            Type::Result { ok_type, err_type } => {
+                self.occurs(id, &ok_type) || self.occurs(id, &err_type)
             }
+
+            Type::Function {
+                params,
+                return_type,
+            } => params.iter().any(|p| self.occurs(id, p)) || self.occurs(id, &return_type),
 
             Type::Tuple(ts) => ts.iter().any(|t| self.occurs(id, t)),
 
@@ -1767,13 +1987,16 @@ impl TypeInfer {
         Ok(())
     }
 
-
-
     fn check_assignable(&mut self, found: Type, expected: Type, span: Span) -> TypeResult<Type> {
         let found = self.apply(found);
         let expected = self.apply(expected);
 
-        if let Type::Named { name: ref trait_path, type_args: ref targs, .. } = expected {
+        if let Type::Named {
+            name: ref trait_path,
+            type_args: ref targs,
+            ..
+        } = expected
+        {
             if targs.is_empty() {
                 let traitdefid_opt = trait_path.resolved.or_else(|| {
                     trait_path
@@ -1786,29 +2009,41 @@ impl TypeInfer {
                         if self.select_impl(traitdefid, found.clone(), span).is_ok() {
                             return Ok(expected);
                         }
-                        return Err(TypeError::TypeMismatch { expected, found, span });
+                        return Err(TypeError::TypeMismatch {
+                            expected,
+                            found,
+                            span,
+                        });
                     }
                 }
             }
         }
         match (found.clone(), expected.clone()) {
-            (_, Type::DynTrait{ trait_path }) => {
-                if matches!(found, Type::DynTrait{..}) {
+            (_, Type::DynTrait { trait_path }) => {
+                if matches!(found, Type::DynTrait { .. }) {
                     return Ok(expected);
                 }
                 let traitdefid = if let Some(id) = trait_path.resolved {
                     id
                 } else {
                     let key = self.trait_key_from_path(&trait_path);
-                    self.env.resolve_def(&key)
-                        .ok_or(TypeError::UndefinedVariable { name: key.clone(), span })?
+                    self.env
+                        .resolve_def(&key)
+                        .ok_or(TypeError::UndefinedVariable {
+                            name: key.clone(),
+                            span,
+                        })?
                 };
 
                 if self.select_impl(traitdefid, found.clone(), span).is_ok() {
                     return Ok(expected);
                 }
 
-                return Err(TypeError::TypeMismatch { expected, found, span });
+                return Err(TypeError::TypeMismatch {
+                    expected,
+                    found,
+                    span,
+                });
             }
 
             (Type::Array(a), Type::Array(b)) => {
@@ -1819,7 +2054,6 @@ impl TypeInfer {
                 let inner = self.check_assignable(*a, *b, span)?;
                 Ok(Type::Handle(Box::new(inner)))
             }
-
 
             _ => self.unify(found, expected, span),
         }
@@ -1842,9 +2076,6 @@ impl TypeInfer {
         }
     }
 
-
-
-
     fn unify(&mut self, a: Type, b: Type, span: Span) -> TypeResult<Type> {
         let a_applied = self.apply(a);
         let a_expanded = self.expand_alias_fixpoint(a_applied);
@@ -1854,9 +2085,12 @@ impl TypeInfer {
         let a = a_expanded;
         let b = b_expanded;
 
-
-        if matches!(a, Type::Any) || matches!(a, Type::Infer) { return Ok(b); }
-        if matches!(b, Type::Any) || matches!(b, Type::Infer) { return Ok(a); }
+        if matches!(a, Type::Any) || matches!(a, Type::Infer) {
+            return Ok(b);
+        }
+        if matches!(b, Type::Any) || matches!(b, Type::Infer) {
+            return Ok(a);
+        }
         if a == b {
             return Ok(a);
         }
@@ -1878,7 +2112,9 @@ impl TypeInfer {
                     return Ok(Type::DynTrait { trait_path });
                 }
 
-                let expected = Type::DynTrait { trait_path: trait_path.clone() };
+                let expected = Type::DynTrait {
+                    trait_path: trait_path.clone(),
+                };
                 let found = Type::Named { name, type_args };
                 self.check_assignable(found, expected, span)
             }
@@ -1912,16 +2148,28 @@ impl TypeInfer {
                 if let (Some(ad), Some(bd)) = (a_def, b_def) {
                     if ad != bd {
                         return Err(TypeError::TypeMismatch {
-                            expected: Type::Named { name: an, type_args: aargs },
-                            found: Type::Named { name: bn, type_args: bargs },
+                            expected: Type::Named {
+                                name: an,
+                                type_args: aargs,
+                            },
+                            found: Type::Named {
+                                name: bn,
+                                type_args: bargs,
+                            },
                             span,
                         });
                     }
                 } else {
                     if an.last_name() != bn.last_name() {
                         return Err(TypeError::TypeMismatch {
-                            expected: Type::Named { name: an, type_args: aargs },
-                            found: Type::Named { name: bn, type_args: bargs },
+                            expected: Type::Named {
+                                name: an,
+                                type_args: aargs,
+                            },
+                            found: Type::Named {
+                                name: bn,
+                                type_args: bargs,
+                            },
                             span,
                         });
                     }
@@ -1929,8 +2177,14 @@ impl TypeInfer {
 
                 if aargs.len() != bargs.len() {
                     return Err(TypeError::TypeMismatch {
-                        expected: Type::Named { name: an, type_args: aargs },
-                        found: Type::Named { name: bn, type_args: bargs },
+                        expected: Type::Named {
+                            name: an,
+                            type_args: aargs,
+                        },
+                        found: Type::Named {
+                            name: bn,
+                            type_args: bargs,
+                        },
                         span,
                     });
                 }
@@ -1947,7 +2201,6 @@ impl TypeInfer {
                     type_args: out_args,
                 })
             }
-
 
             (Type::Int, Type::Int) => Ok(Type::Int),
             (Type::Float, Type::Float) => Ok(Type::Float),
@@ -1984,16 +2237,38 @@ impl TypeInfer {
                 let rv = self.unify(*av, *bv, span)?;
                 Ok(Type::Map(Box::new(rk), Box::new(rv)))
             }
-            (Type::Function { params: p1, return_type: r1 }, Type::Function { params: p2, return_type: r2 }) => {
+            (
+                Type::Function {
+                    params: p1,
+                    return_type: r1,
+                },
+                Type::Function {
+                    params: p2,
+                    return_type: r2,
+                },
+            ) => {
                 if p1.len() != p2.len() {
-                    return Err(TypeError::TypeMismatch { expected: Type::Function { params: p1, return_type: r1 }, found: Type::Function { params: p2, return_type: r2 }, span });
+                    return Err(TypeError::TypeMismatch {
+                        expected: Type::Function {
+                            params: p1,
+                            return_type: r1,
+                        },
+                        found: Type::Function {
+                            params: p2,
+                            return_type: r2,
+                        },
+                        span,
+                    });
                 }
                 let mut rp = Vec::new();
                 for (x, y) in p1.into_iter().zip(p2.into_iter()) {
                     rp.push(self.unify(x, y, span)?);
                 }
                 let rr = self.unify(*r1, *r2, span)?;
-                Ok(Type::Function { params: rp, return_type: Box::new(rr) })
+                Ok(Type::Function {
+                    params: rp,
+                    return_type: Box::new(rr),
+                })
             }
             (Type::Assoc { .. }, _) | (_, Type::Assoc { .. }) => {
                 if a == b {
@@ -2033,112 +2308,98 @@ impl TypeInfer {
         }
     }
 
-
-
     fn check_pattern(&mut self, pattern: &Pattern, target_ty: &Type, span: Span) -> TypeResult<()> {
         match pattern {
             Pattern::Identifier { name, .. } => {
-                self.env.define(name.name.clone(), target_ty.clone())
+                self.env
+                    .define(name.name.clone(), target_ty.clone())
                     .map_err(|_| TypeError::DuplicateDefinition {
                         name: name.name.clone(),
                         span,
                     })?;
                 Ok(())
-            },
+            }
             Pattern::Wildcard { .. } => Ok(()),
-            
+
             Pattern::Literal { value, .. } => {
                 let lit_ty = self.infer_literal(value);
                 self.unify(lit_ty, target_ty.clone(), span)?;
                 Ok(())
+            }
+
+            Pattern::Some { pattern: inner, .. } => match target_ty {
+                Type::Option(inner_ty) => self.check_pattern(inner, inner_ty, span),
+                Type::Any => self.check_pattern(inner, &Type::Any, span),
+                _ => Err(TypeError::TypeMismatch {
+                    expected: Type::Option(Box::new(Type::Any)),
+                    found: target_ty.clone(),
+                    span,
+                }),
             },
 
-
-            Pattern::Some { pattern: inner, .. } => {
-                match target_ty {
-                    Type::Option(inner_ty) => {
-                        self.check_pattern(inner, inner_ty, span)
+            Pattern::None { .. } => match target_ty {
+                Type::Option(_) | Type::Any => Ok(()),
+                _ => Err(TypeError::TypeMismatch {
+                    expected: Type::Option(Box::new(Type::Any)),
+                    found: target_ty.clone(),
+                    span,
+                }),
+            },
+            Pattern::Ok { pattern: inner, .. } => match target_ty {
+                Type::Result {
+                    ok_type,
+                    err_type: _,
+                } => self.check_pattern(inner.as_ref(), ok_type.as_ref(), span),
+                Type::Any => self.check_pattern(inner.as_ref(), &Type::Any, span),
+                _ => Err(TypeError::TypeMismatch {
+                    expected: Type::Result {
+                        ok_type: Box::new(Type::Any),
+                        err_type: Box::new(Type::Any),
                     },
-                    Type::Any => {
-                         self.check_pattern(inner, &Type::Any, span)
+                    found: target_ty.clone(),
+                    span,
+                }),
+            },
+            Pattern::Err { pattern: inner, .. } => match target_ty {
+                Type::Result {
+                    ok_type: _,
+                    err_type,
+                } => self.check_pattern(inner.as_ref(), err_type.as_ref(), span),
+                Type::Any => self.check_pattern(inner.as_ref(), &Type::Any, span),
+                _ => Err(TypeError::TypeMismatch {
+                    expected: Type::Result {
+                        ok_type: Box::new(Type::Any),
+                        err_type: Box::new(Type::Any),
                     },
-                    _ => Err(TypeError::TypeMismatch {
-                        expected: Type::Option(Box::new(Type::Any)),
-                        found: target_ty.clone(),
-                        span,
-                    }),
-                }
+                    found: target_ty.clone(),
+                    span,
+                }),
             },
-            
-            Pattern::None { .. } => {
-                match target_ty {
-                    Type::Option(_) | Type::Any => Ok(()),
-                    _ => Err(TypeError::TypeMismatch {
-                        expected: Type::Option(Box::new(Type::Any)),
-                        found: target_ty.clone(),
-                        span,
-                    }),
-                }
-            },
-            Pattern::Ok { pattern: inner, .. } => {
-                match target_ty {
-                    Type::Result { ok_type, err_type: _ } => {
-                        self.check_pattern(inner.as_ref(), ok_type.as_ref(), span)
+            Pattern::Tuple { patterns, .. } => match target_ty {
+                Type::Tuple(elem_tys) => {
+                    if patterns.len() != elem_tys.len() {
+                        return Err(TypeError::TypeMismatch {
+                            expected: target_ty.clone(),
+                            found: target_ty.clone(),
+                            span,
+                        });
                     }
-                    Type::Any => self.check_pattern(inner.as_ref(), &Type::Any, span),
-                    _ => Err(TypeError::TypeMismatch {
-                        expected: Type::Result {
-                            ok_type: Box::new(Type::Any),
-                            err_type: Box::new(Type::Any),
-                        },
-                        found: target_ty.clone(),
-                        span,
-                    }),
-                }
-            },
-            Pattern::Err { pattern: inner, .. } => {
-                match target_ty {
-                    Type::Result { ok_type: _, err_type } => {
-                        self.check_pattern(inner.as_ref(), err_type.as_ref(), span)
+                    for (p, t) in patterns.iter().zip(elem_tys.iter()) {
+                        self.check_pattern(p, t, span)?;
                     }
-                    Type::Any => self.check_pattern(inner.as_ref(), &Type::Any, span),
-                    _ => Err(TypeError::TypeMismatch {
-                        expected: Type::Result {
-                            ok_type: Box::new(Type::Any),
-                            err_type: Box::new(Type::Any),
-                        },
-                        found: target_ty.clone(),
-                        span,
-                    }),
+                    Ok(())
                 }
-            },
-            Pattern::Tuple { patterns, .. } => {
-                match target_ty {
-                    Type::Tuple(elem_tys) => {
-                        if patterns.len() != elem_tys.len() {
-                            return Err(TypeError::TypeMismatch {
-                                expected: target_ty.clone(),
-                                found: target_ty.clone(),
-                                span,
-                            });
-                        }
-                        for (p, t) in patterns.iter().zip(elem_tys.iter()) {
-                            self.check_pattern(p, t, span)?;
-                        }
-                        Ok(())
+                Type::Any => {
+                    for p in patterns {
+                        self.check_pattern(p, &Type::Any, span)?;
                     }
-                    Type::Any => {
-                        for p in patterns {
-                            self.check_pattern(p, &Type::Any, span)?;
-                        }
-                        Ok(())
-                    }
-                    _ => Err(TypeError::TypeMismatch {
-                        expected: Type::Tuple(vec![]),
-                        found: target_ty.clone(),
-                        span,
-                    }),
+                    Ok(())
                 }
+                _ => Err(TypeError::TypeMismatch {
+                    expected: Type::Tuple(vec![]),
+                    found: target_ty.clone(),
+                    span,
+                }),
             },
             Pattern::Enum {
                 name,
@@ -2147,16 +2408,23 @@ impl TypeInfer {
                 named_fields,
                 span,
             } => {
-                let def_id = self.env.resolve_def(&name.name)
+                let def_id = self
+                    .env
+                    .resolve_def(&name.name)
                     .or_else(|| self.env.resolve_def(&name.name))
-                    .ok_or(TypeError::UndefinedVariable { name: name.name.clone(), span: *span })?;
+                    .ok_or(TypeError::UndefinedVariable {
+                        name: name.name.clone(),
+                        span: *span,
+                    })?;
                 let (variant_info, typeparams) = match self.env.get_def(def_id) {
                     Some(ItemDef::Enum(info)) => {
-                        let v_info = info.variants.get(&variant.name)
+                        let v_info = info
+                            .variants
+                            .get(&variant.name)
                             .ok_or(TypeError::CannotInfer { span: *span })?
                             .clone();
                         (v_info, info.typeparams.clone())
-                    },
+                    }
                     _ => return Err(TypeError::CannotInfer { span: *span }),
                 };
 
@@ -2164,7 +2432,7 @@ impl TypeInfer {
                 for _ in &typeparams {
                     typeargs.push(self.fresh_meta());
                 }
-                
+
                 let constructed_enum_ty = Type::Named {
                     name: Path {
                         segments: vec![crate::ast::node::PathSeg::Ident(name.clone())],
@@ -2179,77 +2447,89 @@ impl TypeInfer {
                 for (i, param) in typeparams.iter().enumerate() {
                     subst.insert(param.name.name.clone(), typeargs[i].clone());
                 }
-                let (expected_types, patterns_to_check): (Vec<Type>, Vec<Pattern>) = match variant_info {
-                    VariantInfo::Unit => (vec![], vec![]),
-                    
-                    VariantInfo::Tuple(tys) => {
-                        if args.len() != tys.len() {
-                            return Err(TypeError::ArityMismatch { 
-                                expected: tys.len(), 
-                                found: args.len(), 
-                                span: *span 
-                            });
-                        }
-                        
-                        let mut subst_tys = Vec::new();
-                        for t in tys {
-                            subst_tys.push(self.subst_typevars(t.clone(), &subst));
-                        }
-                        
-                        (subst_tys, args.clone())
-                    },
-                    
-                    VariantInfo::Struct(fields) => {
-                        if let Some(user_fields) = named_fields {
-                            let mut p_list = Vec::new();
-                            let mut t_list = Vec::new();
-                            
-                            for (fname, fty) in fields {
-                                let user_field = user_fields.iter().find(|x| x.name.name == *fname)
-                                    .ok_or(TypeError::MissingField { 
-                                        field: fname.clone(), 
-                                        struct_name: variant.name.clone(), 
-                                        span: *span 
-                                    })?;
- 
-                                let pat = user_field.pattern.clone().unwrap_or_else(|| Pattern::Identifier {
-                                    name: user_field.name.clone(),
-                                    span: user_field.span,
-                                });
- 
-                                t_list.push(self.subst_typevars(fty.clone(), &subst));
-                                p_list.push(pat);
-                            }
-                            (t_list, p_list)
-                        } else {
-                            if args.len() != fields.len() {
+                let (expected_types, patterns_to_check): (Vec<Type>, Vec<Pattern>) =
+                    match variant_info {
+                        VariantInfo::Unit => (vec![], vec![]),
+
+                        VariantInfo::Tuple(tys) => {
+                            if args.len() != tys.len() {
                                 return Err(TypeError::ArityMismatch {
-                                    expected: fields.len(),
+                                    expected: tys.len(),
                                     found: args.len(),
                                     span: *span,
                                 });
                             }
-                             
-                            let mut field_tys = Vec::new();
-                            for (_, ty) in fields {
-                                field_tys.push(self.subst_typevars(ty.clone(), &subst));
+
+                            let mut subst_tys = Vec::new();
+                            for t in tys {
+                                subst_tys.push(self.subst_typevars(t.clone(), &subst));
                             }
-                             
-                            (field_tys, args.clone())
+
+                            (subst_tys, args.clone())
                         }
-                    }
-                };
-                for (p, expected_ty) in patterns_to_check.into_iter().zip(expected_types.into_iter()) {
+
+                        VariantInfo::Struct(fields) => {
+                            if let Some(user_fields) = named_fields {
+                                let mut p_list = Vec::new();
+                                let mut t_list = Vec::new();
+
+                                for (fname, fty) in fields {
+                                    let user_field = user_fields
+                                        .iter()
+                                        .find(|x| x.name.name == *fname)
+                                        .ok_or(TypeError::MissingField {
+                                            field: fname.clone(),
+                                            struct_name: variant.name.clone(),
+                                            span: *span,
+                                        })?;
+
+                                    let pat = user_field.pattern.clone().unwrap_or_else(|| {
+                                        Pattern::Identifier {
+                                            name: user_field.name.clone(),
+                                            span: user_field.span,
+                                        }
+                                    });
+
+                                    t_list.push(self.subst_typevars(fty.clone(), &subst));
+                                    p_list.push(pat);
+                                }
+                                (t_list, p_list)
+                            } else {
+                                if args.len() != fields.len() {
+                                    return Err(TypeError::ArityMismatch {
+                                        expected: fields.len(),
+                                        found: args.len(),
+                                        span: *span,
+                                    });
+                                }
+
+                                let mut field_tys = Vec::new();
+                                for (_, ty) in fields {
+                                    field_tys.push(self.subst_typevars(ty.clone(), &subst));
+                                }
+
+                                (field_tys, args.clone())
+                            }
+                        }
+                    };
+                for (p, expected_ty) in patterns_to_check
+                    .into_iter()
+                    .zip(expected_types.into_iter())
+                {
                     self.check_pattern(&p, &expected_ty, *span)?;
                 }
-                
-                Ok(())
-            },
 
+                Ok(())
+            }
 
             Pattern::Struct { name, fields, span } => {
-                let def_id = self.env.resolve_def(&name.name)
-                    .ok_or(TypeError::UndefinedVariable { name: name.name.clone(), span: *span })?;
+                let def_id =
+                    self.env
+                        .resolve_def(&name.name)
+                        .ok_or(TypeError::UndefinedVariable {
+                            name: name.name.clone(),
+                            span: *span,
+                        })?;
 
                 let struct_fields = match self.env.get_def(def_id) {
                     Some(ItemDef::Struct(info)) => info.fields.clone(),
@@ -2258,37 +2538,43 @@ impl TypeInfer {
 
                 for field_pat in fields {
                     let field_name = &field_pat.name.name;
-                    let field_ty = struct_fields.get(field_name)
+                    let field_ty = struct_fields
+                        .get(field_name)
                         .ok_or(TypeError::MissingField {
                             field: field_name.clone(),
                             struct_name: name.name.clone(),
                             span: *span,
-                        })?.clone();
+                        })?
+                        .clone();
 
-                    let pat = field_pat.pattern.clone().unwrap_or_else(|| Pattern::Identifier {
-                        name: field_pat.name.clone(),
-                        span: field_pat.span,
-                    });
+                    let pat = field_pat
+                        .pattern
+                        .clone()
+                        .unwrap_or_else(|| Pattern::Identifier {
+                            name: field_pat.name.clone(),
+                            span: field_pat.span,
+                        });
                     self.check_pattern(&pat, &field_ty, *span)?;
                 }
                 Ok(())
-            },
+            }
 
             Pattern::Or { patterns, span } => {
                 for pat in patterns {
                     self.check_pattern(pat, target_ty, *span)?;
                 }
                 Ok(())
-            },
+            }
 
-            Pattern::Range { start, end, span, .. } => {
+            Pattern::Range {
+                start, end, span, ..
+            } => {
                 let start_ty = self.infer_literal(start);
                 let end_ty = self.infer_literal(end);
                 self.unify(start_ty.clone(), target_ty.clone(), *span)?;
                 self.unify(end_ty, start_ty, *span)?;
                 Ok(())
-            },
-
+            }
         }
     }
     fn instantiate_typeparams(
@@ -2326,9 +2612,10 @@ impl TypeInfer {
             let fresh_self = self.subst_typevars(impl_def.self_ty.clone(), &fresh_subst);
 
             let unify_success = self.unify(receiver_ty.clone(), fresh_self, span).is_ok();
-            
+
             let where_success = if unify_success {
-                self.fulfill_obligations(&impl_def.where_preds, &fresh_subst, span).is_ok()
+                self.fulfill_obligations(&impl_def.where_preds, &fresh_subst, span)
+                    .is_ok()
             } else {
                 false
             };
@@ -2377,7 +2664,6 @@ impl TypeInfer {
     }
 
     pub fn check_program(&mut self, program: &mut crate::ast::node::Program) -> TypeResult<()> {
-        
         for item in &mut program.items {
             match item {
                 crate::ast::node::Item::Function(func) => {
@@ -2409,17 +2695,14 @@ impl TypeInfer {
                     for field in &s.fields {
                         fields.insert(field.name.name.clone(), field.ty.clone());
                     }
-                    
+
                     let info = StructDefInfo {
                         typeparams: s.type_params.clone(),
                         fields,
                     };
-                    
-                    self.env.insert_def(
-                        s.name.name.clone(),
-                        ItemDef::Struct(info),
-                        s.span
-                    )?;
+
+                    self.env
+                        .insert_def(s.name.name.clone(), ItemDef::Struct(info), s.span)?;
                 }
 
                 crate::ast::node::Item::Trait(t) => {
@@ -2432,7 +2715,10 @@ impl TypeInfer {
                             .map(|p| Self::replace_self_in_trait(t, p.ty.clone()))
                             .collect::<Vec<_>>();
 
-                        let ret = Self::replace_self_in_trait(t, m.return_type.clone().unwrap_or(Type::Unit));
+                        let ret = Self::replace_self_in_trait(
+                            t,
+                            m.return_type.clone().unwrap_or(Type::Unit),
+                        );
 
                         let fnty = Type::Function {
                             params,
@@ -2447,7 +2733,7 @@ impl TypeInfer {
                         assoc_types: HashMap::new(),
                         methods,
                     };
-                    
+
                     let key = t.name.name.clone();
                     let _defid = self.env.insert_trait_def(key, info, t.span)?;
                 }
@@ -2458,22 +2744,22 @@ impl TypeInfer {
                         let info: VariantInfo = match &v.data {
                             VariantData::Unit => VariantInfo::Unit,
                             VariantData::Tuple(tys) => VariantInfo::Tuple(tys.clone()),
-                            VariantData::Struct(fields) => {
-                                VariantInfo::Struct(
-                                    fields.iter()
-                                        .map(|f| (f.name.name.clone(), f.ty.clone()))
-                                        .collect(),
-                                )
-                            }
+                            VariantData::Struct(fields) => VariantInfo::Struct(
+                                fields
+                                    .iter()
+                                    .map(|f| (f.name.name.clone(), f.ty.clone()))
+                                    .collect(),
+                            ),
                         };
                         variants.insert(v.name.name.clone(), info);
                     }
-                    let info = EnumDefInfo { 
+                    let info = EnumDefInfo {
                         typeparams: e.type_params.clone(),
-                        variants
+                        variants,
                     };
 
-                    self.env.insert_def(e.name.name.clone(), ItemDef::Enum(info), e.span)?;
+                    self.env
+                        .insert_def(e.name.name.clone(), ItemDef::Enum(info), e.span)?;
                 }
 
                 crate::ast::node::Item::TypeAlias(a) => {
@@ -2494,10 +2780,13 @@ impl TypeInfer {
                 crate::ast::node::Item::Import(imp) => {
                     let full = Self::path_to_key(&imp.path, "");
 
-                    let target = self.env.resolve_def(&full).ok_or(TypeError::UndefinedVariable {
-                        name: full.clone(),
-                        span: imp.span,
-                    })?;
+                    let target =
+                        self.env
+                            .resolve_def(&full)
+                            .ok_or(TypeError::UndefinedVariable {
+                                name: full.clone(),
+                                span: imp.span,
+                            })?;
 
                     let local = imp
                         .alias
@@ -2514,12 +2803,12 @@ impl TypeInfer {
                     self.env.alias_def(local, target, imp.span)?;
                 }
 
-                crate::ast::node::Item::Impl(_) => {
-                }
+                crate::ast::node::Item::Impl(_) => {}
 
                 crate::ast::node::Item::Extern(ext) => {
                     for f in &ext.functions {
-                        let param_types: Vec<Type> = f.params.iter().map(|p| p.ty.clone()).collect();
+                        let param_types: Vec<Type> =
+                            f.params.iter().map(|p| p.ty.clone()).collect();
                         let ret_type = f.return_type.clone().unwrap_or(Type::Unit);
 
                         let func_ty = Type::Function {
@@ -2541,11 +2830,12 @@ impl TypeInfer {
             match item {
                 crate::ast::node::Item::Impl(impl_block) => {
                     if let Some(trait_ref) = &impl_block.trait_ref {
-                        
                         let trait_def_id = if let Type::Named { name, .. } = trait_ref {
                             self.resolve_trait_def_from_path(name, impl_block.span)?
                         } else {
-                            return Err(TypeError::CannotInfer { span: impl_block.span });
+                            return Err(TypeError::CannotInfer {
+                                span: impl_block.span,
+                            });
                         };
                         let typename: String = match &impl_block.self_ty {
                             Type::Named { name, .. } => name
@@ -2560,14 +2850,20 @@ impl TypeInfer {
                         for item in &mut impl_block.items {
                             match item {
                                 ImplItem::Method(func) => {
-                                    let paramtypes: Vec<Type> = func.params.iter().map(|p| {
-                                        if let Type::Named { name, .. } = &p.ty {
-                                            if name.last_ident().map(|id| id.name.as_str()) == Some("Self") {
-                                                return impl_block.self_ty.clone();
+                                    let paramtypes: Vec<Type> = func
+                                        .params
+                                        .iter()
+                                        .map(|p| {
+                                            if let Type::Named { name, .. } = &p.ty {
+                                                if name.last_ident().map(|id| id.name.as_str())
+                                                    == Some("Self")
+                                                {
+                                                    return impl_block.self_ty.clone();
+                                                }
                                             }
-                                        }
-                                        p.ty.clone()
-                                    }).collect();
+                                            p.ty.clone()
+                                        })
+                                        .collect();
 
                                     let rettype = func.return_type.clone().unwrap_or(Type::Unit);
 
@@ -2581,7 +2877,7 @@ impl TypeInfer {
                                         params: paramtypes,
                                         return_type: Box::new(return_type),
                                     };
-                                    
+
                                     let fq = format!("{}::{}", typename, func.name.name);
                                     let methoddefid = self.env.insert_def(
                                         fq,
@@ -2590,12 +2886,15 @@ impl TypeInfer {
                                     )?;
                                     func.defid = Some(methoddefid);
 
-                                    methods.insert(func.name.name.clone(), (functy.clone(), methoddefid));
-
+                                    methods.insert(
+                                        func.name.name.clone(),
+                                        (functy.clone(), methoddefid),
+                                    );
                                 }
 
                                 ImplItem::AssocType(binding) => {
-                                    assoc_bindings.insert(binding.name.name.clone(), binding.ty.clone());
+                                    assoc_bindings
+                                        .insert(binding.name.name.clone(), binding.ty.clone());
                                 }
                             }
                         }
@@ -2611,7 +2910,6 @@ impl TypeInfer {
                             span: impl_block.span,
                         };
                         self.env.impls.push(impldef);
-
                     } else {
                         let self_defid = match &impl_block.self_ty {
                             Type::Named { name, .. } => {
@@ -2687,6 +2985,13 @@ impl TypeInfer {
                 crate::ast::node::Item::Function(func) => {
                     self.check_function(func)?;
                 }
+                crate::ast::node::Item::Impl(impl_block) => {
+                    for impl_item in &mut impl_block.items {
+                        if let crate::ast::node::ImplItem::Method(func) = impl_item {
+                            self.check_impl_method(func, &impl_block.self_ty)?;
+                        }
+                    }
+                }
                 _ => {}
             }
         }
@@ -2696,9 +3001,15 @@ impl TypeInfer {
 
     fn subst_assoc(&self, ty: Type, assoc: &HashMap<String, Type>) -> Type {
         match ty {
-            Type::Assoc { trait_def, self_ty, name } => {
-                assoc.get(&name).cloned().unwrap_or(Type::Assoc { trait_def, self_ty, name })
-            }
+            Type::Assoc {
+                trait_def,
+                self_ty,
+                name,
+            } => assoc.get(&name).cloned().unwrap_or(Type::Assoc {
+                trait_def,
+                self_ty,
+                name,
+            }),
             Type::Option(inner) => Type::Option(Box::new(self.subst_assoc(*inner, assoc))),
             Type::Array(inner) => Type::Array(Box::new(self.subst_assoc(*inner, assoc))),
             Type::Signal(inner) => Type::Signal(Box::new(self.subst_assoc(*inner, assoc))),
@@ -2710,21 +3021,29 @@ impl TypeInfer {
                 ok_type: Box::new(self.subst_assoc(*ok_type, assoc)),
                 err_type: Box::new(self.subst_assoc(*err_type, assoc)),
             },
-            Type::Function { params, return_type } => Type::Function {
-                params: params.into_iter().map(|t| self.subst_assoc(t, assoc)).collect(),
+            Type::Function {
+                params,
+                return_type,
+            } => Type::Function {
+                params: params
+                    .into_iter()
+                    .map(|t| self.subst_assoc(t, assoc))
+                    .collect(),
                 return_type: Box::new(self.subst_assoc(*return_type, assoc)),
             },
-            Type::Tuple(ts) => Type::Tuple(ts.into_iter().map(|t| self.subst_assoc(t, assoc)).collect()),
+            Type::Tuple(ts) => {
+                Type::Tuple(ts.into_iter().map(|t| self.subst_assoc(t, assoc)).collect())
+            }
             Type::Named { name, type_args } => Type::Named {
                 name,
-                type_args: type_args.into_iter().map(|t| self.subst_assoc(t, assoc)).collect(),
+                type_args: type_args
+                    .into_iter()
+                    .map(|t| self.subst_assoc(t, assoc))
+                    .collect(),
             },
             other => other,
         }
     }
-
-
-
 
     fn register_module_items(
         &mut self,
@@ -2743,7 +3062,8 @@ impl TypeInfer {
                     };
 
                     let key = format!("{prefix}::{}", func.name.name);
-                    let defid = self.env
+                    let defid = self
+                        .env
                         .insert_def(key, ItemDef::Function(func_ty), func.span)?;
                     func.defid = Some(defid);
                 }
@@ -2769,23 +3089,22 @@ impl TypeInfer {
                         let info: VariantInfo = match &v.data {
                             VariantData::Unit => VariantInfo::Unit,
                             VariantData::Tuple(tys) => VariantInfo::Tuple(tys.clone()),
-                            VariantData::Struct(fields) => {
-                                VariantInfo::Struct(
-                                    fields
-                                        .iter()
-                                        .map(|f| (f.name.name.clone(), f.ty.clone()))
-                                        .collect(),
-                                )
-                            }
+                            VariantData::Struct(fields) => VariantInfo::Struct(
+                                fields
+                                    .iter()
+                                    .map(|f| (f.name.name.clone(), f.ty.clone()))
+                                    .collect(),
+                            ),
                         };
                         variants.insert(v.name.name.clone(), info);
                     }
-                    let info = EnumDefInfo { 
+                    let info = EnumDefInfo {
                         typeparams: e.type_params.clone(),
-                        variants 
+                        variants,
                     };
 
-                    self.env.insert_def(e.name.name.clone(), ItemDef::Enum(info), e.span)?;
+                    self.env
+                        .insert_def(e.name.name.clone(), ItemDef::Enum(info), e.span)?;
                 }
 
                 crate::ast::node::Item::Trait(t) => {
@@ -2802,7 +3121,10 @@ impl TypeInfer {
                                 .map(|p| Self::replace_self_in_trait(t, p.ty.clone())),
                         );
 
-                        let ret = Self::replace_self_in_trait(t, m.return_type.clone().unwrap_or(Type::Unit));
+                        let ret = Self::replace_self_in_trait(
+                            t,
+                            m.return_type.clone().unwrap_or(Type::Unit),
+                        );
 
                         let fnty = Type::Function {
                             params,
@@ -2834,10 +3156,13 @@ impl TypeInfer {
                 crate::ast::node::Item::Import(imp) => {
                     let full = Self::path_to_key(&imp.path, prefix);
 
-                    let target = self.env.resolve_def(&full).ok_or(TypeError::UndefinedVariable {
-                        name: full.clone(),
-                        span: imp.span,
-                    })?;
+                    let target =
+                        self.env
+                            .resolve_def(&full)
+                            .ok_or(TypeError::UndefinedVariable {
+                                name: full.clone(),
+                                span: imp.span,
+                            })?;
 
                     let local = imp
                         .alias
@@ -2862,7 +3187,8 @@ impl TypeInfer {
 
                 crate::ast::node::Item::Extern(ext) => {
                     for f in &ext.functions {
-                        let param_types: Vec<Type> = f.params.iter().map(|p| p.ty.clone()).collect();
+                        let param_types: Vec<Type> =
+                            f.params.iter().map(|p| p.ty.clone()).collect();
                         let ret_type = f.return_type.clone().unwrap_or(Type::Unit);
                         let func_ty = Type::Function {
                             params: param_types,
@@ -2870,11 +3196,12 @@ impl TypeInfer {
                         };
 
                         let key = format!("{prefix}::{}", f.name.name);
-                        self.env.insert_def(key, ItemDef::Function(func_ty), f.span)?;
+                        self.env
+                            .insert_def(key, ItemDef::Function(func_ty), f.span)?;
                     }
                 }
 
-                _ => { }
+                _ => {}
             }
         }
 
@@ -2882,139 +3209,154 @@ impl TypeInfer {
         for item in items {
             if let crate::ast::node::Item::Impl(impl_block) = item {
                 if let Some(trait_ref) = &impl_block.trait_ref {
-                     let trait_def_id = if let Type::Named { name, .. } = trait_ref {
-                          self.resolve_trait_def_from_path(name, impl_block.span)?
-                     } else {
-                          return Err(TypeError::CannotInfer { span: impl_block.span });
-                     };
-                     let typename: String = match &impl_block.self_ty {
-                          Type::Named { name, .. } => name
-                              .last_ident()
-                              .map(|id| id.name.clone())
-                              .unwrap_or_else(|| "anon".to_string()),
-                          _ => "nonnamed".to_string(),
-                     };
-                     let mut methods = HashMap::new();
-                     let mut assoc_bindings = HashMap::new();
+                    let trait_def_id = if let Type::Named { name, .. } = trait_ref {
+                        self.resolve_trait_def_from_path(name, impl_block.span)?
+                    } else {
+                        return Err(TypeError::CannotInfer {
+                            span: impl_block.span,
+                        });
+                    };
+                    let typename: String = match &impl_block.self_ty {
+                        Type::Named { name, .. } => name
+                            .last_ident()
+                            .map(|id| id.name.clone())
+                            .unwrap_or_else(|| "anon".to_string()),
+                        _ => "nonnamed".to_string(),
+                    };
+                    let mut methods = HashMap::new();
+                    let mut assoc_bindings = HashMap::new();
 
-                     for item in &impl_block.items {
-                          match item {
-                              ImplItem::Method(func) => {
-                                   let paramtypes: Vec<Type> = func.params.iter().map(|p| {
+                    for item in &impl_block.items {
+                        match item {
+                            ImplItem::Method(func) => {
+                                let paramtypes: Vec<Type> = func
+                                    .params
+                                    .iter()
+                                    .map(|p| {
                                         if let Type::Named { name, .. } = &p.ty {
-                                            if name.last_ident().map(|id| id.name.as_str()) == Some("Self") {
+                                            if name.last_ident().map(|id| id.name.as_str())
+                                                == Some("Self")
+                                            {
                                                 return impl_block.self_ty.clone();
                                             }
                                         }
                                         p.ty.clone()
-                                   }).collect();
-                                   let rettype = func.return_type.clone().unwrap_or(Type::Unit);
-                                   let functy = Type::Function {
-                                        params: paramtypes,
-                                        return_type: Box::new(rettype),
-                                   };
-                                   
-                                   let fq = format!("{}::{}", typename, func.name.name); 
-                                   // Note: Trait impl methods in modules might need prefix, 
-                                   // but usually they are looked up via Trait tables, not by FQ name directly.
-                                   // However, unique DefId is needed.
-                                   // Let's use prefix + typename + impl method name
-                                   let fq_impl = format!("{prefix}::{fq}");
+                                    })
+                                    .collect();
+                                let rettype = func.return_type.clone().unwrap_or(Type::Unit);
+                                let functy = Type::Function {
+                                    params: paramtypes,
+                                    return_type: Box::new(rettype),
+                                };
 
-                                   let methoddefid = self.env.insert_def(
-                                       fq_impl,
-                                       ItemDef::Function(functy.clone()),
-                                       func.span,
-                                   )?;
-                                   // func.defid = Some(methoddefid); // Cannot mutate immutable reference
-                                   // Note: register_module_items takes &[Item], so we cannot mutate func.defid easily without interior mutability or changing signature.
-                                   // But check_program takes &mut Program.
-                                   // register_module_items signature is `items: &[Item]`.
-                                   // We cannot set defid here! This is a problem.
-                                   // However, if we simply register them in env, lookup might work if we don't rely on func.defid being set in AST?
-                                   // lookup_method/lookup_trait_method uses env tables.
-                                   
-                                   methods.insert(func.name.name.clone(), (functy.clone(), methoddefid));
-                              }
-                              ImplItem::AssocType(binding) => {
-                                   assoc_bindings.insert(binding.name.name.clone(), binding.ty.clone());
-                              }
-                          }
-                     }
+                                let fq = format!("{}::{}", typename, func.name.name);
+                                // Note: Trait impl methods in modules might need prefix,
+                                // but usually they are looked up via Trait tables, not by FQ name directly.
+                                // However, unique DefId is needed.
+                                // Let's use prefix + typename + impl method name
+                                let fq_impl = format!("{prefix}::{fq}");
 
-                     let impldef = ImplDef {
-                          impl_id: self.env.impls.len(),
-                          trait_def: trait_def_id,
-                          self_ty: impl_block.self_ty.clone(),
-                          typeparams: impl_block.type_params.clone(),
-                          where_preds: impl_block.where_preds.clone(),
-                          assoc_bindings,
-                          methods,
-                          span: impl_block.span,
-                     };
-                     self.env.impls.push(impldef);
+                                let methoddefid = self.env.insert_def(
+                                    fq_impl,
+                                    ItemDef::Function(functy.clone()),
+                                    func.span,
+                                )?;
+                                // func.defid = Some(methoddefid); // Cannot mutate immutable reference
+                                // Note: register_module_items takes &[Item], so we cannot mutate func.defid easily without interior mutability or changing signature.
+                                // But check_program takes &mut Program.
+                                // register_module_items signature is `items: &[Item]`.
+                                // We cannot set defid here! This is a problem.
+                                // However, if we simply register them in env, lookup might work if we don't rely on func.defid being set in AST?
+                                // lookup_method/lookup_trait_method uses env tables.
+
+                                methods
+                                    .insert(func.name.name.clone(), (functy.clone(), methoddefid));
+                            }
+                            ImplItem::AssocType(binding) => {
+                                assoc_bindings
+                                    .insert(binding.name.name.clone(), binding.ty.clone());
+                            }
+                        }
+                    }
+
+                    let impldef = ImplDef {
+                        impl_id: self.env.impls.len(),
+                        trait_def: trait_def_id,
+                        self_ty: impl_block.self_ty.clone(),
+                        typeparams: impl_block.type_params.clone(),
+                        where_preds: impl_block.where_preds.clone(),
+                        assoc_bindings,
+                        methods,
+                        span: impl_block.span,
+                    };
+                    self.env.impls.push(impldef);
                 } else {
-                     // Inherent Impl
-                     let self_defid = match &impl_block.self_ty {
-                          Type::Named { name, .. } => {
-                              // Trying resolve with prefix logic if necessary?
-                              // Usually names are local or absolute.
-                              if let Some(defid) = name.resolved {
-                                  defid
-                              } else {
-                                  // Simplified resolution try
-                                  let ident = name.last_ident().unwrap();
-                                  let key = format!("{}::{}", prefix, ident.name);
-                                  self.env.resolve_def(&key)
-                                      .or_else(|| self.env.resolve_def(&ident.name))
-                                      .ok_or(TypeError::UndefinedVariable {
-                                          name: ident.name.clone(),
-                                          span: impl_block.span,
-                                      })?
-                              }
-                          }
-                          _ => continue,
-                     };
+                    // Inherent Impl
+                    let self_defid = match &impl_block.self_ty {
+                        Type::Named { name, .. } => {
+                            // Trying resolve with prefix logic if necessary?
+                            // Usually names are local or absolute.
+                            if let Some(defid) = name.resolved {
+                                defid
+                            } else {
+                                // Simplified resolution try
+                                let ident = name.last_ident().unwrap();
+                                let key = format!("{}::{}", prefix, ident.name);
+                                self.env
+                                    .resolve_def(&key)
+                                    .or_else(|| self.env.resolve_def(&ident.name))
+                                    .ok_or(TypeError::UndefinedVariable {
+                                        name: ident.name.clone(),
+                                        span: impl_block.span,
+                                    })?
+                            }
+                        }
+                        _ => continue,
+                    };
 
-                     for item in &impl_block.items {
-                          if let crate::ast::node::ImplItem::Method(func) = item {
-                               let param_types: Vec<Type> = func.params.iter().map(|p| {
+                    for item in &impl_block.items {
+                        if let crate::ast::node::ImplItem::Method(func) = item {
+                            let param_types: Vec<Type> = func
+                                .params
+                                .iter()
+                                .map(|p| {
                                     if let Type::Named { name, .. } = &p.ty {
                                         if name.last_ident().unwrap().name == "Self" {
                                             return impl_block.self_ty.clone();
                                         }
                                     }
                                     p.ty.clone()
-                               }).collect();
+                                })
+                                .collect();
 
-                               let ret_type = func.return_type.clone().unwrap_or(Type::Unit);
-                               let method_ty = Type::Function {
-                                    params: param_types,
-                                    return_type: Box::new(ret_type),
-                               };
+                            let ret_type = func.return_type.clone().unwrap_or(Type::Unit);
+                            let method_ty = Type::Function {
+                                params: param_types,
+                                return_type: Box::new(ret_type),
+                            };
 
-                               let type_name = match &impl_block.self_ty {
-                                    Type::Named { name, .. } => name.last_ident().unwrap().name.clone(),
-                                    _ => "anon".to_string(),
-                               };
-                               
-                               let fq = format!("{}::{}::{}", prefix, type_name, func.name.name);
+                            let type_name = match &impl_block.self_ty {
+                                Type::Named { name, .. } => name.last_ident().unwrap().name.clone(),
+                                _ => "anon".to_string(),
+                            };
 
-                               let method_def_id = self.env.insert_def(
-                                   fq,
-                                   ItemDef::Function(method_ty.clone()),
-                                   func.span,
-                               )?;
-                               
-                               self.env.insert_method(
-                                   self_defid,
-                                   func.name.name.clone(),
-                                   method_ty,
-                                   method_def_id,
-                                   func.span,
-                               )?;
-                          }
-                     }
+                            let fq = format!("{}::{}::{}", prefix, type_name, func.name.name);
+
+                            let method_def_id = self.env.insert_def(
+                                fq,
+                                ItemDef::Function(method_ty.clone()),
+                                func.span,
+                            )?;
+
+                            self.env.insert_method(
+                                self_defid,
+                                func.name.name.clone(),
+                                method_ty,
+                                method_def_id,
+                                func.span,
+                            )?;
+                        }
+                    }
                 }
             }
         }
@@ -3023,21 +3365,25 @@ impl TypeInfer {
     fn trait_self_ty_t(t: &crate::ast::node::TraitDef) -> Type {
         let span = t.span;
         let name_path = crate::ast::node::Path {
-            segments: vec![crate::ast::node::PathSeg::Ident(crate::ast::node::Identifier {
-                name: t.name.name.clone(),
-                span,
-            })],
+            segments: vec![crate::ast::node::PathSeg::Ident(
+                crate::ast::node::Identifier {
+                    name: t.name.name.clone(),
+                    span,
+                },
+            )],
             span,
-            resolved: None, 
+            resolved: None,
         };
 
         let type_args = t
             .type_params
             .iter()
-            .map(|tp| Type::TypeVar(crate::ast::node::Identifier {
-                name: tp.name.name.clone(),
-                span: tp.span,
-            }))
+            .map(|tp| {
+                Type::TypeVar(crate::ast::node::Identifier {
+                    name: tp.name.name.clone(),
+                    span: tp.span,
+                })
+            })
             .collect::<Vec<_>>();
 
         Type::Named {
@@ -3062,7 +3408,10 @@ impl TypeInfer {
                     }
                 }
             }
-            Type::Function { params, return_type } => Type::Function {
+            Type::Function {
+                params,
+                return_type,
+            } => Type::Function {
                 params: params
                     .into_iter()
                     .map(|p| Self::replace_self_in_trait(t, p))
@@ -3084,38 +3433,39 @@ impl TypeInfer {
         }
     }
 
-
-
     fn fulfill_obligations(
         &mut self,
         preds: &[WherePredicate],
         subst: &HashMap<String, Type>,
-        _span: Span
+        _span: Span,
     ) -> TypeResult<()> {
         for pred in preds {
             match pred {
-                WherePredicate::Bound { target_ty, bound_ty, span: p_span } => {
+                WherePredicate::Bound {
+                    target_ty,
+                    bound_ty,
+                    span: p_span,
+                } => {
                     let concrete_target = self.subst_typevars(target_ty.clone(), subst);
                     let concrete_bound = self.subst_typevars(bound_ty.clone(), subst);
                     if let Type::Named { name, type_args: _ } = concrete_bound {
-                        let trait_def_id = self.env.resolve_def(&name.to_string())
+                        let trait_def_id = self
+                            .env
+                            .resolve_def(&name.to_string())
                             .ok_or(TypeError::CannotInfer { span: *p_span })?;
 
-                        if self.select_impl(trait_def_id, concrete_target, *p_span).is_err() {
+                        if self
+                            .select_impl(trait_def_id, concrete_target, *p_span)
+                            .is_err()
+                        {
                             return Err(TypeError::CannotInfer { span: *p_span });
                         }
                     }
                 }
-
             }
         }
         Ok(())
     }
-
-
-
-
-
 
     fn subst_typevars(&self, ty: Type, subst: &HashMap<String, Type>) -> Type {
         match ty {
@@ -3134,22 +3484,34 @@ impl TypeInfer {
                 err_type: Box::new(self.subst_typevars(*err_type, subst)),
             },
 
-            Type::Function { params, return_type } => Type::Function {
-                params: params.into_iter().map(|t| self.subst_typevars(t, subst)).collect(),
+            Type::Function {
+                params,
+                return_type,
+            } => Type::Function {
+                params: params
+                    .into_iter()
+                    .map(|t| self.subst_typevars(t, subst))
+                    .collect(),
                 return_type: Box::new(self.subst_typevars(*return_type, subst)),
             },
 
-            Type::Tuple(ts) => Type::Tuple(ts.into_iter().map(|t| self.subst_typevars(t, subst)).collect()),
+            Type::Tuple(ts) => Type::Tuple(
+                ts.into_iter()
+                    .map(|t| self.subst_typevars(t, subst))
+                    .collect(),
+            ),
 
             Type::Named { name, type_args } => Type::Named {
                 name,
-                type_args: type_args.into_iter().map(|t| self.subst_typevars(t, subst)).collect(),
+                type_args: type_args
+                    .into_iter()
+                    .map(|t| self.subst_typevars(t, subst))
+                    .collect(),
             },
 
             other => other,
         }
     }
-
 
     fn expand_alias_once(&self, ty: Type) -> Type {
         match ty {
@@ -3183,17 +3545,16 @@ impl TypeInfer {
         }
     }
 
-
     fn expand_alias_fixpoint(&self, mut ty: Type) -> Type {
         for _ in 0..32 {
             let next = self.expand_alias_once(ty.clone());
-            if next == ty { break; }
+            if next == ty {
+                break;
+            }
             ty = next;
         }
         ty
     }
-
-
 
     fn path_to_key(path: &Path, current_prefix: &str) -> String {
         let mut idx = 0usize;
@@ -3203,13 +3564,39 @@ impl TypeInfer {
 
         loop {
             match path.segments.get(idx) {
-                Some(PathSeg::Crate(_)) => { absolute = true; use_prefix = false; idx += 1; break; }
-                Some(PathSeg::Self_(_)) => { use_prefix = true; idx += 1; break; }
-                Some(PathSeg::Super(_)) => { super_count += 1; idx += 1; continue; }
+                Some(PathSeg::Crate(_)) => {
+                    absolute = true;
+                    use_prefix = false;
+                    idx += 1;
+                    break;
+                }
+                Some(PathSeg::Self_(_)) => {
+                    use_prefix = true;
+                    idx += 1;
+                    break;
+                }
+                Some(PathSeg::Super(_)) => {
+                    super_count += 1;
+                    idx += 1;
+                    continue;
+                }
 
-                Some(PathSeg::Ident(id)) if id.name == "crate" => { absolute = true; use_prefix = false; idx += 1; break; }
-                Some(PathSeg::Ident(id)) if id.name == "self"  => { use_prefix = true; idx += 1; break; }
-                Some(PathSeg::Ident(id)) if id.name == "super" => { super_count += 1; idx += 1; continue; }
+                Some(PathSeg::Ident(id)) if id.name == "crate" => {
+                    absolute = true;
+                    use_prefix = false;
+                    idx += 1;
+                    break;
+                }
+                Some(PathSeg::Ident(id)) if id.name == "self" => {
+                    use_prefix = true;
+                    idx += 1;
+                    break;
+                }
+                Some(PathSeg::Ident(id)) if id.name == "super" => {
+                    super_count += 1;
+                    idx += 1;
+                    continue;
+                }
 
                 _ => break,
             }
@@ -3262,6 +3649,46 @@ impl TypeInfer {
         result
     }
 
+    pub fn check_impl_method(
+        &mut self,
+        func: &mut crate::ast::node::FunctionDef,
+        self_ty: &Type,
+    ) -> TypeResult<()> {
+        self.env.push_scope();
+
+        let result: TypeResult<()> = (|| {
+            for param in &func.params {
+                let param_ty = if param.name.name == "self" {
+                    self_ty.clone()
+                } else if let Type::Named { name, .. } = &param.ty {
+                    if name.last_ident().map(|id| id.name.as_str()) == Some("Self") {
+                        self_ty.clone()
+                    } else {
+                        param.ty.clone()
+                    }
+                } else {
+                    param.ty.clone()
+                };
+
+                self.env
+                    .define(param.name.name.clone(), param_ty)
+                    .map_err(|_| TypeError::DuplicateDefinition {
+                        name: param.name.name.clone(),
+                        span: param.span,
+                    })?;
+            }
+
+            let body_ty = self.infer_block(&mut func.body)?;
+            let expected_ret = func.return_type.clone().unwrap_or(Type::Unit);
+            self.unify(body_ty, expected_ret, func.body.span)?;
+
+            Ok(())
+        })();
+
+        self.env.pop_scope();
+        result
+    }
+
     pub fn infer_binary(
         &mut self,
         op: BinaryOp,
@@ -3292,8 +3719,7 @@ impl TypeInfer {
                             && right_ty == Type::Gaussian
                         {
                             Ok(Type::Gaussian)
-                        }
-                        else if matches!(op, BinaryOp::Mul | BinaryOp::Div) {
+                        } else if matches!(op, BinaryOp::Mul | BinaryOp::Div) {
                             match (&left_ty, &right_ty) {
                                 (Type::Gaussian, Type::Float) => Ok(Type::Gaussian),
                                 (Type::Float, Type::Gaussian) => Ok(Type::Gaussian),
@@ -3323,10 +3749,20 @@ impl TypeInfer {
                 }
             }
 
-            BinaryOp::Eq | BinaryOp::Ne | BinaryOp::Lt | BinaryOp::Le | BinaryOp::Gt | BinaryOp::Ge => {
+            BinaryOp::Eq
+            | BinaryOp::Ne
+            | BinaryOp::Lt
+            | BinaryOp::Le
+            | BinaryOp::Gt
+            | BinaryOp::Ge => {
                 let unified = self.unify(left_ty, right_ty, span)?;
                 match unified {
-                    Type::Int | Type::Float | Type::Bool | Type::String => Ok(Type::Bool),
+                    Type::Int
+                    | Type::Float
+                    | Type::Bool
+                    | Type::String
+                    | Type::Any
+                    | Type::Unit => Ok(Type::Bool),
                     _ => Err(TypeError::InvalidBinaryOp {
                         op: op.to_string(),
                         left_type: unified.clone(),
@@ -3335,7 +3771,6 @@ impl TypeInfer {
                     }),
                 }
             }
-
 
             BinaryOp::And | BinaryOp::Or => {
                 if left_ty != Type::Bool {
@@ -3355,7 +3790,11 @@ impl TypeInfer {
                 Ok(Type::Bool)
             }
 
-            BinaryOp::BitAnd | BinaryOp::BitOr | BinaryOp::BitXor | BinaryOp::Shl | BinaryOp::Shr => {
+            BinaryOp::BitAnd
+            | BinaryOp::BitOr
+            | BinaryOp::BitXor
+            | BinaryOp::Shl
+            | BinaryOp::Shr => {
                 if left_ty != Type::Int {
                     return Err(TypeError::TypeMismatch {
                         expected: Type::Int,
@@ -3377,8 +3816,12 @@ impl TypeInfer {
         }
     }
 
-
-    pub fn infer_unary(&mut self, op: &UnaryOp, operand: &mut Expression, span: Span) -> TypeResult<Type> {
+    pub fn infer_unary(
+        &mut self,
+        op: &UnaryOp,
+        operand: &mut Expression,
+        span: Span,
+    ) -> TypeResult<Type> {
         let ty = self.infer_expression(operand)?;
         match op {
             UnaryOp::Neg => match ty {
@@ -3400,7 +3843,7 @@ impl TypeInfer {
             _ => Ok(ty),
         }
     }
-    
+
     pub fn infer_if_expression(
         &mut self,
         condition: &mut Expression,
@@ -3425,7 +3868,6 @@ impl TypeInfer {
         } else {
             Ok(Type::Unit)
         }
-
     }
 
     pub fn check_function_definition(
@@ -3437,7 +3879,11 @@ impl TypeInfer {
     ) -> TypeResult<()> {
         self.env.push_scope();
         for (param_name, param_ty) in params {
-            if self.env.define(param_name.clone(), param_ty.clone()).is_err() {
+            if self
+                .env
+                .define(param_name.clone(), param_ty.clone())
+                .is_err()
+            {
                 return Err(TypeError::DuplicateDefinition {
                     name: param_name.clone(),
                     span: body.span(),
@@ -3454,7 +3900,6 @@ impl TypeInfer {
                 span: body.span(),
             });
         }
-
 
         self.env.pop_scope();
         self.env
@@ -3529,7 +3974,10 @@ impl TypeInfer {
             method_ty = self.subst_assoc(method_ty, &solved_assoc);
             method_ty = self.apply(method_ty);
             match method_ty {
-                Type::Function { params, return_type } => {
+                Type::Function {
+                    params,
+                    return_type,
+                } => {
                     let is_variadic = params
                         .last()
                         .map_or(false, |t| matches!(t, Type::Variadic(_)));
@@ -3593,10 +4041,7 @@ impl TypeInfer {
         }
 
         if let Expression::Variable { name, .. } = callee {
-            let fname = name
-                .last_ident()
-                .map(|id| id.name.as_str())
-                .unwrap_or("");
+            let fname = name.last_ident().map(|id| id.name.as_str()).unwrap_or("");
 
             if fname == "println" {
                 for arg in args.iter_mut() {
@@ -3629,7 +4074,10 @@ impl TypeInfer {
         let func_ty = self.infer_expression(callee)?;
 
         let (param_types, return_ty) = match func_ty.clone() {
-            Type::Function { params, return_type } => (params, *return_type),
+            Type::Function {
+                params,
+                return_type,
+            } => (params, *return_type),
             _ => {
                 return Err(TypeError::NotCallable {
                     value_type: func_ty,
@@ -3693,7 +4141,11 @@ impl TypeInfer {
         match func_name {
             "Gaussian" => {
                 if args.len() >= 2 {
-                    if let Expression::Literal { value: Literal::Float(std), .. } = &args[1] {
+                    if let Expression::Literal {
+                        value: Literal::Float(std),
+                        ..
+                    } = &args[1]
+                    {
                         if *std <= 0.0 {
                             return Err(TypeError::InvalidDistributionParameter {
                                 distribution: "Gaussian".to_string(),
@@ -3703,7 +4155,11 @@ impl TypeInfer {
                             });
                         }
                     }
-                    if let Expression::Literal { value: Literal::Int(std), .. } = &args[1] {
+                    if let Expression::Literal {
+                        value: Literal::Int(std),
+                        ..
+                    } = &args[1]
+                    {
                         if *std <= 0 {
                             return Err(TypeError::InvalidDistributionParameter {
                                 distribution: "Gaussian".to_string(),
@@ -3719,13 +4175,16 @@ impl TypeInfer {
                 if args.len() >= 2 {
                     let min_val = Self::extract_float_literal(&args[0]);
                     let max_val = Self::extract_float_literal(&args[1]);
-                    
+
                     if let (Some(min), Some(max)) = (min_val, max_val) {
                         if min >= max {
                             return Err(TypeError::InvalidDistributionParameter {
                                 distribution: "Uniform".to_string(),
                                 param_name: "min, max".to_string(),
-                                reason: format!("min must be less than max, got min={}, max={}", min, max),
+                                reason: format!(
+                                    "min must be less than max, got min={}, max={}",
+                                    min, max
+                                ),
                                 span,
                             });
                         }
@@ -3777,11 +4236,19 @@ impl TypeInfer {
 
     fn extract_float_literal(expr: &Expression) -> Option<f64> {
         match expr {
-            Expression::Literal { value: Literal::Float(v), .. } => Some(*v),
-            Expression::Literal { value: Literal::Int(v), .. } => Some(*v as f64),
-            Expression::Unary { op: crate::ast::node::UnaryOp::Neg, operand, .. } => {
-                Self::extract_float_literal(operand).map(|v| -v)
-            }
+            Expression::Literal {
+                value: Literal::Float(v),
+                ..
+            } => Some(*v),
+            Expression::Literal {
+                value: Literal::Int(v),
+                ..
+            } => Some(*v as f64),
+            Expression::Unary {
+                op: crate::ast::node::UnaryOp::Neg,
+                operand,
+                ..
+            } => Self::extract_float_literal(operand).map(|v| -v),
             _ => None,
         }
     }

@@ -1,12 +1,13 @@
 // src/typeck/mod.rs
 
 use crate::ast::node::Program;
-use crate::typeck::infer::TypeInfer;
 use crate::typeck::error::TypeError;
+use crate::typeck::infer::TypeInfer;
 
-pub mod infer;
 pub mod env;
 pub mod error;
+pub mod infer;
+pub mod prob;
 
 #[derive(Debug)]
 pub struct TypeChecker {

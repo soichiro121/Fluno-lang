@@ -26,7 +26,7 @@ mod tests {
 
         assert!(weak.upgrade().is_some());
         assert_eq!(*weak.upgrade().unwrap(), 100);
-        
+
         assert_eq!(Rc::strong_count(&strong), 1);
         assert_eq!(Rc::weak_count(&strong), 1);
 
@@ -41,12 +41,12 @@ mod tests {
         let node2 = Node::new(2);
 
         node1.borrow_mut().next = Some(node2.clone());
-        
+
         node2.borrow_mut().prev = Some(Rc::downgrade(&node1));
 
         assert_eq!(Rc::strong_count(&node1), 1);
         assert_eq!(Rc::strong_count(&node2), 2);
-        
+
         assert_eq!(Rc::weak_count(&node1), 1);
     }
 
@@ -62,10 +62,13 @@ mod tests {
             node2.borrow_mut().prev = Some(Rc::downgrade(&node1));
 
             weak_observer = Some(Rc::downgrade(&node1));
-            
+
             assert!(weak_observer.as_ref().unwrap().upgrade().is_some());
         }
 
-        assert!(weak_observer.unwrap().upgrade().is_none(), "Memory leaked! Node1 is still alive.");
+        assert!(
+            weak_observer.unwrap().upgrade().is_none(),
+            "Memory leaked! Node1 is still alive."
+        );
     }
 }

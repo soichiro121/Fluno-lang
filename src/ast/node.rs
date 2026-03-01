@@ -20,7 +20,11 @@ pub struct Span {
 
 impl Span {
     pub fn new(line: usize, column: usize, length: usize) -> Self {
-        Span { line, column, length }
+        Span {
+            line,
+            column,
+            length,
+        }
     }
 
     pub fn initial() -> Self {
@@ -64,14 +68,14 @@ pub struct TypeParam {
 #[derive(Debug, Clone)]
 pub struct FunctionDef {
     pub name: Identifier,
-    pub type_params: Vec<TypeParameter>, 
+    pub type_params: Vec<TypeParameter>,
     pub params: Vec<Parameter>,
     pub return_type: Option<Type>,
     pub body: Block,
     pub defid: Option<DefId>,
     pub is_async: bool,
     pub span: Span,
-    pub attributes: Vec<Attribute>, 
+    pub attributes: Vec<Attribute>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -133,7 +137,7 @@ pub struct TypeAlias {
 pub struct TraitDef {
     pub name: Identifier,
     pub type_params: Vec<TypeParameter>,
-    pub assoc_types: Vec<Identifier>, 
+    pub assoc_types: Vec<Identifier>,
     pub methods: Vec<TraitMethod>,
     pub span: Span,
 }
@@ -167,7 +171,7 @@ pub struct AssocTypeBinding {
 #[derive(Debug, Clone)]
 pub enum ImplItem {
     Method(FunctionDef),
-    AssocType(AssocTypeBinding),   
+    AssocType(AssocTypeBinding),
 }
 
 #[derive(Debug, Clone)]
@@ -237,6 +241,7 @@ pub enum Type {
     Uniform,
     Bernoulli,
     Beta,
+    VonMises,
 
     Signal(Box<Type>),
     Event(Box<Type>),
@@ -259,9 +264,9 @@ pub enum Type {
 
     Handle(Box<Type>),
 
-    Named { 
-        name: Path, 
-        type_args: Vec<Type> 
+    Named {
+        name: Path,
+        type_args: Vec<Type>,
     },
 
     Assoc {
@@ -269,8 +274,10 @@ pub enum Type {
         self_ty: Box<Type>,
         name: String,
     },
-    
-    DynTrait { trait_path: Path }, 
+
+    DynTrait {
+        trait_path: Path,
+    },
 
     TypeVar(Identifier),
     MetaVar(usize),
@@ -285,7 +292,10 @@ pub enum Type {
 
 impl Type {
     pub fn is_probabilistic(&self) -> bool {
-        matches!(self, Type::Gaussian | Type::Uniform | Type::Bernoulli | Type::Beta)
+        matches!(
+            self,
+            Type::Gaussian | Type::Uniform | Type::Bernoulli | Type::Beta | Type::VonMises
+        )
     }
 
     pub fn is_reactive(&self) -> bool {
@@ -312,17 +322,31 @@ impl Type {
             (Type::Array(a), Type::Array(b)) => a.matches(b),
             (Type::Option(a), Type::Option(b)) => a.matches(b),
 
-            (Type::Result { ok_type: ok1, err_type: err1 },
-            Type::Result { ok_type: ok2, err_type: err2 }) => {
-                ok1.matches(ok2) && err1.matches(err2)
-            }
+            (
+                Type::Result {
+                    ok_type: ok1,
+                    err_type: err1,
+                },
+                Type::Result {
+                    ok_type: ok2,
+                    err_type: err2,
+                },
+            ) => ok1.matches(ok2) && err1.matches(err2),
 
             (Type::Tuple(a), Type::Tuple(b)) => {
                 a.len() == b.len() && a.iter().zip(b).all(|(x, y)| x.matches(y))
             }
 
-            (Type::Function { params: p1, return_type: r1 },
-            Type::Function { params: p2, return_type: r2 }) => {
+            (
+                Type::Function {
+                    params: p1,
+                    return_type: r1,
+                },
+                Type::Function {
+                    params: p2,
+                    return_type: r2,
+                },
+            ) => {
                 p1.len() == p2.len()
                     && p1.iter().zip(p2.iter()).all(|(x, y)| x.matches(y))
                     && r1.matches(r2)
@@ -345,9 +369,13 @@ impl fmt::Display for Type {
             Type::Uniform => write!(f, "Uniform"),
             Type::Bernoulli => write!(f, "Bernoulli"),
             Type::Beta => write!(f, "Beta"),
+            Type::VonMises => write!(f, "VonMises"),
             Type::Signal(t) => write!(f, "Signal<{}>", t),
             Type::Event(t) => write!(f, "Event<{}>", t),
-            Type::Function { params, return_type } => {
+            Type::Function {
+                params,
+                return_type,
+            } => {
                 write!(f, "Fn(")?;
                 for (i, param) in params.iter().enumerate() {
                     if i > 0 {
@@ -381,7 +409,9 @@ impl fmt::Display for Type {
                 if !type_args.is_empty() {
                     write!(f, "<")?;
                     for (i, arg) in type_args.iter().enumerate() {
-                        if i > 0 { write!(f, ", ")?; }
+                        if i > 0 {
+                            write!(f, ", ")?;
+                        }
                         write!(f, "{}", arg)?;
                     }
                     write!(f, ">")?;
@@ -395,7 +425,11 @@ impl fmt::Display for Type {
             Type::Variadic(inner) => write!(f, "Variadic<{}>", inner),
             Type::Rc(inner) => write!(f, "Rc<{}>", inner),
             Type::Weak(inner) => write!(f, "Weak<{}>", inner),
-            Type::Assoc { trait_def: _, self_ty, name } => write!(f, "{}::{}", self_ty, name),
+            Type::Assoc {
+                trait_def: _,
+                self_ty,
+                name,
+            } => write!(f, "{}::{}", self_ty, name),
             Type::DynTrait { trait_path } => write!(f, "dyn {}", trait_path),
             Type::Map(k, v) => write!(f, "Map<{}, {}>", k, v),
             Type::Handle(t) => write!(f, "Handle<{}>", t),
@@ -437,7 +471,11 @@ impl Path {
 
     pub fn last_ident(&self) -> Option<&Identifier> {
         self.segments.iter().rev().find_map(|seg| {
-            if let PathSeg::Ident(id) = seg { Some(id) } else { None }
+            if let PathSeg::Ident(id) = seg {
+                Some(id)
+            } else {
+                None
+            }
         })
     }
 
@@ -447,7 +485,11 @@ impl Path {
 
     pub fn iter_idents(&self) -> impl Iterator<Item = &Identifier> {
         self.segments.iter().filter_map(|seg| {
-            if let PathSeg::Ident(id) = seg { Some(id) } else { None }
+            if let PathSeg::Ident(id) = seg {
+                Some(id)
+            } else {
+                None
+            }
         })
     }
 }
@@ -498,9 +540,13 @@ pub enum Statement {
         span: Span,
     },
 
-    Break { span: Span },
+    Break {
+        span: Span,
+    },
 
-    Continue { span: Span },
+    Continue {
+        span: Span,
+    },
 
     Empty,
 }
@@ -517,9 +563,9 @@ pub enum Expression {
         value: Literal,
         span: Span,
     },
-    Variable { 
-        name: Path, 
-        span: Span 
+    Variable {
+        name: Path,
+        span: Span,
     },
     Binary {
         left: Box<Expression>,
@@ -596,7 +642,7 @@ pub enum Expression {
         name: Identifier,
         variant: Identifier,
         args: Vec<Expression>,
-        named_fields: Option<Vec<FieldInit>>, 
+        named_fields: Option<Vec<FieldInit>>,
         span: Span,
     },
     Some {
@@ -690,7 +736,6 @@ impl Expression {
         }
     }
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum Precedence {
@@ -805,7 +850,6 @@ impl BinaryOp {
     }
 }
 
-
 impl fmt::Display for BinaryOp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
@@ -863,7 +907,9 @@ impl fmt::Display for UnaryOp {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Pattern {
-    Wildcard { span: Span },
+    Wildcard {
+        span: Span,
+    },
 
     Identifier {
         name: Identifier,
@@ -890,7 +936,7 @@ pub enum Pattern {
         name: Identifier,
         variant: Identifier,
         args: Vec<Pattern>,
-        named_fields: Option<Vec<FieldPattern>>, 
+        named_fields: Option<Vec<FieldPattern>>,
         span: Span,
     },
 

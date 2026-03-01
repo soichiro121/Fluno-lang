@@ -1,24 +1,24 @@
+use crate::parser::ParseError;
 use crate::typeck::error::TypeError;
 use crate::vm::RuntimeError;
-use crate::parser::ParseError;
 use std::fmt;
 use std::io;
 
 #[derive(Debug, Clone)]
 pub enum Error {
     RuntimeError(RuntimeError),
-    
+
     TypeError(TypeError),
-    
+
     ParseError(ParseError),
-    
+
     IoError(String),
-    
+
     Panic(String),
-    
+
     Generic(String),
 
-    CompilationError(String), 
+    CompilationError(String),
 }
 
 impl fmt::Display for Error {

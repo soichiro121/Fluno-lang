@@ -14,7 +14,9 @@ struct TensorPool {
 
 impl TensorPool {
     fn new() -> Self {
-        Self { pool: HashMap::new() }
+        Self {
+            pool: HashMap::new(),
+        }
     }
 
     fn get(&mut self, shape: &[usize], init_val: f64) -> ArrayD<f64> {

@@ -1,9 +1,9 @@
 use super::chunk::Chunk;
 use super::opcode::{Instruction, Opcode};
-use crate::ast::node::*;
-use crate::Value;
-use crate::gc::Rc;
 use crate::ad::types::ADFloat;
+use crate::ast::node::*;
+use crate::gc::Rc;
+use crate::Value;
 
 #[derive(Debug)]
 pub struct Local {
@@ -103,7 +103,7 @@ impl BytecodeCompiler {
         for item in &program.items {
             self.compile_item(item)?;
         }
-        
+
         let mut has_main = false;
         for item in &program.items {
             if let Item::Function(func) = item {
@@ -113,24 +113,24 @@ impl BytecodeCompiler {
                 }
             }
         }
-        
+
         if has_main {
             let name_idx = self.make_constant(Value::String(Rc::new("main".to_string())))?;
             self.emit(Instruction::with_u16(Opcode::GetGlobal, name_idx, 0));
             self.emit(Instruction::with_u8(Opcode::Call, 0, 0));
             self.emit(Instruction::simple(Opcode::Pop, 0));
         }
-        
+
         self.emit(Instruction::simple(Opcode::Nil, 0));
         self.emit(Instruction::simple(Opcode::Return, 0));
-        
+
         if let Some(global_state) = self.states.pop() {
             let global_chunk = global_state.chunk;
-            
+
             let mut all_chunks = Vec::new();
             all_chunks.push(global_chunk);
             all_chunks.extend(self.finished_functions);
-            
+
             for (i, c) in all_chunks.iter().enumerate() {
                 println!("DEBUG BYTECODE Chunk {}:\n{}", i, c);
             }
@@ -146,31 +146,53 @@ impl BytecodeCompiler {
             Item::Function(func) => self.compile_function_def(func),
             Item::Struct(struct_def) => {
                 let name = struct_def.name.name.clone();
-                 
+
                 let arity = struct_def.fields.len();
                 let mut state = CompilerState::new(&name);
                 state.function_name = name.clone();
                 state.scope_depth = 1;
                 for field in &struct_def.fields {
-                    state.locals.push(Local { name: field.name.name.clone(), depth: 1, is_captured: false });
+                    state.locals.push(Local {
+                        name: field.name.name.clone(),
+                        depth: 1,
+                        is_captured: false,
+                    });
                 }
 
                 for (i, field) in struct_def.fields.iter().enumerate() {
-                    let n_idx = state.chunk.add_constant(Value::String(Rc::new(field.name.name.clone())));
-                      
-                    state.chunk.write(Instruction::with_u16(Opcode::Const, n_idx, struct_def.span.line));
-                      
-                    state.chunk.write(Instruction::with_u16(Opcode::GetLocal, i as u16, struct_def.span.line));
+                    let n_idx = state
+                        .chunk
+                        .add_constant(Value::String(Rc::new(field.name.name.clone())));
+
+                    state.chunk.write(Instruction::with_u16(
+                        Opcode::Const,
+                        n_idx,
+                        struct_def.span.line,
+                    ));
+
+                    state.chunk.write(Instruction::with_u16(
+                        Opcode::GetLocal,
+                        i as u16,
+                        struct_def.span.line,
+                    ));
                 }
-                 
-                let struct_name_idx = state.chunk.add_constant(Value::String(Rc::new(name.clone())));
-                 
-                let mut mk = Instruction::with_u16(Opcode::MakeStruct, struct_name_idx, struct_def.span.line);
+
+                let struct_name_idx = state
+                    .chunk
+                    .add_constant(Value::String(Rc::new(name.clone())));
+
+                let mut mk = Instruction::with_u16(
+                    Opcode::MakeStruct,
+                    struct_name_idx,
+                    struct_def.span.line,
+                );
                 mk.operands.push(arity as u8);
                 state.chunk.write(mk);
-                 
-                state.chunk.write(Instruction::simple(Opcode::Return, struct_def.span.line));
-                 
+
+                state
+                    .chunk
+                    .write(Instruction::simple(Opcode::Return, struct_def.span.line));
+
                 let chunk = state.chunk;
                 let chunk_idx = self.finished_functions.len() + 1;
                 self.finished_functions.push(chunk);
@@ -178,50 +200,70 @@ impl BytecodeCompiler {
                     name: name.clone(),
                     chunk_index: chunk_idx,
                     arity,
-                    upvalue_count: 0
+                    upvalue_count: 0,
                 };
                 let func_const_idx = self.make_constant(func_val)?;
                 let global_name_idx = self.make_constant(Value::String(Rc::new(name.clone())))?;
-                 
-                self.emit(Instruction::with_u16(Opcode::Closure, func_const_idx, struct_def.span.line));
-                self.emit(Instruction::with_u16(Opcode::DefineGlobal, global_name_idx, struct_def.span.line));
-                 
+
+                self.emit(Instruction::with_u16(
+                    Opcode::Closure,
+                    func_const_idx,
+                    struct_def.span.line,
+                ));
+                self.emit(Instruction::with_u16(
+                    Opcode::DefineGlobal,
+                    global_name_idx,
+                    struct_def.span.line,
+                ));
+
                 Ok(())
-            }, 
+            }
             Item::Enum(enum_def) => {
                 let name = enum_def.name.name.clone();
                 let name_idx = self.make_constant(Value::String(Rc::new(name.clone())))?;
-                let val_idx = self.make_constant(Value::String(Rc::new(format!("Enum:{}", name))))?;
-                self.emit(Instruction::with_u16(Opcode::Const, val_idx, enum_def.span.line));
-                self.emit(Instruction::with_u16(Opcode::DefineGlobal, name_idx, enum_def.span.line));
+                let val_idx =
+                    self.make_constant(Value::String(Rc::new(format!("Enum:{}", name))))?;
+                self.emit(Instruction::with_u16(
+                    Opcode::Const,
+                    val_idx,
+                    enum_def.span.line,
+                ));
+                self.emit(Instruction::with_u16(
+                    Opcode::DefineGlobal,
+                    name_idx,
+                    enum_def.span.line,
+                ));
                 Ok(())
-            },
+            }
             Item::Impl(impl_def) => {
                 let type_name = match &impl_def.self_ty {
-                    Type::Named { name, .. } => name.last_ident().expect("Invalid impl path").name.clone(),
+                    Type::Named { name, .. } => {
+                        name.last_ident().expect("Invalid impl path").name.clone()
+                    }
                     _ => return Err(CompileError::NotYetImplemented("Complex impl types".into())),
                 };
-                let type_name_idx = self.make_constant(Value::String(Rc::new(type_name.clone())))?;
-                 
+                let type_name_idx =
+                    self.make_constant(Value::String(Rc::new(type_name.clone())))?;
+
                 for item in &impl_def.items {
                     if let ImplItem::Method(method) = item {
                         let mut state = CompilerState::new(&method.name.name);
                         state.function_name = method.name.name.clone();
                         state.scope_depth = 1;
                         self.states.push(state);
-                         
+
                         for param in &method.params {
                             self.add_local(param.name.name.clone())?;
                         }
-                         
+
                         self.compile_block(&method.body)?;
                         self.emit(Instruction::simple(Opcode::Return, method.span.line));
-                         
+
                         let state = self.states.pop().expect("State mismatch");
-                         
+
                         let chunk_index = self.finished_functions.len() + 1;
                         self.finished_functions.push(state.chunk);
-                        
+
                         let func_val = Value::BytecodeFunction {
                             name: method.name.name.clone(),
                             chunk_index,
@@ -229,19 +271,33 @@ impl BytecodeCompiler {
                             upvalue_count: state.upvalues.len(),
                         };
                         let func_idx = self.make_constant(func_val)?;
-                         
-                        self.emit(Instruction::with_u16(Opcode::Closure, func_idx, method.span.line));
-                         
-                        let is_instance = method.params.first().map(|p| p.name.name == "self").unwrap_or(false);
+
+                        self.emit(Instruction::with_u16(
+                            Opcode::Closure,
+                            func_idx,
+                            method.span.line,
+                        ));
+
+                        let is_instance = method
+                            .params
+                            .first()
+                            .map(|p| p.name.name == "self")
+                            .unwrap_or(false);
 
                         if !is_instance {
                             let full_name = format!("{}::{}", type_name, method.name.name);
                             let name_idx = self.make_constant(Value::String(Rc::new(full_name)))?;
-                            self.emit(Instruction::with_u16(Opcode::DefineGlobal, name_idx, method.span.line));
+                            self.emit(Instruction::with_u16(
+                                Opcode::DefineGlobal,
+                                name_idx,
+                                method.span.line,
+                            ));
                         } else {
-                            let method_name_idx = self.make_constant(Value::String(Rc::new(method.name.name.clone())))?;
-                             
-                            let mut instr = Instruction::simple(Opcode::DefineMethod, method.span.line);
+                            let method_name_idx = self
+                                .make_constant(Value::String(Rc::new(method.name.name.clone())))?;
+
+                            let mut instr =
+                                Instruction::simple(Opcode::DefineMethod, method.span.line);
                             instr.operands.push((type_name_idx & 0xFF) as u8);
                             instr.operands.push((type_name_idx >> 8) as u8);
                             instr.operands.push((method_name_idx & 0xFF) as u8);
@@ -258,10 +314,10 @@ impl BytecodeCompiler {
                 }
                 Ok(())
             }
-            Item::Import(_) => Ok(()), 
+            Item::Import(_) => Ok(()),
             Item::TypeAlias(_) => Ok(()),
             Item::Trait(_) => Ok(()),
-            Item::Extern(_) => Ok(()), 
+            Item::Extern(_) => Ok(()),
         }
     }
 
@@ -269,38 +325,38 @@ impl BytecodeCompiler {
         let mut state = CompilerState::new(&func.name.name);
         state.function_name = func.name.name.clone();
         state.scope_depth = 1;
-        
+
         self.states.push(state);
-        
+
         for param in &func.params {
             self.add_local(param.name.name.clone())?;
         }
-        
+
         self.compile_block(&func.body)?;
-        
+
         self.emit(Instruction::simple(Opcode::Return, func.span.line));
-        
+
         let state = self.states.pop().expect("State mismatch");
-        
-        let chunk_index = self.finished_functions.len() + 1; 
-        
+
+        let chunk_index = self.finished_functions.len() + 1;
+
         let upvalue_count = state.upvalues.len();
         let upvalues = state.upvalues.clone();
-        
+
         let func_val = Value::BytecodeFunction {
             name: func.name.name.clone(),
             chunk_index,
             arity: func.params.len(),
             upvalue_count,
         };
-        
+
         self.finished_functions.push(state.chunk);
-        
+
         let const_idx = self.make_constant(func_val)?;
-        
+
         if upvalue_count > 0 {
             let mut instr = Instruction::with_u16(Opcode::Closure, const_idx, func.span.line);
-            
+
             for up in upvalues {
                 instr.operands.push(if up.is_local { 1 } else { 0 });
                 instr.operands.push(up.index);
@@ -313,22 +369,26 @@ impl BytecodeCompiler {
 
         if self.states.len() == 1 {
             let name_idx = self.make_constant(Value::String(Rc::new(func.name.name.clone())))?;
-            self.emit(Instruction::with_u16(Opcode::DefineGlobal, name_idx, func.span.line));
+            self.emit(Instruction::with_u16(
+                Opcode::DefineGlobal,
+                name_idx,
+                func.span.line,
+            ));
         } else {
             self.add_local(func.name.name.clone())?;
         }
-        
+
         Ok(())
     }
 
     fn compile_block(&mut self, block: &Block) -> CompileResult<()> {
         self.begin_scope();
-        
+
         let mut emitted_value = false;
 
         for (i, stmt) in block.statements.iter().enumerate() {
             let is_last = i == block.statements.len() - 1;
-            
+
             if is_last {
                 if let Statement::Expression(expr) = stmt {
                     self.compile_expression(expr)?;
@@ -336,14 +396,14 @@ impl BytecodeCompiler {
                     continue;
                 }
             }
-            
+
             self.compile_statement(stmt)?;
         }
 
         if !emitted_value {
             self.emit(Instruction::simple(Opcode::Nil, block.span.line));
         }
-        
+
         self.end_scope_with_value(block.span.line);
         Ok(())
     }
@@ -373,9 +433,13 @@ impl BytecodeCompiler {
                 self.emit(Instruction::simple(Opcode::Return, span.line));
                 Ok(())
             }
-            Statement::While { condition, body, span } => {
+            Statement::While {
+                condition,
+                body,
+                span,
+            } => {
                 let loop_start = self.current_chunk().current_offset();
-                
+
                 let old_loop_start = self.current_state().loop_start;
                 let old_loop_end_jumps = std::mem::take(&mut self.current_state().loop_end_jumps);
                 self.current_state().loop_start = Some(loop_start);
@@ -398,44 +462,49 @@ impl BytecodeCompiler {
                 self.current_state().loop_end_jumps = old_loop_end_jumps;
                 Ok(())
             }
-            Statement::For { pattern, iterator, body, span } => {
+            Statement::For {
+                pattern,
+                iterator,
+                body,
+                span,
+            } => {
                 self.begin_scope();
-                
+
                 self.compile_expression(iterator)?;
-                
+
                 self.emit(Instruction::simple(Opcode::Iterator, span.line));
-                
-                self.add_local("(iterator)".to_string())?; 
-                
+
+                self.add_local("(iterator)".to_string())?;
+
                 let loop_start = self.current_chunk().current_offset();
-                
+
                 let old_loop_start = self.current_state().loop_start;
                 let old_loop_end_jumps = std::mem::take(&mut self.current_state().loop_end_jumps);
                 self.current_state().loop_start = Some(loop_start);
 
                 let exit_jump = self.emit_jump(Opcode::Next, span.line);
-                
+
                 self.begin_scope();
                 self.compile_pattern_binding(pattern)?;
                 self.compile_block(body)?;
                 self.emit(Instruction::simple(Opcode::Pop, span.line));
-                
+
                 self.end_scope();
-                
+
                 self.emit_loop(loop_start, span.line)?;
-                
+
                 self.patch_jump(exit_jump)?;
-                
-                self.end_scope(); 
-                
+
+                self.end_scope();
+
                 let end_jumps = std::mem::take(&mut self.current_state().loop_end_jumps);
                 for jump in end_jumps {
                     self.patch_jump(jump)?;
                 }
-                
+
                 self.current_state().loop_start = old_loop_start;
                 self.current_state().loop_end_jumps = old_loop_end_jumps;
-                
+
                 Ok(())
             }
             Statement::Break { span } => {
@@ -458,17 +527,20 @@ impl BytecodeCompiler {
         match expr {
             Expression::Literal { value, .. } => self.compile_literal(value, line),
             Expression::Variable { name, .. } => {
-                let full_name = name.iter_idents()
+                let full_name = name
+                    .iter_idents()
                     .map(|id| id.name.as_str())
                     .collect::<Vec<_>>()
                     .join("::");
-                
+
                 if full_name.is_empty() {
-                     return Err(CompileError::UndefinedVariable("unknown".into()));
+                    return Err(CompileError::UndefinedVariable("unknown".into()));
                 }
                 self.resolve_and_load_variable(&full_name, line)
             }
-            Expression::Binary { left, op, right, .. } => {
+            Expression::Binary {
+                left, op, right, ..
+            } => {
                 if matches!(op, BinaryOp::Assign) {
                     return self.compile_assignment(left, right);
                 }
@@ -525,7 +597,12 @@ impl BytecodeCompiler {
                 self.emit(Instruction::simple(opcode, line));
                 Ok(())
             }
-            Expression::If { condition, then_branch, else_branch, .. } => {
+            Expression::If {
+                condition,
+                then_branch,
+                else_branch,
+                ..
+            } => {
                 self.compile_expression(condition)?;
                 let then_jump = self.emit_jump(Opcode::JumpIfFalse, line);
                 self.compile_block(then_branch)?;
@@ -544,7 +621,11 @@ impl BytecodeCompiler {
                 for elem in elements {
                     self.compile_expression(elem)?;
                 }
-                self.emit(Instruction::with_u16(Opcode::MakeArray, elements.len() as u16, line));
+                self.emit(Instruction::with_u16(
+                    Opcode::MakeArray,
+                    elements.len() as u16,
+                    line,
+                ));
                 Ok(())
             }
             Expression::Index { object, index, .. } => {
@@ -562,7 +643,8 @@ impl BytecodeCompiler {
             Expression::Struct { name, fields, .. } => {
                 let name_idx = self.make_constant(Value::String(Rc::new(name.name.clone())))?;
                 for field in fields {
-                    let field_name_idx = self.make_constant(Value::String(Rc::new(field.name.name.clone())))?;
+                    let field_name_idx =
+                        self.make_constant(Value::String(Rc::new(field.name.name.clone())))?;
                     self.emit(Instruction::with_u16(Opcode::Const, field_name_idx, line));
                     self.compile_expression(&field.value)?;
                 }
@@ -573,8 +655,8 @@ impl BytecodeCompiler {
             }
             Expression::Call { callee, args, .. } => {
                 if let Expression::Variable { name, .. } = callee.as_ref() {
-                     if let Some(ident) = name.last_ident() {
-                         match ident.name.as_str() {
+                    if let Some(ident) = name.last_ident() {
+                        match ident.name.as_str() {
                             "print" | "println" => {
                                 for arg in args {
                                     self.compile_expression(arg)?;
@@ -628,7 +710,12 @@ impl BytecodeCompiler {
                 self.emit(Instruction::with_u8(Opcode::Call, args.len() as u8, line));
                 Ok(())
             }
-            Expression::MethodCall { receiver, method, args, .. } => {
+            Expression::MethodCall {
+                receiver,
+                method,
+                args,
+                ..
+            } => {
                 self.compile_expression(receiver)?;
                 for arg in args {
                     self.compile_expression(arg)?;
@@ -639,9 +726,11 @@ impl BytecodeCompiler {
                 self.emit(instr);
                 Ok(())
             }
-            Expression::Match { scrutinee, arms, span } => {
-                self.compile_match(scrutinee, arms, span.line)
-            }
+            Expression::Match {
+                scrutinee,
+                arms,
+                span,
+            } => self.compile_match(scrutinee, arms, span.line),
             Expression::Lambda { params, body, span } => {
                 self.compile_lambda(params, body, span.clone())
             }
@@ -652,17 +741,28 @@ impl BytecodeCompiler {
                 for elem in elements {
                     self.compile_expression(elem)?;
                 }
-                self.emit(Instruction::with_u16(Opcode::MakeArray, elements.len() as u16, line));
+                self.emit(Instruction::with_u16(
+                    Opcode::MakeArray,
+                    elements.len() as u16,
+                    line,
+                ));
                 Ok(())
             }
-            Expression::Enum { name, variant, args, named_fields: _, span: _ } => {
+            Expression::Enum {
+                name,
+                variant,
+                args,
+                named_fields: _,
+                span: _,
+            } => {
                 let name_idx = self.make_constant(Value::String(Rc::new(name.name.clone())))?;
-                let variant_idx = self.make_constant(Value::String(Rc::new(variant.name.clone())))?;
-                
+                let variant_idx =
+                    self.make_constant(Value::String(Rc::new(variant.name.clone())))?;
+
                 for arg in args {
                     self.compile_expression(arg)?;
                 }
-                 
+
                 let mut instr = Instruction::with_u16(Opcode::MakeEnum, name_idx, line);
                 let variant_bytes = variant_idx.to_le_bytes();
                 instr.operands.push(variant_bytes[0]);
@@ -695,27 +795,35 @@ impl BytecodeCompiler {
                 Ok(())
             }
             Expression::Paren { expr, .. } => self.compile_expression(expr),
-            Expression::UfcsMethod { trait_path, method, .. } => {
-                let path_str = trait_path.iter_idents()
+            Expression::UfcsMethod {
+                trait_path, method, ..
+            } => {
+                let path_str = trait_path
+                    .iter_idents()
                     .map(|id| id.name.as_str())
                     .collect::<Vec<_>>()
                     .join("::");
                 let full_name = format!("{}::{}", path_str, method.name);
                 self.resolve_and_load_variable(&full_name, line)
             }
-            Expression::Range { start, end, inclusive, .. } => {
+            Expression::Range {
+                start,
+                end,
+                inclusive,
+                ..
+            } => {
                 if let Some(s) = start {
                     self.compile_expression(s)?;
                 } else {
                     self.compile_literal(&Literal::Int(0), line)?;
                 }
-                
+
                 if let Some(e) = end {
                     self.compile_expression(e)?;
                 } else {
                     self.compile_literal(&Literal::Int(100_000), line)?;
                 }
-                
+
                 let mut instr = Instruction::simple(Opcode::MakeRange, line);
                 instr.operands.push(if *inclusive { 1 } else { 0 });
                 self.emit(instr);
@@ -747,26 +855,75 @@ impl BytecodeCompiler {
             }
             Expression::Try { expr, .. } => {
                 self.compile_expression(expr)?;
-                
+
                 let _name_idx = self.make_constant(Value::String(Rc::new("Result".to_string())))?;
-                let err_variant_idx = self.make_constant(Value::String(Rc::new("Err".to_string())))?;
-                
-                let is_variant_instr = Instruction::with_u16(Opcode::IsVariant, err_variant_idx, line);
+                let err_variant_idx =
+                    self.make_constant(Value::String(Rc::new("Err".to_string())))?;
+
+                let is_variant_instr =
+                    Instruction::with_u16(Opcode::IsVariant, err_variant_idx, line);
                 self.emit(is_variant_instr);
-                
+
                 let jump_if_ok = self.emit_jump(Opcode::JumpIfFalse, line);
-                
+
                 self.emit(Instruction::simple(Opcode::Return, line));
-                
+
                 self.patch_jump(jump_if_ok)?;
                 self.emit(Instruction::simple(Opcode::UnpackEnum, line));
                 Ok(())
             }
-            _ => Err(CompileError::NotYetImplemented(format!("{:?}", std::mem::discriminant(expr)))),
+            Expression::Spawn { expr, .. } => {
+                match expr.as_ref() {
+                    Expression::Call { callee, args, .. } => {
+                        self.compile_expression(callee)?;
+                        for arg in args {
+                            self.compile_expression(arg)?;
+                        }
+                        self.emit(Instruction::with_u8(Opcode::Spawn, args.len() as u8, line));
+                    }
+                    _ => {
+                        self.compile_expression(expr)?;
+                        self.emit(Instruction::with_u8(Opcode::Spawn, 0, line));
+                    }
+                }
+                Ok(())
+            }
+            Expression::Await { expr, .. } => {
+                self.compile_expression(expr)?;
+                self.emit(Instruction::simple(Opcode::Await, line));
+                Ok(())
+            }
+            Expression::Cast {
+                expr, target_type, ..
+            } => {
+                self.compile_expression(expr)?;
+                let type_name = format!("{:?}", target_type);
+                let type_idx = self.make_constant(Value::String(Rc::new(type_name)))?;
+                self.emit(Instruction::with_u16(Opcode::Cast, type_idx, line));
+                Ok(())
+            }
+            Expression::With {
+                name,
+                initializer,
+                body,
+                ..
+            } => {
+                self.compile_expression(initializer)?;
+                self.begin_scope();
+                self.add_local(name.name.clone())?;
+                self.compile_block(body)?;
+                self.end_scope_with_value(line);
+                Ok(())
+            }
         }
     }
 
-    fn compile_lambda(&mut self, params: &[Parameter], body: &Expression, span: Span) -> CompileResult<()> {
+    fn compile_lambda(
+        &mut self,
+        params: &[Parameter],
+        body: &Expression,
+        span: Span,
+    ) -> CompileResult<()> {
         let mut state = CompilerState::new("lambda");
         state.function_name = "lambda".to_string();
         state.scope_depth = 1;
@@ -806,16 +963,21 @@ impl BytecodeCompiler {
         Ok(())
     }
 
-    fn compile_match(&mut self, scrutinee: &Expression, arms: &[MatchArm], line: usize) -> CompileResult<()> {
+    fn compile_match(
+        &mut self,
+        scrutinee: &Expression,
+        arms: &[MatchArm],
+        line: usize,
+    ) -> CompileResult<()> {
         self.compile_expression(scrutinee)?;
-        
+
         let mut match_end_jumps = Vec::new();
-        
+
         for arm in arms {
             let mut fail_jumps = Vec::new();
-            
+
             self.emit(Instruction::simple(Opcode::Dup, line));
-            
+
             let needs_pop_on_fail = match &arm.pattern {
                 Pattern::Literal { value, .. } => {
                     self.compile_literal(value, line)?;
@@ -825,39 +987,39 @@ impl BytecodeCompiler {
                     false
                 }
                 Pattern::Some { .. } => {
-                     let idx = self.make_constant(Value::String(Rc::new("Some".to_string())))?;
-                     self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
-                     let jump = self.emit_jump(Opcode::JumpIfFalse, line);
-                     fail_jumps.push(jump);
-                     true
+                    let idx = self.make_constant(Value::String(Rc::new("Some".to_string())))?;
+                    self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
+                    let jump = self.emit_jump(Opcode::JumpIfFalse, line);
+                    fail_jumps.push(jump);
+                    true
                 }
                 Pattern::None { .. } => {
-                     let idx = self.make_constant(Value::String(Rc::new("None".to_string())))?;
-                     self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
-                     let jump = self.emit_jump(Opcode::JumpIfFalse, line);
-                     fail_jumps.push(jump);
-                     true
+                    let idx = self.make_constant(Value::String(Rc::new("None".to_string())))?;
+                    self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
+                    let jump = self.emit_jump(Opcode::JumpIfFalse, line);
+                    fail_jumps.push(jump);
+                    true
                 }
                 Pattern::Enum { variant, .. } => {
-                     let idx = self.make_constant(Value::String(Rc::new(variant.name.clone())))?;
-                     self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
-                     let jump = self.emit_jump(Opcode::JumpIfFalse, line);
-                     fail_jumps.push(jump);
-                     true
+                    let idx = self.make_constant(Value::String(Rc::new(variant.name.clone())))?;
+                    self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
+                    let jump = self.emit_jump(Opcode::JumpIfFalse, line);
+                    fail_jumps.push(jump);
+                    true
                 }
                 Pattern::Ok { .. } => {
-                     let idx = self.make_constant(Value::String(Rc::new("Ok".to_string())))?;
-                     self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
-                     let jump = self.emit_jump(Opcode::JumpIfFalse, line);
-                     fail_jumps.push(jump);
-                     true
+                    let idx = self.make_constant(Value::String(Rc::new("Ok".to_string())))?;
+                    self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
+                    let jump = self.emit_jump(Opcode::JumpIfFalse, line);
+                    fail_jumps.push(jump);
+                    true
                 }
                 Pattern::Err { .. } => {
-                     let idx = self.make_constant(Value::String(Rc::new("Err".to_string())))?;
-                     self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
-                     let jump = self.emit_jump(Opcode::JumpIfFalse, line);
-                     fail_jumps.push(jump);
-                     true
+                    let idx = self.make_constant(Value::String(Rc::new("Err".to_string())))?;
+                    self.emit(Instruction::with_u16(Opcode::IsVariant, idx, line));
+                    let jump = self.emit_jump(Opcode::JumpIfFalse, line);
+                    fail_jumps.push(jump);
+                    true
                 }
                 Pattern::Identifier { .. } | Pattern::Wildcard { .. } => {
                     self.emit(Instruction::simple(Opcode::Pop, line));
@@ -865,21 +1027,21 @@ impl BytecodeCompiler {
                 }
                 _ => return Err(CompileError::NotYetImplemented("Complex patterns".into())),
             };
-            
+
             if needs_pop_on_fail {
                 self.emit(Instruction::simple(Opcode::Pop, line));
             }
-            
+
             self.begin_scope();
             self.compile_pattern_bind(&arm.pattern, line)?;
-            
+
             self.compile_expression(&arm.body)?;
-            
+
             self.end_scope_with_value(line);
-            
+
             let end_jump = self.emit_jump(Opcode::Jump, line);
             match_end_jumps.push(end_jump);
-            
+
             for jump in fail_jumps {
                 self.patch_jump(jump)?;
             }
@@ -887,10 +1049,10 @@ impl BytecodeCompiler {
                 self.emit(Instruction::simple(Opcode::Pop, line));
             }
         }
-        
+
         self.emit(Instruction::simple(Opcode::Pop, line));
         self.emit(Instruction::simple(Opcode::Nil, line));
-        
+
         for jump in match_end_jumps {
             self.patch_jump(jump)?;
         }
@@ -910,7 +1072,11 @@ impl BytecodeCompiler {
                 self.compile_pattern_bind(inner, line)?;
             }
             Pattern::Enum { args, .. } => {
-                self.emit(Instruction::with_u8(Opcode::UnpackEnum, args.len() as u8, line));
+                self.emit(Instruction::with_u8(
+                    Opcode::UnpackEnum,
+                    args.len() as u8,
+                    line,
+                ));
                 for arg in args.iter().rev() {
                     self.compile_pattern_bind(arg, line)?;
                 }
@@ -944,26 +1110,34 @@ impl BytecodeCompiler {
                 let idx = self.make_constant(Value::Float(ADFloat::Concrete(*n)))?;
                 self.emit(Instruction::with_u16(Opcode::Const, idx, line));
             }
-            Literal::Bool(true) => { self.emit(Instruction::simple(Opcode::True, line)); }
-            Literal::Bool(false) => { self.emit(Instruction::simple(Opcode::False, line)); }
+            Literal::Bool(true) => {
+                self.emit(Instruction::simple(Opcode::True, line));
+            }
+            Literal::Bool(false) => {
+                self.emit(Instruction::simple(Opcode::False, line));
+            }
             Literal::String(s) => {
                 let idx = self.make_constant(Value::String(Rc::new(s.clone())))?;
                 self.emit(Instruction::with_u16(Opcode::Const, idx, line));
             }
-            Literal::Unit => { self.emit(Instruction::simple(Opcode::Nil, line)); }
+            Literal::Unit => {
+                self.emit(Instruction::simple(Opcode::Nil, line));
+            }
         }
         Ok(())
     }
 
     fn resolve_and_load_variable(&mut self, name: &str, line: usize) -> CompileResult<()> {
         let state_len = self.states.len();
-        if state_len == 0 { return Err(CompileError::UndefinedVariable(name.to_string())); }
-        
+        if state_len == 0 {
+            return Err(CompileError::UndefinedVariable(name.to_string()));
+        }
+
         if let Some(idx) = self.current_state().resolve_local(name) {
             self.emit(Instruction::with_u16(Opcode::GetLocal, idx, line));
             return Ok(());
         }
-        
+
         if let Some(idx) = self.resolve_upvalue(state_len - 1, name) {
             self.emit(Instruction::with_u16(Opcode::GetUpvalue, idx, line));
             return Ok(());
@@ -973,24 +1147,26 @@ impl BytecodeCompiler {
         self.emit(Instruction::with_u16(Opcode::GetGlobal, idx, line));
         Ok(())
     }
-    
+
     fn resolve_upvalue(&mut self, state_index: usize, name: &str) -> Option<u16> {
-        if state_index == 0 { return None; } 
-        
+        if state_index == 0 {
+            return None;
+        }
+
         let parent_index = state_index - 1;
-        
+
         if let Some(local_idx) = self.states[parent_index].resolve_local(name) {
             self.states[parent_index].locals[local_idx as usize].is_captured = true;
             return Some(self.states[state_index].add_upvalue(local_idx as u8, true));
         }
-        
+
         if let Some(upvalue_idx) = self.resolve_upvalue(parent_index, name) {
             if upvalue_idx > 255 {
-                return None; 
+                return None;
             }
             return Some(self.states[state_index].add_upvalue(upvalue_idx as u8, false));
         }
-        
+
         None
     }
 
@@ -1001,7 +1177,7 @@ impl BytecodeCompiler {
                 self.compile_expression(value)?;
                 if let Some(ident) = name.last_ident() {
                     let state_len = self.states.len();
-                    
+
                     if let Some(idx) = self.current_state().resolve_local(&ident.name) {
                         self.emit(Instruction::with_u16(Opcode::SetLocal, idx, line));
                     } else if let Some(idx) = self.resolve_upvalue(state_len - 1, &ident.name) {
@@ -1027,27 +1203,37 @@ impl BytecodeCompiler {
                 self.emit(Instruction::simple(Opcode::SetIndex, line));
                 Ok(())
             }
-             _ => Err(CompileError::InvalidAssignmentTarget),
+            _ => Err(CompileError::InvalidAssignmentTarget),
         }
     }
 
-    fn compile_compound_assignment(&mut self, target: &Expression, value: &Expression, op: BinaryOp) -> CompileResult<()> {
+    fn compile_compound_assignment(
+        &mut self,
+        target: &Expression,
+        value: &Expression,
+        op: BinaryOp,
+    ) -> CompileResult<()> {
         let line = target.span().line;
         match target {
             Expression::Variable { name, .. } => {
-                self.compile_expression(target)?; 
-                self.compile_expression(value)?; 
-                
+                self.compile_expression(target)?;
+                self.compile_expression(value)?;
+
                 let opcode = match op {
                     BinaryOp::Add => Opcode::Add,
                     BinaryOp::Sub => Opcode::Sub,
                     BinaryOp::Mul => Opcode::Mul,
                     BinaryOp::Div => Opcode::Div,
                     BinaryOp::Mod => Opcode::Mod,
-                    _ => return Err(CompileError::NotYetImplemented(format!("Compound assignment for {:?}", op))),
+                    _ => {
+                        return Err(CompileError::NotYetImplemented(format!(
+                            "Compound assignment for {:?}",
+                            op
+                        )))
+                    }
                 };
-                self.emit(Instruction::simple(opcode, line)); 
-                
+                self.emit(Instruction::simple(opcode, line));
+
                 if let Some(ident) = name.last_ident() {
                     let state_len = self.states.len();
                     if let Some(idx) = self.current_state().resolve_local(&ident.name) {
@@ -1061,7 +1247,9 @@ impl BytecodeCompiler {
                 }
                 Ok(())
             }
-            _ => Err(CompileError::NotYetImplemented("Compound assignment only supported for variables".into())),
+            _ => Err(CompileError::NotYetImplemented(
+                "Compound assignment only supported for variables".into(),
+            )),
         }
     }
 
@@ -1088,10 +1276,13 @@ impl BytecodeCompiler {
                     self.emit(Instruction::simple(Opcode::Index, 0));
                     self.compile_pattern_binding(elem)?;
                 }
-                self.emit(Instruction::simple(Opcode::Pop, 0)); 
+                self.emit(Instruction::simple(Opcode::Pop, 0));
                 Ok(())
             }
-            _ => Err(CompileError::NotYetImplemented(format!("pattern {:?}", pattern))),
+            _ => Err(CompileError::NotYetImplemented(format!(
+                "pattern {:?}",
+                pattern
+            ))),
         }
     }
 
@@ -1103,9 +1294,9 @@ impl BytecodeCompiler {
         let state = self.current_state();
         state.scope_depth -= 1;
         let depth = state.scope_depth;
-        
+
         let mut ops = Vec::new();
-        
+
         while !state.locals.is_empty() && state.locals.last().unwrap().depth > depth {
             let local = state.locals.pop().unwrap();
             if local.is_captured {
@@ -1114,25 +1305,29 @@ impl BytecodeCompiler {
                 ops.push(Instruction::simple(Opcode::Pop, 0));
             }
         }
-        
+
         for op in ops {
             self.emit(op);
         }
     }
-    
+
     fn end_scope_with_value(&mut self, line: usize) {
         let state = self.current_state();
         state.scope_depth -= 1;
         let depth = state.scope_depth;
-        
+
         let mut count = 0;
         while !state.locals.is_empty() && state.locals.last().unwrap().depth > depth {
             state.locals.pop();
             count += 1;
         }
-        
+
         if count > 0 {
-            self.emit(Instruction::with_u16(Opcode::CloseScope, count as u16, line));
+            self.emit(Instruction::with_u16(
+                Opcode::CloseScope,
+                count as u16,
+                line,
+            ));
         }
     }
 

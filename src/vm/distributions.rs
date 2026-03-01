@@ -1,18 +1,43 @@
 // src/vm/distributions.rs
 
 use crate::ad::types::ADFloat;
+use crate::vm::value::Value;
+use crate::vm::{RuntimeError, RuntimeResult};
 use rand::Rng;
 use std::f64::consts::PI;
-use crate::vm::value::Value;
-use crate::vm::{RuntimeResult, RuntimeError};
+
+fn bessel_i0(x: f64) -> f64 {
+    let x = x.abs();
+    if x < 3.75 {
+        let t = x / 3.75;
+        let t2 = t * t;
+        1.0 + 3.5156229 * t2
+            + 3.0899424 * t2 * t2
+            + 1.2067492 * t2 * t2 * t2
+            + 0.2659732 * t2 * t2 * t2 * t2
+            + 0.0360768 * t2 * t2 * t2 * t2 * t2
+            + 0.0045813 * t2 * t2 * t2 * t2 * t2 * t2
+    } else {
+        let t = 3.75 / x;
+        let exp_x = x.exp();
+        let sqrt_x = x.sqrt();
+        (exp_x / sqrt_x)
+            * (0.39894228 + 0.01328592 * t + 0.00225319 * t * t - 0.00157565 * t * t * t
+                + 0.00916281 * t * t * t * t
+                - 0.02057706 * t * t * t * t * t
+                + 0.02635537 * t * t * t * t * t * t
+                - 0.01647633 * t * t * t * t * t * t * t
+                + 0.00392377 * t * t * t * t * t * t * t * t)
+    }
+}
 
 pub trait DistributionTrait {
     fn sample(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<f64>;
-    
+
     fn sample_ad(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<ADFloat> {
         Ok(ADFloat::Concrete(self.sample(rng)?))
     }
-    
+
     fn log_pdf(&self, x: &ADFloat) -> ADFloat;
 }
 
@@ -24,20 +49,23 @@ pub struct Gaussian {
 
 impl DistributionTrait for Gaussian {
     fn sample(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<f64> {
-        use rand_distr::{Normal, Distribution};
+        use rand_distr::{Distribution, Normal};
         let m = self.mean.value();
         let s = self.std.value();
-        let n = Normal::new(m, s).map_err(|e| RuntimeError::DistributionError { 
-            message: format!("Invalid Gaussian parameters: mean={}, std={}: {}", m, s, e) 
+        let n = Normal::new(m, s).map_err(|e| RuntimeError::DistributionError {
+            message: format!("Invalid Gaussian parameters: mean={}, std={}: {}", m, s, e),
         })?;
         Ok(n.sample(rng))
     }
-    
+
     fn sample_ad(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<ADFloat> {
         use rand_distr::StandardNormal;
         if self.std.value() <= 0.0 {
-            return Err(RuntimeError::DistributionError { 
-                message: format!("Standard deviation must be positive, got {}", self.std.value()) 
+            return Err(RuntimeError::DistributionError {
+                message: format!(
+                    "Standard deviation must be positive, got {}",
+                    self.std.value()
+                ),
             });
         }
         let eps: f64 = rng.sample(StandardNormal);
@@ -47,11 +75,11 @@ impl DistributionTrait for Gaussian {
     fn log_pdf(&self, x: &ADFloat) -> ADFloat {
         let two_pi = 2.0 * PI;
         let term1 = ADFloat::Concrete(-0.5 * two_pi.ln());
-        let term2 = self.std.clone().ln(); 
+        let term2 = self.std.clone().ln();
         let diff = x.clone() - self.mean.clone();
         let z = diff / self.std.clone();
         let term3 = ADFloat::Concrete(0.5) * z.clone() * z;
-         
+
         term1 - term2 - term3
     }
 }
@@ -63,7 +91,10 @@ impl std::ops::Add for Gaussian {
         let var1 = self.std.clone() * self.std;
         let var2 = other.std.clone() * other.std;
         let new_std = (var1 + var2).sqrt();
-        Gaussian { mean: new_mean, std: new_std }
+        Gaussian {
+            mean: new_mean,
+            std: new_std,
+        }
     }
 }
 
@@ -74,16 +105,19 @@ impl std::ops::Sub for Gaussian {
         let var1 = self.std.clone() * self.std;
         let var2 = other.std.clone() * other.std;
         let new_std = (var1 + var2).sqrt();
-        Gaussian { mean: new_mean, std: new_std }
+        Gaussian {
+            mean: new_mean,
+            std: new_std,
+        }
     }
 }
 
 impl std::ops::Mul<ADFloat> for Gaussian {
     type Output = Gaussian;
     fn mul(self, scalar: ADFloat) -> Gaussian {
-        Gaussian { 
-            mean: self.mean * scalar.clone(), 
-            std: self.std * scalar.abs() 
+        Gaussian {
+            mean: self.mean * scalar.clone(),
+            std: self.std * scalar.abs(),
         }
     }
 }
@@ -105,18 +139,26 @@ impl DistributionTrait for Uniform {
     fn sample(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<f64> {
         use rand::Rng;
         if self.min.value() >= self.max.value() {
-            return Err(RuntimeError::DistributionError { 
-                message: format!("Invalid Uniform parameters: min={}, max={}", self.min.value(), self.max.value()) 
+            return Err(RuntimeError::DistributionError {
+                message: format!(
+                    "Invalid Uniform parameters: min={}, max={}",
+                    self.min.value(),
+                    self.max.value()
+                ),
             });
         }
         Ok(rng.gen_range(self.min.value()..self.max.value()))
     }
-    
+
     fn sample_ad(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<ADFloat> {
         use rand::Rng;
         if self.min.value() >= self.max.value() {
-            return Err(RuntimeError::DistributionError { 
-                message: format!("Invalid Uniform parameters: min={}, max={}", self.min.value(), self.max.value()) 
+            return Err(RuntimeError::DistributionError {
+                message: format!(
+                    "Invalid Uniform parameters: min={}, max={}",
+                    self.min.value(),
+                    self.max.value()
+                ),
             });
         }
         let eps: f64 = rng.gen_range(0.0..1.0);
@@ -144,15 +186,19 @@ impl DistributionTrait for Bernoulli {
         use rand_distr::{Bernoulli, Distribution};
         let p_val = self.p.value();
         let b = Bernoulli::new(p_val).map_err(|e| RuntimeError::DistributionError {
-            message: format!("Invalid Bernoulli parameter p={}: {}", p_val, e)
+            message: format!("Invalid Bernoulli parameter p={}: {}", p_val, e),
         })?;
-        if b.sample(rng) { Ok(1.0) } else { Ok(0.0) }
+        if b.sample(rng) {
+            Ok(1.0)
+        } else {
+            Ok(0.0)
+        }
     }
-    
+
     fn log_pdf(&self, x: &ADFloat) -> ADFloat {
         let p = self.p.clone();
         let one = ADFloat::Concrete(1.0);
-        
+
         x.clone() * p.clone().ln() + (one.clone() - x.clone()) * (one - p).ln()
     }
 }
@@ -166,44 +212,135 @@ pub struct Beta {
 impl DistributionTrait for Beta {
     fn sample(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<f64> {
         use rand_distr::{Beta, Distribution};
-        let b = Beta::new(self.alpha.value(), self.beta.value()).map_err(|e| RuntimeError::DistributionError {
-            message: format!("Invalid Beta parameters alpha={}, beta={}: {}", self.alpha.value(), self.beta.value(), e)
+        let b = Beta::new(self.alpha.value(), self.beta.value()).map_err(|e| {
+            RuntimeError::DistributionError {
+                message: format!(
+                    "Invalid Beta parameters alpha={}, beta={}: {}",
+                    self.alpha.value(),
+                    self.beta.value(),
+                    e
+                ),
+            }
         })?;
         Ok(b.sample(rng))
     }
-    
+
     fn sample_ad(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<ADFloat> {
         use rand_distr::{Beta, Distribution};
         let a_val = self.alpha.value();
         let b_val = self.beta.value();
-        
+
         let b_dist = Beta::new(a_val, b_val).map_err(|e| RuntimeError::DistributionError {
-             message: format!("Invalid Beta parameters for AD alpha={}, beta={}: {}", a_val, b_val, e)
-        })?; 
+            message: format!(
+                "Invalid Beta parameters for AD alpha={}, beta={}: {}",
+                a_val, b_val, e
+            ),
+        })?;
         let z = b_dist.sample(rng);
-        
+
         Ok(self.alpha.clone().beta_sample(self.beta.clone(), z))
     }
-    
+
     fn log_pdf(&self, x: &ADFloat) -> ADFloat {
         let a = self.alpha.clone();
         let b = self.beta.clone();
-        
+
         let term1 = (a.clone() + b.clone()).lgamma() - a.lgamma() - b.lgamma();
-        
+
         let one = ADFloat::Concrete(1.0);
         let a_minus_1 = self.alpha.clone() - one.clone();
         let b_minus_1 = self.beta.clone() - one.clone();
-        
+
         term1 + a_minus_1 * x.clone().ln() + b_minus_1 * (one - x.clone()).ln()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct VonMises {
+    pub mu: ADFloat,
+    pub kappa: ADFloat,
+}
+
+impl DistributionTrait for VonMises {
+    fn sample(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<f64> {
+        let mu = self.mu.value();
+        let kappa = self.kappa.value();
+
+        if kappa <= 0.0 {
+            // If kappa is 0, it's uniform on circle
+            return Ok(rng.gen_range(0.0..2.0 * PI));
+        }
+
+        // Best and Fisher (1979) algorithm
+        let tau = 1.0 + (1.0 + 4.0 * kappa * kappa).sqrt();
+        let rho = (tau - (2.0 * tau).sqrt()) / (2.0 * kappa);
+        let r = (1.0 + rho * rho) / (2.0 * rho);
+
+        loop {
+            let u1: f64 = rng.gen();
+            let u2: f64 = rng.gen();
+
+            let z = (PI * u1).cos();
+            let f = (1.0 + r * z) / (r + z);
+            let c = kappa * (r - f);
+
+            if c * (2.0 - c) - u2 > 0.0 {
+                let u3: f64 = rng.gen();
+                let theta = if u3 < 0.5 { -f.acos() } else { f.acos() };
+                return Ok((theta + mu) % (2.0 * PI));
+            }
+            if (c / u2).ln() + 1.0 - c >= 0.0 {
+                let u3: f64 = rng.gen();
+                let theta = if u3 < 0.5 { -f.acos() } else { f.acos() };
+                return Ok((theta + mu) % (2.0 * PI));
+            }
+        }
+    }
+
+    fn sample_ad(&self, rng: &mut dyn rand::RngCore) -> RuntimeResult<ADFloat> {
+        Ok(ADFloat::Concrete(self.sample(rng)?))
+    }
+
+    fn log_pdf(&self, x: &ADFloat) -> ADFloat {
+        let mu = self.mu.clone();
+        let kappa = self.kappa.clone();
+        let x_val = x.clone();
+
+        let two_pi = 2.0 * PI;
+        let diff = x_val - mu;
+        let cos_diff = diff.cos();
+
+        let term1 = kappa.clone() * cos_diff;
+        let term2 = ADFloat::Concrete(two_pi.ln());
+
+        let k_val = kappa.value();
+        let i0_val = bessel_i0(k_val);
+        let log_i0 = i0_val.ln();
+
+        let term3 = ADFloat::Concrete(log_i0);
+
+        term1 - term2 - term3
     }
 }
 pub fn get_distribution(val: &Value) -> Option<Box<dyn DistributionTrait>> {
     match val {
-        Value::Gaussian { mean, std } => Some(Box::new(Gaussian { mean: mean.clone(), std: std.clone() })),
-        Value::Uniform { min, max } => Some(Box::new(Uniform { min: min.clone(), max: max.clone() })),
+        Value::Gaussian { mean, std } => Some(Box::new(Gaussian {
+            mean: mean.clone(),
+            std: std.clone(),
+        })),
+        Value::Uniform { min, max } => Some(Box::new(Uniform {
+            min: min.clone(),
+            max: max.clone(),
+        })),
         Value::Bernoulli { p } => Some(Box::new(Bernoulli { p: p.clone() })),
-        Value::Beta { alpha, beta } => Some(Box::new(Beta { alpha: alpha.clone(), beta: beta.clone() })),
+        Value::Beta { alpha, beta } => Some(Box::new(Beta {
+            alpha: alpha.clone(),
+            beta: beta.clone(),
+        })),
+        Value::VonMises { mu, kappa } => Some(Box::new(VonMises {
+            mu: mu.clone(),
+            kappa: kappa.clone(),
+        })),
         _ => None,
     }
 }

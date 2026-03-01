@@ -1,9 +1,9 @@
-pub mod opcode;
 pub mod chunk;
-pub mod vm;
 pub mod compiler;
+pub mod opcode;
+pub mod vm;
 
-pub use opcode::Opcode;
 pub use chunk::Chunk;
-pub use vm::BytecodeVM;
 pub use compiler::BytecodeCompiler;
+pub use opcode::Opcode;
+pub use vm::BytecodeVM;

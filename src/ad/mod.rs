@@ -1,19 +1,19 @@
 // src/ad/mod.rs
 
-pub mod graph;
-pub mod types;
+pub mod backend;
 pub mod backward;
-pub mod tensor;
+pub mod cpu_backend;
+pub mod graph;
 pub mod optimizer;
 pub mod pool;
-pub mod backend;
-pub mod cpu_backend;
+pub mod tensor;
+pub mod types;
 
+use crate::ad::graph::Tape;
+pub use backward::backward;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::{LazyLock, RwLock};
-pub use backward::backward;
-use crate::ad::graph::Tape;
 
 pub type ForwardFn = Box<dyn Fn(&[f64]) -> f64 + Send + Sync>;
 pub type VjpFn = Box<dyn Fn(&[f64], f64, f64) -> Vec<f64> + Send + Sync>;
@@ -23,9 +23,8 @@ pub struct CustomVjpDef {
     pub vjp: VjpFn,
 }
 
-static VJP_REGISTRY: LazyLock<RwLock<HashMap<String, CustomVjpDef>>> = LazyLock::new(|| {
-    RwLock::new(HashMap::new())
-});
+static VJP_REGISTRY: LazyLock<RwLock<HashMap<String, CustomVjpDef>>> =
+    LazyLock::new(|| RwLock::new(HashMap::new()));
 
 pub fn register_custom_vjp<F, V>(name: &str, forward: F, vjp: V)
 where
@@ -33,19 +32,26 @@ where
     V: Fn(&[f64], f64, f64) -> Vec<f64> + Send + Sync + 'static,
 {
     let mut registry = VJP_REGISTRY.write().unwrap();
-    registry.insert(name.to_string(), CustomVjpDef {
-        forward: Box::new(forward),
-        vjp: Box::new(vjp),
-    });
+    registry.insert(
+        name.to_string(),
+        CustomVjpDef {
+            forward: Box::new(forward),
+            vjp: Box::new(vjp),
+        },
+    );
 }
 
-pub fn get_vjp(_name: &str) -> Option<std::sync::RwLockReadGuard<'static, HashMap<String, CustomVjpDef>>> {
+pub fn get_vjp(
+    _name: &str,
+) -> Option<std::sync::RwLockReadGuard<'static, HashMap<String, CustomVjpDef>>> {
     Some(VJP_REGISTRY.read().unwrap())
 }
 
 pub fn call_vjp(name: &str, inputs: &[f64], output: f64, grad_output: f64) -> Option<Vec<f64>> {
     let registry = VJP_REGISTRY.read().unwrap();
-    registry.get(name).map(|def| (def.vjp)(inputs, output, grad_output))
+    registry
+        .get(name)
+        .map(|def| (def.vjp)(inputs, output, grad_output))
 }
 
 pub fn call_forward(name: &str, inputs: &[f64]) -> Option<f64> {
@@ -78,11 +84,15 @@ pub fn remove_tape(tape_id: usize) {
     });
 }
 
-pub fn with_tape<F, R>(tape_id: usize, f: F) -> R 
-where F: FnOnce(&Tape) -> R {
+pub fn with_tape<F, R>(tape_id: usize, f: F) -> R
+where
+    F: FnOnce(&Tape) -> R,
+{
     TAPE_STORAGE.with(|storage| {
         let map = storage.borrow();
-        let tape = map.get(&tape_id).expect("Tape accessing error: Tape ID not found in current thread storage.");
+        let tape = map
+            .get(&tape_id)
+            .expect("Tape accessing error: Tape ID not found in current thread storage.");
         f(tape)
     })
 }

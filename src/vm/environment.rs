@@ -11,17 +11,21 @@ pub struct Environment {
 impl Environment {
     pub fn new() -> Self {
         Environment {
-            scopes: vec![HashMap::new()],
+            scopes: vec![HashMap::with_capacity(16)],
         }
     }
 
     pub fn push_scope(&mut self) {
-        self.scopes.push(HashMap::new());
+        self.scopes.push(HashMap::with_capacity(8));
     }
     pub fn pop_scope(&mut self) {
         if self.scopes.len() > 1 {
             self.scopes.pop();
         }
+    }
+
+    pub fn scope_depth(&self) -> usize {
+        self.scopes.len()
     }
 
     pub fn set(&mut self, name: String, value: Value) {
@@ -52,6 +56,14 @@ impl Environment {
     pub fn contains(&self, name: &str) -> bool {
         self.scopes.iter().any(|scope| scope.contains_key(name))
     }
+
+    pub fn scopes(&self) -> &[HashMap<String, Value>] {
+        &self.scopes
+    }
+
+    pub fn from_scopes(scopes: Vec<HashMap<String, Value>>) -> Self {
+        Self { scopes }
+    }
 }
 
 impl Default for Environment {
@@ -68,7 +80,7 @@ mod tests {
     fn test_single_scope() {
         let mut env = Environment::new();
         env.set("x".to_string(), Value::Int(42));
-        
+
         assert_eq!(env.get("x"), Some(Value::Int(42)));
         assert_eq!(env.get("y"), None);
     }
@@ -76,14 +88,14 @@ mod tests {
     #[test]
     fn test_nested_scopes() {
         let mut env = Environment::new();
-        
+
         env.set("x".to_string(), Value::Int(1));
         env.push_scope();
         env.set("y".to_string(), Value::Int(2));
-        
+
         assert_eq!(env.get("x"), Some(Value::Int(1)));
         assert_eq!(env.get("y"), Some(Value::Int(2)));
-        
+
         env.pop_scope();
         assert_eq!(env.get("x"), Some(Value::Int(1)));
         assert_eq!(env.get("y"), None);
@@ -92,13 +104,13 @@ mod tests {
     #[test]
     fn test_shadowing() {
         let mut env = Environment::new();
-        
+
         env.set("x".to_string(), Value::Int(1));
         env.push_scope();
         env.set("x".to_string(), Value::Int(2));
-        
+
         assert_eq!(env.get("x"), Some(Value::Int(2)));
-        
+
         env.pop_scope();
         assert_eq!(env.get("x"), Some(Value::Int(1)));
     }

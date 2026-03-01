@@ -1,9 +1,9 @@
 // src/parser/expression.rs
 
 use crate::ast::node::{
-    BinaryOp, Expression, Identifier, Literal, Precedence, Span, UnaryOp, Path, PathSeg
+    BinaryOp, Expression, Identifier, Literal, Path, PathSeg, Precedence, Span, UnaryOp,
 };
-use crate::lexer::{TokenKind};
+use crate::lexer::TokenKind;
 use crate::parser::{ParseError, ParseResult, Parser};
 
 impl<'a> Parser<'a> {
@@ -25,7 +25,7 @@ impl<'a> Parser<'a> {
 
                         if is_type_name {
                             self.advance()?;
-                            
+
                             let mut fields = Vec::new();
                             while !self.check(TokenKind::RBrace) && !self.is_at_end() {
                                 let field_name_tok = self.expect(TokenKind::Identifier)?;
@@ -56,13 +56,13 @@ impl<'a> Parser<'a> {
                             }
                             self.expect(TokenKind::RBrace)?;
 
-                            let flat_name_str = name.to_string(); 
+                            let flat_name_str = name.to_string();
                             let struct_name_ident = Identifier::new(flat_name_str, span.clone());
 
                             left = Expression::Struct {
                                 name: struct_name_ident,
                                 fields,
-                                span: span.clone(), 
+                                span: span.clone(),
                             };
                             continue;
                         }
@@ -73,7 +73,7 @@ impl<'a> Parser<'a> {
                     left = self.parse_call_expression(left)?;
                     continue;
                 }
-                
+
                 if self.check(TokenKind::LBracket) {
                     left = self.parse_index_expression(left)?;
                     continue;
@@ -86,7 +86,7 @@ impl<'a> Parser<'a> {
 
                 if self.check(TokenKind::Question) {
                     let start_span = left.span();
-                    self.advance()?; 
+                    self.advance()?;
                     let span = Span::new(start_span.line, start_span.column, 0);
                     left = Expression::Try {
                         expr: Box::new(left),
@@ -126,22 +126,21 @@ impl<'a> Parser<'a> {
         Ok(left)
     }
 
-
     fn parse_dot_postfix(&mut self, left: Expression) -> ParseResult<Expression> {
-        let _ = self.advance()?; 
+        let _ = self.advance()?;
 
         let startspan = left.span();
 
         if self.check(TokenKind::Await) {
-            let _await_tok = self.advance()?; 
-            let span = Span::new(startspan.line, startspan.column, 0); 
+            let _await_tok = self.advance()?;
+            let span = Span::new(startspan.line, startspan.column, 0);
             return Ok(Expression::Await {
                 expr: Box::new(left),
                 span,
             });
         }
 
-        let name = self.parse_identifier_helper()?; 
+        let name = self.parse_identifier_helper()?;
         let span = Span::new(startspan.line, startspan.column, 0);
 
         if self.check(TokenKind::LParen) {
@@ -162,7 +161,7 @@ impl<'a> Parser<'a> {
                 method: name,
                 args,
                 span,
-                resolved: None, 
+                resolved: None,
             });
         }
 
@@ -181,7 +180,7 @@ impl<'a> Parser<'a> {
     ) -> ParseResult<Expression> {
         let op_token = self.current.kind;
 
-        let _ = self.advance()?; 
+        let _ = self.advance()?;
 
         let prec_u8 = precedence as u8;
         let min_prec_u8 = if op_token.is_right_associative() {
@@ -205,25 +204,24 @@ impl<'a> Parser<'a> {
         })
     }
 
-
-
     fn parse_range_expression(&mut self, left: Expression) -> ParseResult<Expression> {
         let _ = self.advance()?; // Consume '..'
         let start_span = left.span();
-        
-        let end = if self.is_at_end() || 
-                     self.check(TokenKind::Semicolon) || 
-                     self.check(TokenKind::Comma) || 
-                     self.check(TokenKind::RBrace) || 
-                     self.check(TokenKind::RParen) || 
-                     self.check(TokenKind::RBracket) {
+
+        let end = if self.is_at_end()
+            || self.check(TokenKind::Semicolon)
+            || self.check(TokenKind::Comma)
+            || self.check(TokenKind::RBrace)
+            || self.check(TokenKind::RParen)
+            || self.check(TokenKind::RBracket)
+        {
             None
         } else {
             Some(self.parse_expression_with_precedence(Precedence::Lowest)?)
         };
-        
+
         // Approximate span (todo: real span union)
-        let span = Span::new(start_span.line, start_span.column, 0); 
+        let span = Span::new(start_span.line, start_span.column, 0);
 
         Ok(Expression::Range {
             start: Some(Box::new(left)),
@@ -234,9 +232,9 @@ impl<'a> Parser<'a> {
     }
 
     fn _parse_field_access(&mut self, left: Expression) -> ParseResult<Expression> {
-        let _ = self.advance(); 
+        let _ = self.advance();
         let start_span = left.span();
-        
+
         let name = self.parse_identifier_helper()?;
 
         let span = Span::new(start_span.line, start_span.column, 0);
@@ -247,38 +245,32 @@ impl<'a> Parser<'a> {
             span,
         })
     }
-    
-    
+
     fn _parse_struct_literal(&mut self, name: Identifier, span: Span) -> ParseResult<Expression> {
-        self.expect(TokenKind::LBrace)?; 
+        self.expect(TokenKind::LBrace)?;
         let mut fields = Vec::new();
-        
+
         if !self.check(TokenKind::RBrace) {
             loop {
                 let field_name = self.parse_identifier_helper()?;
                 self.expect(TokenKind::Colon)?;
                 let value = self.parse_expression_with_precedence(Precedence::Lowest)?;
-                
+
                 fields.push(crate::ast::node::FieldInit {
                     name: field_name,
                     value,
                     span: Span::initial(),
                 });
-                
+
                 if !self.match_any(&[TokenKind::Comma]) {
                     break;
                 }
             }
         }
         self.expect(TokenKind::RBrace)?;
-        
-        Ok(Expression::Struct {
-            name,
-            fields,
-            span,
-        })
-    }
 
+        Ok(Expression::Struct { name, fields, span })
+    }
 
     fn parse_prefix(&mut self) -> ParseResult<Expression> {
         let token = self.current.clone();
@@ -309,10 +301,13 @@ impl<'a> Parser<'a> {
             }
 
             TokenKind::SelfLower => {
-                let _ = self.advance(); 
+                let _ = self.advance();
                 Ok(Expression::Variable {
                     name: Path {
-                        segments: vec![PathSeg::Ident(Identifier::new("self".to_string(), span.clone()))],
+                        segments: vec![PathSeg::Ident(Identifier::new(
+                            "self".to_string(),
+                            span.clone(),
+                        ))],
                         span: span.clone(),
                         resolved: None,
                     },
@@ -435,11 +430,11 @@ impl<'a> Parser<'a> {
                     }
 
                     _ => {
-                        let enum_name = self.parse_identifier_helper()?; 
+                        let enum_name = self.parse_identifier_helper()?;
                         let enum_span = enum_name.span;
 
                         if self.check(TokenKind::ColonColon) {
-                            let _ = self.advance()?; 
+                            let _ = self.advance()?;
 
                             let vtok = self.expect(TokenKind::Identifier)?;
                             let variant = Identifier::new(
@@ -468,11 +463,13 @@ impl<'a> Parser<'a> {
                                 };
 
                                 if self.check(TokenKind::LParen) {
-                                    let _ = self.advance()?; 
+                                    let _ = self.advance()?;
                                     let mut args = Vec::new();
                                     if !self.check(TokenKind::RParen) {
                                         loop {
-                                            args.push(self.parse_expression_with_precedence(Precedence::Lowest)?);
+                                            args.push(self.parse_expression_with_precedence(
+                                                Precedence::Lowest,
+                                            )?);
                                             if !self.match_any(&[TokenKind::Comma]) {
                                                 break;
                                             }
@@ -492,11 +489,13 @@ impl<'a> Parser<'a> {
 
                             if self.check(TokenKind::LParen) {
                                 let mut args = Vec::new();
-                                let _ = self.advance()?; 
+                                let _ = self.advance()?;
 
                                 if !self.check(TokenKind::RParen) {
                                     loop {
-                                        args.push(self.parse_expression_with_precedence(Precedence::Lowest)?);
+                                        args.push(self.parse_expression_with_precedence(
+                                            Precedence::Lowest,
+                                        )?);
                                         if !self.match_any(&[TokenKind::Comma]) {
                                             break;
                                         }
@@ -515,7 +514,7 @@ impl<'a> Parser<'a> {
                             }
 
                             if self.check(TokenKind::LBrace) {
-                                let _ = self.advance()?; 
+                                let _ = self.advance()?;
 
                                 let mut args: Vec<Expression> = Vec::new();
 
@@ -523,7 +522,8 @@ impl<'a> Parser<'a> {
                                     loop {
                                         let _fieldnametok = self.expect(TokenKind::Identifier)?;
                                         self.expect(TokenKind::Colon)?;
-                                        let value = self.parse_expression_with_precedence(Precedence::Lowest)?;
+                                        let value = self
+                                            .parse_expression_with_precedence(Precedence::Lowest)?;
                                         args.push(value);
 
                                         if !self.match_any(&[TokenKind::Comma]) {
@@ -561,7 +561,6 @@ impl<'a> Parser<'a> {
                             name: path,
                             span: enum_span,
                         })
-
                     }
                 }
             }
@@ -571,10 +570,10 @@ impl<'a> Parser<'a> {
             TokenKind::Match => self.parse_match_expression(),
 
             TokenKind::LParen => {
-                let _ = self.advance()?; 
+                let _ = self.advance()?;
 
                 if self.check(TokenKind::RParen) {
-                    let _ = self.advance()?; 
+                    let _ = self.advance()?;
                     return Ok(Expression::Literal {
                         value: Literal::Unit,
                         span,
@@ -622,28 +621,35 @@ impl<'a> Parser<'a> {
         let mut exprs: Vec<Expression> = Vec::new();
         let mut last_pos = 0;
         let len = content.len();
-        let bytes = content.as_bytes(); 
-        
+        let bytes = content.as_bytes();
+
         let mut i = 0;
         while i < len {
             if bytes[i] == b'{' {
                 if let Some(close_pos) = content[i..].find('}') {
                     let abs_close = i + close_pos;
-                    let inner = &content[i+1..abs_close];
+                    let inner = &content[i + 1..abs_close];
                     let inner_trimmed = inner.trim();
-                    
-                    if !inner_trimmed.is_empty() && inner_trimmed.chars().all(|c| c.is_alphanumeric() || c == '_') {
+
+                    if !inner_trimmed.is_empty()
+                        && inner_trimmed
+                            .chars()
+                            .all(|c| c.is_alphanumeric() || c == '_')
+                    {
                         if i > last_pos {
                             exprs.push(Expression::Literal {
                                 value: Literal::String(content[last_pos..i].to_string()),
-                                span, 
+                                span,
                             });
                         }
                         exprs.push(Expression::Variable {
                             name: Path {
-                                segments: vec![PathSeg::Ident(Identifier::new(inner_trimmed.to_string(), span))],
+                                segments: vec![PathSeg::Ident(Identifier::new(
+                                    inner_trimmed.to_string(),
+                                    span,
+                                ))],
                                 span,
-                                resolved: None
+                                resolved: None,
                             },
                             span,
                         });
@@ -655,18 +661,21 @@ impl<'a> Parser<'a> {
             }
             i += 1;
         }
-        
+
         if last_pos < len {
             exprs.push(Expression::Literal {
                 value: Literal::String(content[last_pos..].to_string()),
                 span,
             });
         }
-        
+
         if exprs.is_empty() {
-            return Ok(Expression::Literal { value: Literal::String("".to_string()), span });
+            return Ok(Expression::Literal {
+                value: Literal::String("".to_string()),
+                span,
+            });
         }
-        
+
         let mut combined = exprs.remove(0);
         for expr in exprs {
             combined = Expression::Binary {
@@ -676,13 +685,10 @@ impl<'a> Parser<'a> {
                 span,
             };
         }
-        
+
         Ok(combined)
     }
 
-
-    
-    
     fn parse_lambda_expression(&mut self) -> ParseResult<Expression> {
         let start_span = Span::new(self.current.line, self.current.column, 1);
 
@@ -690,9 +696,9 @@ impl<'a> Parser<'a> {
             let params = Vec::new();
             let body = if self.check(TokenKind::LBrace) {
                 let block = self.parse_block()?;
-                Box::new(Expression::Block { 
-                    block, 
-                    span: Span::initial() 
+                Box::new(Expression::Block {
+                    block,
+                    span: Span::initial(),
                 })
             } else {
                 Box::new(self.parse_expression_with_precedence(Precedence::Lowest)?)
@@ -705,10 +711,10 @@ impl<'a> Parser<'a> {
             });
         }
 
-        self.expect(TokenKind::BitOr)?; 
+        self.expect(TokenKind::BitOr)?;
 
         let mut params = Vec::new();
-        
+
         if !self.check(TokenKind::BitOr) {
             loop {
                 let name = self.parse_identifier_helper()?;
@@ -717,7 +723,7 @@ impl<'a> Parser<'a> {
                 } else {
                     crate::ast::node::Type::Infer
                 };
-                
+
                 params.push(crate::ast::node::Parameter {
                     name,
                     ty,
@@ -729,14 +735,14 @@ impl<'a> Parser<'a> {
                 }
             }
         }
-        
-        self.expect(TokenKind::BitOr)?; 
+
+        self.expect(TokenKind::BitOr)?;
 
         let body = if self.check(TokenKind::LBrace) {
             let block = self.parse_block()?;
-            Box::new(Expression::Block { 
-                block, 
-                span: Span::initial() 
+            Box::new(Expression::Block {
+                block,
+                span: Span::initial(),
             })
         } else {
             Box::new(self.parse_expression_with_precedence(Precedence::Lowest)?)
@@ -749,14 +755,11 @@ impl<'a> Parser<'a> {
         })
     }
 
-
-
-
     fn parse_with_expression(&mut self) -> ParseResult<Expression> {
         let start_token = self.current.clone();
         let start_span = Span::new(start_token.line, start_token.column, 4);
 
-        let _ = self.advance(); 
+        let _ = self.advance();
         let name = self.parse_identifier_helper()?;
         self.expect(TokenKind::Assign)?;
         let initializer = Box::new(self.parse_expression_with_precedence(Precedence::Lowest)?);
@@ -783,16 +786,15 @@ impl<'a> Parser<'a> {
         Ok(Expression::Variable { name: path, span })
     }
 
-
     fn parse_identifier_helper(&mut self) -> ParseResult<Identifier> {
         let token;
-        
+
         if self.check(TokenKind::Identifier) {
-            token = self.current.clone(); 
-            let _ = self.advance()?;              
+            token = self.current.clone();
+            let _ = self.advance()?;
         } else if self.check(TokenKind::SelfLower) {
-            token = self.current.clone(); 
-            let _ = self.advance()?;              
+            token = self.current.clone();
+            let _ = self.advance()?;
         } else {
             return Err(ParseError::UnexpectedToken {
                 expected: TokenKind::Identifier,
@@ -807,12 +809,11 @@ impl<'a> Parser<'a> {
         Ok(Identifier::new(name, span))
     }
 
-
     fn parse_unary(&mut self, op: UnaryOp) -> ParseResult<Expression> {
         let token = self.current.clone();
         let start_span = Span::new(token.line, token.column, 1);
-        
-        let _ = self.advance(); 
+
+        let _ = self.advance();
         let operand = self.parse_expression_with_precedence(Precedence::Prefix)?;
 
         Ok(Expression::Unary {
@@ -822,12 +823,11 @@ impl<'a> Parser<'a> {
         })
     }
 
-
     fn parse_call_expression(&mut self, callee: Expression) -> ParseResult<Expression> {
         if let Expression::Variable { name, span } = &callee {
             match name.last_name().unwrap() {
                 "Some" => {
-                    let _ = self.advance(); 
+                    let _ = self.advance();
                     let inner = self.parse_expression_with_precedence(Precedence::Lowest)?;
                     self.expect(TokenKind::RParen)?;
                     return Ok(Expression::Some {
@@ -836,7 +836,7 @@ impl<'a> Parser<'a> {
                     });
                 }
                 "Ok" => {
-                    let _ = self.advance(); 
+                    let _ = self.advance();
                     let inner = self.parse_expression_with_precedence(Precedence::Lowest)?;
                     self.expect(TokenKind::RParen)?;
                     return Ok(Expression::Ok {
@@ -845,7 +845,7 @@ impl<'a> Parser<'a> {
                     });
                 }
                 "Err" => {
-                    let _ = self.advance(); 
+                    let _ = self.advance();
                     let inner = self.parse_expression_with_precedence(Precedence::Lowest)?;
                     self.expect(TokenKind::RParen)?;
                     return Ok(Expression::Err {
@@ -854,7 +854,7 @@ impl<'a> Parser<'a> {
                     });
                 }
                 "None" => {
-                    let _ = self.advance(); 
+                    let _ = self.advance();
                     self.expect(TokenKind::RParen)?;
                     return Ok(Expression::None { span: *span });
                 }

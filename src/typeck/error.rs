@@ -1,6 +1,6 @@
 // src/typeck/error.rs
 
-use crate::ast::node::{Span, Type, DefId};
+use crate::ast::node::{DefId, Span, Type};
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -29,6 +29,8 @@ pub enum ErrorCode {
     NoMatchingImpl,
     AmbiguousImpl,
     InvalidDistributionParameter,
+    UnknownMethod,
+    InvalidArgument,
 }
 
 impl ErrorCode {
@@ -58,6 +60,8 @@ impl ErrorCode {
             ErrorCode::NoMatchingImpl => "E2022",
             ErrorCode::AmbiguousImpl => "E2023",
             ErrorCode::InvalidDistributionParameter => "E2024",
+            ErrorCode::UnknownMethod => "E2025",
+            ErrorCode::InvalidArgument => "E2026",
         }
     }
 
@@ -87,6 +91,8 @@ impl ErrorCode {
             ErrorCode::NoMatchingImpl => "no matching Impl",
             ErrorCode::AmbiguousImpl => "ambiguos Impl",
             ErrorCode::InvalidDistributionParameter => "invalid distribution parameter",
+            ErrorCode::UnknownMethod => "unknown method",
+            ErrorCode::InvalidArgument => "invalid argument",
         }
     }
 }
@@ -105,9 +111,15 @@ pub enum TypeError {
         span: Span,
     },
 
-    UndefinedVariable { name: String, span: Span },
+    UndefinedVariable {
+        name: String,
+        span: Span,
+    },
 
-    DuplicateDefinition { name: String, span: Span },
+    DuplicateDefinition {
+        name: String,
+        span: Span,
+    },
 
     ArityMismatch {
         expected: usize,
@@ -115,7 +127,9 @@ pub enum TypeError {
         span: Span,
     },
 
-    CannotInfer { span: Span },
+    CannotInfer {
+        span: Span,
+    },
 
     InvalidUnaryOp {
         op: String,
@@ -130,9 +144,13 @@ pub enum TypeError {
         span: Span,
     },
 
-    NonExhaustivePatterns { span: Span },
+    NonExhaustivePatterns {
+        span: Span,
+    },
 
-    UnreachablePattern { span: Span },
+    UnreachablePattern {
+        span: Span,
+    },
 
     InvalidFieldAccess {
         field: String,
@@ -152,7 +170,10 @@ pub enum TypeError {
         span: Span,
     },
 
-    InvalidIndex { base_type: Type, span: Span },
+    InvalidIndex {
+        base_type: Type,
+        span: Span,
+    },
 
     ReturnTypeMismatch {
         expected: Type,
@@ -160,17 +181,32 @@ pub enum TypeError {
         span: Span,
     },
 
-    BreakOutsideLoop { span: Span },
+    BreakOutsideLoop {
+        span: Span,
+    },
 
-    ContinueOutsideLoop { span: Span },
+    ContinueOutsideLoop {
+        span: Span,
+    },
 
-    NotCallable { value_type: Type, span: Span },
+    NotCallable {
+        value_type: Type,
+        span: Span,
+    },
 
-    UndefinedType { name: String, span: Span },
+    UndefinedType {
+        name: String,
+        span: Span,
+    },
 
-    RecursiveType { name: String, span: Span },
+    RecursiveType {
+        name: String,
+        span: Span,
+    },
 
-    InvalidAssignmentTarget { span: Span },
+    InvalidAssignmentTarget {
+        span: Span,
+    },
 
     UndefinedField {
         structname: String,
@@ -194,6 +230,17 @@ pub enum TypeError {
         distribution: String,
         param_name: String,
         reason: String,
+        span: Span,
+    },
+
+    UnknownMethod {
+        type_name: String,
+        method: String,
+        span: Span,
+    },
+
+    InvalidArgument {
+        message: String,
         span: Span,
     },
 }
@@ -224,7 +271,11 @@ impl TypeError {
             TypeError::UndefinedField { .. } => ErrorCode::UndefinedField,
             TypeError::NoMatchingImpl { .. } => ErrorCode::NoMatchingImpl,
             TypeError::AmbiguousImpl { .. } => ErrorCode::AmbiguousImpl,
-            TypeError::InvalidDistributionParameter { .. } => ErrorCode::InvalidDistributionParameter,
+            TypeError::InvalidDistributionParameter { .. } => {
+                ErrorCode::InvalidDistributionParameter
+            }
+            TypeError::UnknownMethod { .. } => ErrorCode::UnknownMethod,
+            TypeError::InvalidArgument { .. } => ErrorCode::InvalidArgument,
         }
     }
 
@@ -250,16 +301,20 @@ impl TypeError {
             | TypeError::UndefinedType { span, .. }
             | TypeError::RecursiveType { span, .. }
             | TypeError::InvalidAssignmentTarget { span } => *span,
-            | TypeError::UndefinedField { span, .. } => *span,
-            | TypeError::NoMatchingImpl { span, .. } => *span,
-            | TypeError::AmbiguousImpl { span, .. } => *span,
-            | TypeError::InvalidDistributionParameter { span, .. } => *span,
+            TypeError::UndefinedField { span, .. } => *span,
+            TypeError::NoMatchingImpl { span, .. } => *span,
+            TypeError::AmbiguousImpl { span, .. } => *span,
+            TypeError::InvalidDistributionParameter { span, .. } => *span,
+            TypeError::UnknownMethod { span, .. } => *span,
+            TypeError::InvalidArgument { span, .. } => *span,
         }
     }
 
     pub fn message(&self) -> String {
         match self {
-            TypeError::TypeMismatch { expected, found, .. } => {
+            TypeError::TypeMismatch {
+                expected, found, ..
+            } => {
                 format!("Expected type '{}', but found '{}'", expected, found)
             }
             TypeError::UndefinedVariable { name, .. } => {
@@ -268,7 +323,9 @@ impl TypeError {
             TypeError::DuplicateDefinition { name, .. } => {
                 format!("Variable '{}' is already defined in this scope", name)
             }
-            TypeError::ArityMismatch { expected, found, .. } => {
+            TypeError::ArityMismatch {
+                expected, found, ..
+            } => {
                 format!(
                     "Expected {} argument{}, but found {}",
                     expected,
@@ -276,13 +333,21 @@ impl TypeError {
                     found
                 )
             }
-            TypeError::CannotInfer { .. } => {
-                "Cannot infer type from context".to_string()
+            TypeError::CannotInfer { .. } => "Cannot infer type from context".to_string(),
+            TypeError::InvalidUnaryOp {
+                op, operand_type, ..
+            } => {
+                format!(
+                    "Cannot apply unary operator '{}' to type '{}'",
+                    op, operand_type
+                )
             }
-            TypeError::InvalidUnaryOp { op, operand_type, .. } => {
-                format!("Cannot apply unary operator '{}' to type '{}'", op, operand_type)
-            }
-            TypeError::InvalidBinaryOp { op, left_type, right_type, .. } => {
+            TypeError::InvalidBinaryOp {
+                op,
+                left_type,
+                right_type,
+                ..
+            } => {
                 format!(
                     "Cannot apply binary operator '{}' to types '{}' and '{}'",
                     op, left_type, right_type
@@ -291,26 +356,32 @@ impl TypeError {
             TypeError::NonExhaustivePatterns { .. } => {
                 "Match expression has non-exhaustive patterns".to_string()
             }
-            TypeError::UnreachablePattern { .. } => {
-                "This pattern is unreachable".to_string()
-            }
-            TypeError::InvalidFieldAccess { field, base_type, .. } => {
+            TypeError::UnreachablePattern { .. } => "This pattern is unreachable".to_string(),
+            TypeError::InvalidFieldAccess {
+                field, base_type, ..
+            } => {
                 format!("Type '{}' does not have a field '{}'", base_type, field)
             }
-            TypeError::MissingField { field, struct_name, .. } => {
-                format!("Missing required field '{}' in struct '{}'", field, struct_name)
+            TypeError::MissingField {
+                field, struct_name, ..
+            } => {
+                format!(
+                    "Missing required field '{}' in struct '{}'",
+                    field, struct_name
+                )
             }
-            TypeError::UnknownField { field, struct_name, .. } => {
+            TypeError::UnknownField {
+                field, struct_name, ..
+            } => {
                 format!("Unknown field '{}' for struct '{}'", field, struct_name)
             }
             TypeError::InvalidIndex { base_type, .. } => {
                 format!("Cannot index into type '{}'", base_type)
             }
-            TypeError::ReturnTypeMismatch { expected, found, .. } => {
-                format!(
-                    "Function returns '{}', but expected '{}'",
-                    found, expected
-                )
+            TypeError::ReturnTypeMismatch {
+                expected, found, ..
+            } => {
+                format!("Function returns '{}', but expected '{}'", found, expected)
             }
             TypeError::BreakOutsideLoop { .. } => {
                 "Break statement can only be used inside a loop".to_string()
@@ -327,20 +398,50 @@ impl TypeError {
             TypeError::RecursiveType { name, .. } => {
                 format!("Type '{}' is recursive without indirection", name)
             }
-            TypeError::InvalidAssignmentTarget { .. } => {
-                "Invalid assignment target".to_string()
-            }
-            TypeError::UndefinedField { structname, field, .. } => {
+            TypeError::InvalidAssignmentTarget { .. } => "Invalid assignment target".to_string(),
+            TypeError::UndefinedField {
+                structname, field, ..
+            } => {
                 format!("Undefined field '{field}' for struct '{structname}'")
             }
-            TypeError::NoMatchingImpl { trait_def, receiver, .. } => {
-                format!("No implementation of trait '{:?}' found for type '{}'", trait_def, receiver)
+            TypeError::NoMatchingImpl {
+                trait_def,
+                receiver,
+                ..
+            } => {
+                format!(
+                    "No implementation of trait '{:?}' found for type '{}'",
+                    trait_def, receiver
+                )
             }
-            TypeError::AmbiguousImpl { trait_def, receiver, .. } => {
-                format!("Multiple implementations of trait '{:?}' found for type '{}'", trait_def, receiver)
+            TypeError::AmbiguousImpl {
+                trait_def,
+                receiver,
+                ..
+            } => {
+                format!(
+                    "Multiple implementations of trait '{:?}' found for type '{}'",
+                    trait_def, receiver
+                )
             }
-            TypeError::InvalidDistributionParameter { distribution, param_name, reason, .. } => {
-                format!("Invalid parameter '{}' for distribution '{}': {}", param_name, distribution, reason)
+            TypeError::InvalidDistributionParameter {
+                distribution,
+                param_name,
+                reason,
+                ..
+            } => {
+                format!(
+                    "Invalid parameter '{}' for distribution '{}': {}",
+                    param_name, distribution, reason
+                )
+            }
+            TypeError::UnknownMethod {
+                type_name, method, ..
+            } => {
+                format!("Unknown method '{}' for type '{}'", method, type_name)
+            }
+            TypeError::InvalidArgument { message, .. } => {
+                format!("Invalid argument: {}", message)
             }
         }
     }
