@@ -1,0 +1,91 @@
+
+fn test_compound_assignment() {
+    let mut x = 10;
+    x += 5;
+    if x != 15 {
+        print("FAIL: x += 5");
+        print(x);
+    } else {
+        print("PASS: x += 5");
+    }
+    
+    x -= 3;
+    if x != 12 {
+        print("FAIL: x -= 3");
+        print(x);
+    } else {
+        print("PASS: x -= 3");
+    }
+    
+    x *= 2;
+    if x != 24 {
+        print("FAIL: x *= 2");
+        print(x);
+    } else {
+        print("PASS: x *= 2");
+    }
+    
+    x /= 4;
+    if x != 6 {
+        print("FAIL: x /= 4");
+        print(x);
+    } else {
+        print("PASS: x /= 4");
+    }
+}
+
+fn returns_ok() -> Result<Int, String> {
+    Ok(100)
+}
+
+fn returns_err() -> Result<Int, String> {
+    Err("error")
+}
+
+fn test_try_ok() -> Result<Int, String> {
+    let a = returns_ok()?;
+    Ok(a + 50)
+}
+
+fn test_try_err() -> Result<Int, String> {
+    let b = returns_err()?;
+    // Should return early
+    Ok(999)
+}
+
+fn main() {
+    print("--- Test Compound Assignment ---");
+    test_compound_assignment();
+    
+    print("--- Test Try Operator ---");
+    
+    match test_try_ok() {
+        Ok(v) => {
+             if v == 150 {
+                 print("PASS: Try Ok");
+             } else {
+                 print("FAIL: Try Ok value mismatch");
+                 print(v);
+             }
+        }
+        Err(e) => {
+             print("FAIL: Try Ok returned Err");
+             print(e);
+        }
+    }
+    
+    match test_try_err() {
+        Ok(v) => {
+             print("FAIL: Try Err returned Ok");
+             print(v);
+        }
+        Err(e) => {
+             if e == "error" {
+                 print("PASS: Try Err");
+             } else {
+                 print("FAIL: Try Err value mismatch");
+                 print(e);
+             }
+        }
+    }
+}

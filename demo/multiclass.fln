@@ -1,0 +1,274 @@
+// demo/multiclass.fln
+// WGI Multi-Class Image Classifier
+
+// --- 1. Core System (Polyfills & Math) ---
+fn new_signal(val: Float) -> Signal<Float> { Signal_new(val) }
+fn signal_get(s: Signal<Float>) -> Float { Signal_get(s) }
+fn signal_set(s: Signal<Float>, val: Float) { Signal_set(s, val) }
+
+fn float_abs(x: Float) -> Float { if x < 0.0 { 0.0 - x } else { x } }
+
+// --- 2. Neuro Library ---
+struct NeuroNode {
+    phase: Signal<Float>,
+    memory_phase: Signal<Float>,
+    coherence: Signal<Float>
+}
+
+fn create_neuron(init_p: Float) -> NeuroNode {
+    NeuroNode {
+        phase: new_signal(init_p),
+        memory_phase: new_signal(0.0),
+        coherence: new_signal(0.0)
+    }
+}
+
+impl NeuroNode {
+    fn learn(self) {
+        let current = signal_get(self.phase);
+        signal_set(self.memory_phase, current);
+    }
+
+    fn receive_input(self, input_phase: Float) {
+        let memory = signal_get(self.memory_phase);
+        
+        // 位相差による共鳴計算 (0.0 ~ 1.0)
+        let diff = float_abs(input_phase - memory);
+        let score = 1.0 - (diff / 3.14159);
+        if score < 0.0 { score = 0.0; }
+        
+        signal_set(self.coherence, score);
+        signal_set(self.phase, input_phase);
+    }
+    
+    fn get_coherence(self) -> Float {
+        signal_get(self.coherence)
+    }
+}
+
+// --- 3. Resonance Layer (One Class Memory) ---
+struct Layer {
+    label: String,
+    nodes: Array<Any> // Array<NeuroNode>
+}
+
+fn create_layer(w: Int, h: Int, label: String) -> Layer {
+    let mut nodes = [];
+    let count = w * h;
+    let i = 0;
+    while i < count {
+        nodes = nodes.push(create_neuron(0.0));
+        i = i + 1;
+    }
+    Layer { label: label, nodes: nodes }
+}
+
+impl Layer {
+    fn input(self, image: Array<Float>) {
+        let n = image.len();
+        let i = 0;
+        while i < n {
+            let phase = image[i] * 3.14159;
+            let node: NeuroNode = self.nodes[i];
+            node.receive_input(phase);
+            i = i + 1;
+        }
+    }
+
+    fn memorize(self) {
+        let n = self.nodes.len();
+        let i = 0;
+        while i < n {
+            let node: NeuroNode = self.nodes[i];
+            node.learn();
+            i = i + 1;
+        }
+    }
+
+    fn get_score(self) -> Float {
+        let total = 0.0;
+        let n = self.nodes.len();
+        let i = 0;
+        while i < n {
+            let node: NeuroNode = self.nodes[i];
+            total = total + node.get_coherence();
+            i = i + 1;
+        }
+        total / (n * 1.0)
+    }
+}
+
+// --- 4. Classifier Logic ---
+struct Classifier {
+    layers: Array<Any> // Array<Layer>
+}
+
+fn create_classifier() -> Classifier {
+    Classifier { layers: [] }
+}
+
+impl Classifier {
+    fn add_class(self, layer: Layer) {
+        // ※注意: FlunoのArrayは不変なので再代入が必要だが、
+        // ここでは簡易的に参照として扱う（VMの実装依存）
+        // 正しくは: self.layers = self.layers.push(layer) だが
+        // structのフィールド更新はまだ制限があるため、
+        // main側で配列を管理する形にする。
+        // ここではヘルパーメソッドとしての定義のみ。
+    }
+
+    // 入力画像を全レイヤーに流し、最も共鳴したクラスを返す
+    fn predict(self, layers: Array<Any>, image: Array<Float>) {
+        println("\n--- Predicting... ---");
+        
+        let mut best_label = "Unknown";
+        let mut best_score = -1.0;
+        
+        let len = layers.len();
+        let i = 0;
+        while i < len {
+            let layer: Layer = layers[i];
+            
+            // 1. 画像を入力して共鳴させる
+            layer.input(image);
+            
+            // 2. スコア計測
+            let score = layer.get_score();
+            println("Class [" + layer.label + "] Resonance: " + score);
+            
+            // 3. 勝者判定 (Winner-Take-All)
+            if score > best_score {
+                best_score = score;
+                best_label = layer.label;
+            }
+            
+            i = i + 1;
+        }
+        
+        println(">> Prediction: " + best_label + " (Confidence: " + best_score + ")");
+    }
+}
+
+// --- 5. Data Generators ---
+fn gen_cross(w: Int, h: Int) -> Array<Float> {
+    let mut img = [];
+    let i = 0;
+    while i < (w*h) {
+        let x = i % w;
+        let y = i / w;
+        let val = 0.0;
+        if x == 2 || y == 2 { val = 1.0; }
+        img = img.push(val);
+        i = i + 1;
+    }
+    img
+}
+
+fn gen_square(w: Int, h: Int) -> Array<Float> {
+    let mut img = [];
+    let i = 0;
+    while i < (w*h) {
+        let x = i % w;
+        let y = i / w;
+        let val = 0.0;
+        // 5x5の中央3x3を四角にする
+        if x >= 1 && x <= 3 {
+            if y >= 1 && y <= 3 { val = 1.0; }
+        }
+        // 中を抜く（枠だけ）
+        if x == 2 && y == 2 { val = 0.0; } 
+        
+        img = img.push(val);
+        i = i + 1;
+    }
+    img
+}
+
+fn gen_slash(w: Int, h: Int) -> Array<Float> {
+    let mut img = [];
+    let i = 0;
+    while i < (w*h) {
+        let x = i % w;
+        let y = i / w;
+        let val = 0.0;
+        if x == y { val = 1.0; }
+        img = img.push(val);
+        i = i + 1;
+    }
+    img
+}
+
+// ノイズを加える関数
+fn add_noise(original: Array<Float>, level: Float) -> Array<Float> {
+    // 簡易実装: 一部のピクセルを反転させる
+    let mut noisy = [];
+    let len = original.len();
+    let i = 0;
+    while i < len {
+        let val = original[i];
+        // 擬似乱数的な処理（本来はrandを使う）
+        if (i * 7) % 10 < (level * 10.0) { // levelの確率でノイズ
+            if val > 0.5 { val = 0.0; } else { val = 1.0; }
+        }
+        noisy = noisy.push(val);
+        i = i + 1;
+    }
+    noisy
+}
+
+// --- Main ---
+fn main() {
+    let W = 5;
+    let H = 5;
+    
+    // 1. 各クラスの脳（レイヤー）を作成
+    let layer_cross = create_layer(W, H, "Cross");
+    let layer_square = create_layer(W, H, "Square");
+    let layer_slash = create_layer(W, H, "Slash");
+    
+    // 2. 教師データ生成
+    let img_cross = gen_cross(W, H);
+    let img_square = gen_square(W, H);
+    let img_slash = gen_slash(W, H);
+    
+    // 3. 学習フェーズ (Training)
+    println("[Training Phase]");
+    
+    // Crossを学習
+    layer_cross.input(img_cross);
+    layer_cross.memorize();
+    println("Learned: Cross");
+    
+    // Squareを学習
+    layer_square.input(img_square);
+    layer_square.memorize();
+    println("Learned: Square");
+    
+    // Slashを学習
+    layer_slash.input(img_slash);
+    layer_slash.memorize();
+    println("Learned: Slash");
+    
+    // 分類器に登録
+    let layers = [layer_cross, layer_square, layer_slash];
+    let clf = create_classifier();
+    
+    // 4. テストフェーズ (Inference)
+    
+    // Test 1: Crossを入力
+    clf.predict(layers, img_cross);
+    
+    // Test 2: Squareを入力
+    clf.predict(layers, img_square);
+    
+    // Test 3: ノイズ付きのSlashを入力
+    println("\n(Inputting Noisy Slash...)");
+    let noisy_slash = add_noise(img_slash, 0.2); // 20%ノイズ
+    clf.predict(layers, noisy_slash);
+    
+    // Test 4: 全くの未知（ランダムノイズ）
+    println("\n(Inputting Random Noise...)");
+    // CrossとSquareを混ぜたような変な画像
+    let random_img = add_noise(img_cross, 0.8); 
+    clf.predict(layers, random_img);
+}

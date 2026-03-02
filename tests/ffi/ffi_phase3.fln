@@ -1,0 +1,14 @@
+#[link(name = "c:/Users/froms/Desktop/Flux-main/fluno-rt/target/release/fluno_rt.dll")]
+extern "C" {
+    fn fluno_add(a: Int, b: Int) -> Int;
+}
+
+fn main() {
+    println("Starting FFI Test Phase 3...");
+    let a = 10;
+    let b = 32;
+    println("Calling fluno_add(10, 32)");
+    let res = fluno_add(a, b);
+    println("Result:");
+    println(res);
+}

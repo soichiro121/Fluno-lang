@@ -1,0 +1,29 @@
+struct Point {
+    x: Int,
+    y: Int,
+}
+
+fn main() {
+    let p = Point { x: 10, y: 20 };
+    
+    // Test direct field access
+    println(p.x); 
+    
+    // Test match pattern
+    match p {
+        Point { x, y } => {
+            println(x);
+            println(y);
+        }
+    }
+    
+    // Test match pattern with literal inner pattern
+    match p {
+        Point { x: 10, y } => {
+            println("Matched x=10");
+        },
+        _ => {
+            println("Not matched");
+        }
+    }
+}

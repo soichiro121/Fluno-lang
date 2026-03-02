@@ -1,0 +1,39 @@
+
+enum MyEnum {
+    A(Int),
+    B(Int, Int),
+    C
+}
+
+fn main() {
+    // 1. Literal
+    let x = 10;
+    let res = match x {
+        10 => { print("Matched 10"); 100 },
+        20 => 200,
+        y => 300
+    };
+    print(res); 
+    
+    // 2. Option (Some/None)
+    let opt = Some(50);
+    print("Matching Option...");
+    let res2 = match opt {
+        Some(v) => { 
+            print("Matched Some!"); 
+            print(v); // Debug value
+            v + 1 
+        },
+        None => 0
+    };
+    print(res2);
+    
+    // 3. Enum
+    let e = MyEnum::B(10, 20);
+    let res3 = match e {
+         MyEnum::A(v) => v,
+         MyEnum::B(v1, v2) => v1 + v2,
+         MyEnum::C => 0
+    };
+    print(res3);
+}

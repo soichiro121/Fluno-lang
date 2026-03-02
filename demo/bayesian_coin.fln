@@ -1,0 +1,75 @@
+// demo/bayesian_coin.fln
+// ベイズ推論によるコイントスのバイアス推定 (Beta-Bernoulli)
+
+fn coin_model(data: Array<Int>) -> Float {
+    // 1. 事前分布: コインの表が出る確率 p は 0.0〜1.0 の一様分布 (Beta(1, 1) と等価)
+    //    あるいは少し事前知識を入れて Beta(2, 2) などにすることも可能
+    let p = sample(Uniform(0.0, 1.0));
+
+    // 2. 尤度 (観測データへの当てはまり)
+    let i = 0;
+    let n = data.len();
+    while i < n {
+        // データが 1 なら表、0 なら裏
+        let is_head = data[i];
+        
+        // 観測: 確率 p のベルヌーイ分布に従って is_head が出たとする
+        observe(Bernoulli(p), is_head);
+        
+        i = i + 1;
+    }
+
+    return p;
+}
+
+fn mean(samples: Array<Any>) -> Float {
+    let sum = 0.0;
+    let n = samples.len();
+    if n == 0 { return 0.0; }
+    
+    let i = 0;
+    while i < n {
+        let s = samples[i];
+        let val = s.get("sample_0"); // sample呼び出し順序0番目の値
+        sum = sum + val;
+        i = i + 1;
+    }
+    return sum / n;
+}
+
+fn main() {
+    println("=============================================");
+    println("   Fluno Bayesian Coin Toss Demo   ");
+    println("=============================================");
+
+    // 観測データ (1=表, 0=裏)
+    // 真の p = 0.7 を想定して生成したデータ: 10回中7回表
+    let data = [1, 1, 1, 0, 1, 1, 0, 1, 0, 1];
+    
+    println("観測データ: [1, 1, 1, 0, 1, 1, 0, 1, 0, 1]");
+    println("推論を開始します...");
+
+    let config = Map();
+    config.insert("num_samples", 2000); 
+    config.insert("burn_in", 500);      
+    config.insert("step_size", 0.05);
+    config.insert("num_leapfrog", 5);
+
+    // HMCによるサンプリング実行
+    // coin_model はクロージャとして渡す
+    let samples = infer_hmc(config, || coin_model(data));
+
+    // 結果の集計
+    let estimated_p = mean(samples);
+    
+    println("");
+    print("推定された表が出る確率 p (平均): ");
+    println(estimated_p);
+    
+    println("-----------------------------------------------------------");
+    if estimated_p > 0.6 && estimated_p < 0.8 {
+        println("推論成功: p は約 0.7 と推定されました。");
+    } else {
+        println("推論結果が期待値と異なります (調整が必要な可能性があります)。");
+    }
+}

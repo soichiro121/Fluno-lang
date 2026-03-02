@@ -1,0 +1,190 @@
+
+// RetinaWave Bundled Demo
+
+// --- Core Polyfills (simulating stdlib) ---
+
+fn new_signal(val: Float) -> Signal<Float> {
+    Signal_new(val)
+}
+
+fn signal_get(s: Signal<Float>) -> Float {
+    Signal_get(s)
+}
+
+fn signal_set(s: Signal<Float>, val: Float) {
+    Signal_set(s, val)
+}
+
+// --- Neuro Library ---
+
+struct NeuroNode {
+    phase: Signal<Float>
+}
+
+fn create_neuron(initial_phase: Float) -> NeuroNode {
+    NeuroNode {
+        phase: new_signal(initial_phase)
+    }
+}
+
+impl NeuroNode {
+    fn receive(self, input_phase: Float) {
+        // Wave resonance (Kuramoto model)
+        // sin(diff) allows 0 and 2*PI to be treated as equivalent (phase synchronization)
+        let current = signal_get(self.phase);
+        let force = sin(input_phase - current);
+        
+        // damping factor 0.1
+        signal_set(self.phase, current + force * 0.1);
+    }
+
+    fn tick(self, dt: Float) {
+        // Time evolution
+        // Phase rotation
+        let current = signal_get(self.phase);
+        signal_set(self.phase, current + dt);
+    }
+
+    fn get_phase(self) -> Signal<Float> {
+        self.phase
+    }
+}
+
+// --- Vision Library ---
+
+// 2次元のニューロン格子（網膜）
+struct Retina {
+    width: Int,
+    height: Int,
+    nodes: Array<Any>
+}
+
+fn create_retina(w: Int, h: Int) -> Retina {
+    let mut nodes = [];
+    // ニューロンを格子状に配置
+    let count = w * h;
+    let i = 0;
+    while i < count {
+        // 初期状態は位相0（無信号）で作っておく
+        nodes = nodes.push(create_neuron(0.0));
+        i = i + 1;
+    }
+    Retina { width: w, height: h, nodes: nodes }
+}
+
+impl Retina {
+    // 画像データ（輝度配列）を入力し、初期位相をセットする
+    fn load_image(self, image_data: Array<Float>) {
+        let n = image_data.len();
+        let i = 0;
+        while i < n {
+            let brightness = image_data[i];
+            let phase = brightness * 2.0 * 3.14159;
+            
+            // ニューロンの位相を強制セット（外部入力）
+            let node: NeuroNode = self.nodes[i];
+            signal_set(node.get_phase(), phase);
+            i = i + 1;
+        }
+    }
+
+    // 指定座標のニューロンを取得
+    fn get_node(self, x: Int, y: Int) -> Any {
+        let idx = y * self.width + x;
+        self.nodes[idx]
+    }
+}
+
+fn create_test_image(w: Int, h: Int) -> Array<Any> {
+    let mut img = [];
+    let y = 0;
+    while y < h {
+        let x = 0;
+        while x < w {
+            let val = 0.0;
+            if x == 5 || y == 5 {
+                val = 1.0;
+            }
+            img = img.push(val);
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+    img
+}
+
+fn get_neuron(retina: Retina, x: Int, y: Int) -> NeuroNode {
+    let node: NeuroNode = retina.get_node(x, y);
+    node
+}
+
+// --- Main Demo ---
+
+fn main() {
+    println("Initializing RetinaWave...");
+
+    let w_val = 10;
+    let h_val = 10;
+    let retina = create_retina(w_val, h_val);
+
+    println("Loading Image...");
+    let img_any = create_test_image(w_val, h_val);
+    retina.load_image(img_any);
+
+    println("Simulating Resonance Loop...");
+
+    // 2. 共鳴ループ（認識プロセス）
+    let t = 0;
+    while t < 20 {
+        // 各ニューロンが上下左右のニューロンの位相を見る
+        let y = 1;
+        while y < 9 {
+            let x = 1;
+            while x < 9 {
+                let center = get_neuron(retina, x, y);
+                
+                // 上下左右の位相を取得
+                let neighbors = [
+                    signal_get(get_neuron(retina, x+1, y).get_phase()),
+                    signal_get(get_neuron(retina, x-1, y).get_phase()),
+                    signal_get(get_neuron(retina, x, y+1).get_phase()),
+                    signal_get(get_neuron(retina, x, y-1).get_phase())
+                ];
+
+                // WGIの核: 周囲の波と自分の波を干渉させる
+                let k = 0;
+                let n_len = neighbors.len();
+                while k < n_len {
+                    let p = neighbors[k];
+                    center.receive(p);
+                    k = k + 1;
+                }
+                
+                x = x + 1;
+            }
+            y = y + 1;
+        }
+
+        // 時間発展
+        let j = 0;
+        let r_nodes = retina.nodes;
+        let r_len = r_nodes.len();
+        while j < r_len {
+            let n: NeuroNode = r_nodes[j];
+            n.tick(0.1);
+            j = j + 1;
+        }
+        
+        t = t + 1;
+        // println("Step " + t);
+    }
+
+    // 3. 結果確認（共鳴状態の読み出し）
+    // 十字の交点（x=5, y=5）は四方から波が来て「強め合う」はず
+    let cross_center = signal_get(get_neuron(retina, 5, 5).get_phase());
+    println("Intersection Phase: " + cross_center);
+    
+    // 何もないところ（x=1, y=1）
+    let empty_space = signal_get(get_neuron(retina, 1, 1).get_phase());
+    println("Empty Space Phase: " + empty_space);
+}

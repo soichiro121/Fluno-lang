@@ -1,0 +1,18 @@
+fn main() {
+    println("Testing Gaussian Sampling...");
+    let g = Gaussian(0.0, 1.0);
+    let x = sample(g.clone()); 
+    println("Sampled value:");
+    println(x);
+    
+    let g2 = Gaussian(10.0, 2.0);
+    // g + g2 consumes g. We are cloning to keep using it if needed, or because g was used 
+    // actually, g.clone() above didn't move g. So g is still valid.
+    // But g + g2 consumes g. If we want to use g later we should clone.
+    // Here we don't use g later. So `g + g2` is fine.
+    
+    let g3 = g + g2; 
+    println("Combined Gaussian:");
+    let y = sample(g3);
+    println(y);
+}

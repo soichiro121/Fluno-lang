@@ -1,0 +1,53 @@
+{
+    "name": "fluno-lsp-extension",
+    "displayName": "Fluno Language Support",
+    "description": "Language support for the Fluno programming language",
+    "version": "0.1.3",
+    "publisher": "fluno-dev",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "main": "./extension.js",
+    "activationEvents": [
+        "onLanguage:fluno"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "fluno",
+                "aliases": [
+                    "Fluno",
+                    "fluno"
+                ],
+                "extensions": [
+                    ".fln"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "fluno",
+                "scopeName": "source.fluno",
+                "path": "./syntaxes/fluno.tmLanguage.json"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "Fluno configuration",
+            "properties": {
+                "fluno.executablePath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to the fluno executable"
+                }
+            }
+        }
+    },
+    "dependencies": {
+        "vscode-languageclient": "^8.1.0"
+    }
+}

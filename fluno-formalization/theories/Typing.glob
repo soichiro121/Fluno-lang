@@ -1,0 +1,481 @@
+DIGEST 849af19079bafb5fb47dcb05173bb217
+FFlux.Typing
+R248:251 Flux.Base <> <> lib
+R253:258 Flux.Syntax <> <> lib
+R285:298 Coq.Strings.String <> <> lib
+R325:334 Coq.Lists.List <> <> lib
+R344:356 Coq.Lists.List ListNotations <> mod
+def 592:598 <> context
+R603:606 Coq.Init.Datatypes <> list ind
+R612:614 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R609:611 Coq.Init.Datatypes <> nat ind
+R615:616 Flux.Syntax <> ty ind
+def 630:635 <> lookup
+R646:652 Flux.Typing <> context def
+binder 638:642 <> Gamma:1
+R660:662 Coq.Init.Datatypes <> nat ind
+binder 656:656 <> x:2
+R667:672 Coq.Init.Datatypes <> option ind
+R674:675 Flux.Syntax <> ty ind
+R688:692 Flux.Typing <> Gamma:1 var
+R703:705 Coq.Init.Datatypes <> nil constr
+R710:713 Coq.Init.Datatypes <> None constr
+R725:728 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R719:719 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R721:722 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R724:724 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R749:754 Flux.Base <> beq_id def
+R756:756 Flux.Typing <> x:2 var
+R777:782 Flux.Typing <> lookup:3 def
+R791:791 Flux.Typing <> x:2 var
+R765:768 Coq.Init.Datatypes <> Some constr
+ind 1092:1099 <> has_type
+constr 1138:1142 <> T_Var
+constr 1235:1239 <> T_Int
+constr 1300:1306 <> T_Float
+constr 1371:1376 <> T_Bool
+constr 1439:1448 <> T_Gaussian
+constr 1523:1527 <> T_Add
+constr 1673:1680 <> T_Sample
+constr 1781:1785 <> T_Abs
+constr 1906:1910 <> T_App
+constr 2049:2054 <> T_Unit
+constr 2113:2120 <> T_String
+constr 2187:2193 <> T_Array
+constr 2312:2316 <> T_Map
+R1110:1113 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1103:1109 Flux.Typing <> context def
+R1116:1119 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1114:1115 Flux.Syntax <> tm ind
+R1122:1125 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1120:1121 Flux.Syntax <> ty ind
+R2463:2470 Flux.Typing <> has_type:6 ind
+binder 1153:1157 <> Gamma:7
+binder 1159:1159 <> x:8
+binder 1161:1161 <> T:9
+R1193:1202 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1184:1186 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1170:1175 Flux.Typing <> lookup def
+R1177:1181 Flux.Typing <> Gamma:7 var
+R1183:1183 Flux.Typing <> x:8 var
+R1187:1190 Coq.Init.Datatypes <> Some constr
+R1192:1192 Flux.Typing <> T:9 var
+R1208:1212 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1221:1225 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1203:1207 Flux.Typing <> Gamma:7 var
+R1213:1218 Flux.Syntax <> tm_var constr
+R1220:1220 Flux.Typing <> x:8 var
+R1226:1226 Flux.Typing <> T:9 var
+binder 1250:1254 <> Gamma:10
+binder 1256:1256 <> n:11
+R1270:1274 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1283:1287 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1265:1269 Flux.Typing <> Gamma:10 var
+R1275:1280 Flux.Syntax <> tm_int constr
+R1282:1282 Flux.Typing <> n:11 var
+R1288:1291 Flux.Syntax <> TInt constr
+binder 1317:1321 <> Gamma:12
+binder 1323:1323 <> r:13
+R1337:1341 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1352:1356 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1332:1336 Flux.Typing <> Gamma:12 var
+R1342:1349 Flux.Syntax <> tm_float constr
+R1351:1351 Flux.Typing <> r:13 var
+R1357:1362 Flux.Syntax <> TFloat constr
+binder 1387:1391 <> Gamma:14
+binder 1393:1393 <> b:15
+R1407:1411 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1421:1425 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1402:1406 Flux.Typing <> Gamma:14 var
+R1412:1418 Flux.Syntax <> tm_bool constr
+R1420:1420 Flux.Typing <> b:15 var
+R1426:1430 Flux.Syntax <> TBool constr
+binder 1459:1463 <> Gamma:16
+binder 1465:1465 <> m:17
+binder 1467:1467 <> s:18
+R1481:1485 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1501:1505 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1476:1480 Flux.Typing <> Gamma:16 var
+R1486:1496 Flux.Syntax <> tm_gaussian constr
+R1498:1498 Flux.Typing <> m:17 var
+R1500:1500 Flux.Typing <> s:18 var
+R1506:1514 Flux.Syntax <> TGaussian constr
+binder 1538:1542 <> Gamma:19
+binder 1544:1545 <> t1:20
+binder 1547:1548 <> t2:21
+R1583:1592 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1562:1566 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1569:1573 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1557:1561 Flux.Typing <> Gamma:19 var
+R1567:1568 Flux.Typing <> t1:20 var
+R1574:1582 Flux.Syntax <> TGaussian constr
+R1619:1628 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1598:1602 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1605:1609 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1593:1597 Flux.Typing <> Gamma:19 var
+R1603:1604 Flux.Typing <> t2:21 var
+R1610:1618 Flux.Syntax <> TGaussian constr
+R1634:1638 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1651:1655 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1629:1633 Flux.Typing <> Gamma:19 var
+R1639:1644 Flux.Syntax <> tm_add constr
+R1646:1647 Flux.Typing <> t1:20 var
+R1649:1650 Flux.Typing <> t2:21 var
+R1656:1664 Flux.Syntax <> TGaussian constr
+binder 1691:1695 <> Gamma:22
+binder 1697:1697 <> t:23
+R1731:1740 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1711:1715 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1717:1721 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1706:1710 Flux.Typing <> Gamma:22 var
+R1716:1716 Flux.Typing <> t:23 var
+R1722:1730 Flux.Syntax <> TGaussian constr
+R1746:1750 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1762:1766 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1741:1745 Flux.Typing <> Gamma:22 var
+R1751:1759 Flux.Syntax <> tm_sample constr
+R1761:1761 Flux.Typing <> t:23 var
+R1767:1772 Flux.Syntax <> TFloat constr
+binder 1796:1800 <> Gamma:24
+binder 1802:1802 <> x:25
+binder 1804:1805 <> T1:26
+binder 1807:1808 <> T2:27
+binder 1810:1810 <> t:28
+R1850:1859 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1819:1819 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1836:1841 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1843:1847 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1827:1830 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R1820:1820 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1822:1823 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1826:1826 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1821:1821 Flux.Typing <> x:25 var
+R1824:1825 Flux.Typing <> T1:26 var
+R1831:1835 Flux.Typing <> Gamma:24 var
+R1842:1842 Flux.Typing <> t:28 var
+R1848:1849 Flux.Typing <> T2:27 var
+R1865:1869 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1883:1887 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1860:1864 Flux.Typing <> Gamma:24 var
+R1870:1875 Flux.Syntax <> tm_abs constr
+R1877:1877 Flux.Typing <> x:25 var
+R1879:1880 Flux.Typing <> T1:26 var
+R1882:1882 Flux.Typing <> t:28 var
+R1888:1891 Flux.Syntax <> TFun constr
+R1893:1894 Flux.Typing <> T1:26 var
+R1896:1897 Flux.Typing <> T2:27 var
+binder 1921:1925 <> Gamma:29
+binder 1927:1928 <> t1:30
+binder 1930:1931 <> t2:31
+binder 1933:1934 <> T1:32
+binder 1936:1937 <> T2:33
+R1973:1982 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1951:1955 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1958:1962 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1946:1950 Flux.Typing <> Gamma:29 var
+R1956:1957 Flux.Typing <> t1:30 var
+R1963:1966 Flux.Syntax <> TFun constr
+R1968:1969 Flux.Typing <> T1:32 var
+R1971:1972 Flux.Typing <> T2:33 var
+R2002:2011 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1988:1992 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1995:1999 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1983:1987 Flux.Typing <> Gamma:29 var
+R1993:1994 Flux.Typing <> t2:31 var
+R2000:2001 Flux.Typing <> T1:32 var
+R2017:2021 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2034:2038 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2012:2016 Flux.Typing <> Gamma:29 var
+R2022:2027 Flux.Syntax <> tm_app constr
+R2029:2030 Flux.Typing <> t1:30 var
+R2032:2033 Flux.Typing <> t2:31 var
+R2039:2040 Flux.Typing <> T2:33 var
+binder 2065:2069 <> Gamma:34
+R2083:2087 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2095:2099 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2078:2082 Flux.Typing <> Gamma:34 var
+R2088:2094 Flux.Syntax <> tm_unit constr
+R2100:2104 Flux.Syntax <> TUnit constr
+binder 2131:2135 <> Gamma:35
+binder 2137:2137 <> s:36
+R2151:2155 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2167:2171 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2146:2150 Flux.Typing <> Gamma:35 var
+R2156:2164 Flux.Syntax <> tm_string constr
+R2166:2166 Flux.Typing <> s:36 var
+R2172:2178 Flux.Syntax <> TString constr
+binder 2204:2208 <> Gamma:37
+binder 2210:2211 <> vs:38
+binder 2213:2213 <> T:39
+R2260:2269 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2222:2227 Coq.Lists.List <> Forall ind
+R2258:2259 Flux.Typing <> vs:38 var
+binder 2234:2234 <> v:40
+R2244:2248 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2250:2254 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2239:2243 Flux.Typing <> Gamma:37 var
+R2249:2249 Flux.Typing <> v:40 var
+R2255:2255 Flux.Typing <> T:39 var
+R2275:2279 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2291:2295 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2270:2274 Flux.Typing <> Gamma:37 var
+R2280:2287 Flux.Syntax <> tm_array constr
+R2289:2290 Flux.Typing <> vs:38 var
+R2296:2301 Flux.Syntax <> TArray constr
+R2303:2303 Flux.Typing <> T:39 var
+binder 2327:2331 <> Gamma:41
+binder 2333:2334 <> ps:42
+binder 2336:2336 <> T:43
+R2387:2396 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2345:2350 Coq.Lists.List <> Forall ind
+R2385:2386 Flux.Typing <> ps:42 var
+binder 2357:2357 <> p:44
+R2367:2371 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2377:2381 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2362:2366 Flux.Typing <> Gamma:41 var
+R2372:2374 Coq.Init.Datatypes <> snd def
+R2376:2376 Flux.Typing <> p:44 var
+R2382:2382 Flux.Typing <> T:43 var
+R2402:2406 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2416:2420 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2397:2401 Flux.Typing <> Gamma:41 var
+R2407:2412 Flux.Syntax <> tm_map constr
+R2414:2415 Flux.Typing <> ps:42 var
+R2421:2424 Flux.Syntax <> TMap constr
+R2426:2426 Flux.Typing <> T:43 var
+scheme 1092:1099 <> has_type_ind
+scheme 1092:1099 <> has_type_sind
+R2463:2470 Flux.Typing <> has_type ind
+not 2435:2435 <> :::x_'⊢'_x_'∈'_x
+R2503:2510 Flux.Typing <> has_type ind
+prf 2752:2766 <> type_uniqueness
+binder 2777:2781 <> Gamma:45
+binder 2783:2783 <> t:46
+binder 2785:2786 <> T1:47
+binder 2788:2789 <> T2:48
+R2812:2817 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2799:2803 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2805:2809 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2794:2798 Flux.Typing <> Gamma:45 var
+R2804:2804 Flux.Typing <> t:46 var
+R2810:2811 Flux.Typing <> T1:47 var
+R2836:2841 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2823:2827 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2829:2833 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2818:2822 Flux.Typing <> Gamma:45 var
+R2828:2828 Flux.Typing <> t:46 var
+R2834:2835 Flux.Typing <> T2:48 var
+R2844:2846 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2842:2843 Flux.Typing <> T1:47 var
+R2847:2848 Flux.Typing <> T2:48 var
+prf 3107:3119 <> lookup_extend
+binder 3130:3134 <> Gamma:49
+binder 3136:3136 <> x:50
+binder 3138:3138 <> T:51
+binder 3140:3140 <> y:52
+R3171:3176 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3145:3150 Flux.Typing <> lookup def
+R3159:3162 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R3153:3153 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3155:3156 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3158:3158 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3154:3154 Flux.Typing <> x:50 var
+R3157:3157 Flux.Typing <> T:51 var
+R3163:3167 Flux.Typing <> Gamma:49 var
+R3170:3170 Flux.Typing <> y:52 var
+R3180:3185 Flux.Base <> beq_id def
+R3187:3187 Flux.Typing <> x:50 var
+R3189:3189 Flux.Typing <> y:52 var
+R3208:3213 Flux.Typing <> lookup def
+R3215:3219 Flux.Typing <> Gamma:49 var
+R3221:3221 Flux.Typing <> y:52 var
+R3196:3199 Coq.Init.Datatypes <> Some constr
+R3201:3201 Flux.Typing <> T:51 var
+prf 3257:3272 <> lookup_extend_eq
+binder 3283:3287 <> Gamma:53
+binder 3289:3289 <> x:54
+binder 3291:3291 <> T:55
+R3322:3324 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3296:3301 Flux.Typing <> lookup def
+R3310:3313 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R3304:3304 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3306:3307 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3309:3309 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3305:3305 Flux.Typing <> x:54 var
+R3308:3308 Flux.Typing <> T:55 var
+R3314:3318 Flux.Typing <> Gamma:53 var
+R3321:3321 Flux.Typing <> x:54 var
+R3325:3328 Coq.Init.Datatypes <> Some constr
+R3330:3330 Flux.Typing <> T:55 var
+prf 3366:3382 <> lookup_extend_neq
+binder 3393:3397 <> Gamma:56
+binder 3399:3400 <> x1:57
+binder 3402:3402 <> T:58
+binder 3404:3405 <> x2:59
+R3418:3423 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3412:3415 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R3410:3411 Flux.Typing <> x1:57 var
+R3416:3417 Flux.Typing <> x2:59 var
+R3452:3454 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3424:3429 Flux.Typing <> lookup def
+R3439:3442 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R3432:3432 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3435:3436 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3438:3438 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3433:3434 Flux.Typing <> x1:57 var
+R3437:3437 Flux.Typing <> T:58 var
+R3443:3447 Flux.Typing <> Gamma:56 var
+R3450:3451 Flux.Typing <> x2:59 var
+R3455:3460 Flux.Typing <> lookup def
+R3462:3466 Flux.Typing <> Gamma:56 var
+R3468:3469 Flux.Typing <> x2:59 var
+prf 3723:3731 <> weakening
+binder 3742:3746 <> Gamma:60
+binder 3748:3753 <> Gamma':61
+binder 3755:3755 <> t:62
+binder 3757:3757 <> T:63
+R3762:3762 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3846:3852 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 3770:3770 <> x:64
+binder 3772:3773 <> T':65
+R3800:3820 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3790:3792 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3776:3781 Flux.Typing <> lookup def
+R3783:3787 Flux.Typing <> Gamma:60 var
+R3789:3789 Flux.Typing <> x:64 var
+R3793:3796 Coq.Init.Datatypes <> Some constr
+R3798:3799 Flux.Typing <> T':65 var
+R3836:3838 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3821:3826 Flux.Typing <> lookup def
+R3828:3833 Flux.Typing <> Gamma':61 var
+R3835:3835 Flux.Typing <> x:64 var
+R3839:3842 Coq.Init.Datatypes <> Some constr
+R3844:3845 Flux.Typing <> T':65 var
+R3870:3875 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3858:3862 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R3864:3868 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R3853:3857 Flux.Typing <> Gamma:60 var
+R3863:3863 Flux.Typing <> t:62 var
+R3869:3869 Flux.Typing <> T:63 var
+R3882:3886 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R3888:3892 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R3876:3881 Flux.Typing <> Gamma':61 var
+R3887:3887 Flux.Typing <> t:62 var
+R3893:3893 Flux.Typing <> T:63 var
+prf 3933:3947 <> weakening_empty
+binder 3958:3962 <> Gamma:66
+binder 3964:3964 <> t:67
+binder 3966:3966 <> T:68
+R3986:3991 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3974:3978 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R3980:3984 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R3971:3973 Coq.Init.Datatypes <> nil constr
+R3979:3979 Flux.Typing <> t:67 var
+R3985:3985 Flux.Typing <> T:68 var
+R3997:4001 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R4003:4007 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R3992:3996 Flux.Typing <> Gamma:66 var
+R4002:4002 Flux.Typing <> t:67 var
+R4008:4008 Flux.Typing <> T:68 var
+prf 4272:4284 <> subst_not_afi
+binder 4295:4295 <> t:69
+binder 4297:4297 <> x:70
+binder 4299:4299 <> v:71
+R4325:4330 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4304:4305 Coq.Init.Logic <> ::type_scope:'~'_x not
+R4306:4320 Flux.Syntax <> appears_free_in ind
+R4322:4322 Flux.Typing <> x:70 var
+R4324:4324 Flux.Typing <> t:69 var
+R4341:4343 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4331:4331 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4333:4336 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4338:4339 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4332:4332 Flux.Typing <> x:70 var
+R4337:4337 Flux.Typing <> v:71 var
+R4340:4340 Flux.Typing <> t:69 var
+R4344:4344 Flux.Typing <> t:69 var
+prf 4380:4394 <> duplicate_subst
+binder 4405:4405 <> t:72
+binder 4407:4407 <> x:73
+binder 4409:4409 <> v:74
+R4435:4440 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4414:4415 Coq.Init.Logic <> ::type_scope:'~'_x not
+R4416:4430 Flux.Syntax <> appears_free_in ind
+R4432:4432 Flux.Typing <> x:73 var
+R4434:4434 Flux.Typing <> v:74 var
+R4462:4464 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4441:4441 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4443:4446 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4448:4450 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4461:4461 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4442:4442 Flux.Typing <> x:73 var
+R4447:4447 Flux.Typing <> v:74 var
+R4451:4451 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4453:4456 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4458:4459 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4452:4452 Flux.Typing <> x:73 var
+R4457:4457 Flux.Typing <> v:74 var
+R4460:4460 Flux.Typing <> t:72 var
+R4465:4465 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4467:4470 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4472:4473 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4466:4466 Flux.Typing <> x:73 var
+R4471:4471 Flux.Typing <> v:74 var
+R4474:4474 Flux.Typing <> t:72 var
+prf 4510:4521 <> subst_closed
+binder 4532:4532 <> t:75
+R4537:4537 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4569:4575 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 4545:4545 <> x:76
+R4548:4549 Coq.Init.Logic <> ::type_scope:'~'_x not
+R4550:4564 Flux.Syntax <> appears_free_in ind
+R4566:4566 Flux.Typing <> x:76 var
+R4568:4568 Flux.Typing <> t:75 var
+binder 4583:4583 <> x:77
+binder 4585:4585 <> v:78
+R4598:4600 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4588:4588 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4590:4593 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4595:4596 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4589:4589 Flux.Typing <> x:77 var
+R4594:4594 Flux.Typing <> v:78 var
+R4597:4597 Flux.Typing <> t:75 var
+R4601:4601 Flux.Typing <> t:75 var
+R4627:4639 Flux.Typing <> subst_not_afi prfax
+R4627:4639 Flux.Typing <> subst_not_afi prfax
+prf 4665:4693 <> substitution_preserves_typing
+binder 4704:4708 <> Gamma:79
+binder 4710:4710 <> x:80
+binder 4712:4712 <> U:81
+binder 4714:4714 <> t:82
+binder 4716:4716 <> v:83
+binder 4718:4718 <> T:84
+R4752:4757 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4723:4723 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R4739:4744 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R4746:4750 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R4730:4733 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R4724:4724 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4726:4727 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4729:4729 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4725:4725 Flux.Typing <> x:80 var
+R4728:4728 Flux.Typing <> U:81 var
+R4734:4738 Flux.Typing <> Gamma:79 var
+R4745:4745 Flux.Typing <> t:82 var
+R4751:4751 Flux.Typing <> T:84 var
+R4773:4778 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4761:4765 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R4767:4771 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R4758:4760 Coq.Init.Datatypes <> nil constr
+R4766:4766 Flux.Typing <> v:83 var
+R4772:4772 Flux.Typing <> U:81 var
+R4784:4788 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R4799:4803 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R4779:4783 Flux.Typing <> Gamma:79 var
+R4789:4789 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4791:4794 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4796:4797 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R4790:4790 Flux.Typing <> x:80 var
+R4795:4795 Flux.Typing <> v:83 var
+R4798:4798 Flux.Typing <> t:82 var
+R4804:4804 Flux.Typing <> T:84 var

@@ -1,0 +1,62 @@
+fn main() {
+    println("Starting Phase 7 Test...");
+
+    // 1. String Methods
+    let s = "  Hello, World!  ";
+    let trimmed = s.trim();
+    println("Trimmed: [" + trimmed + "]");
+    if trimmed == "Hello, World!" { println("PASS: trim"); } else { println("FAIL: trim"); }
+
+    let replaced = trimmed.replace("World", "Flux");
+    println("Replaced: " + replaced);
+    if replaced == "Hello, Flux!" { println("PASS: replace"); } else { println("FAIL: replace"); }
+
+    let parts = replaced.split(", ");
+    // Note: Array access not yet fully unified? parts[0]
+    // Assuming parts is Array<String>
+    // println("Split[0]: " + parts[0]); // Index access support required?
+    // Let's assume println works for arrays or we skip detail check
+    println("Split parts: " + parts); // Debug print array
+
+    // 2. DLL Relative Path & File IO
+    test_file_io();
+}
+
+#[link(name = "fluno_rt")]
+extern {
+    fn fluno_file_open(path: String, mode: String) -> Int;
+    fn fluno_file_close(handle: Int);
+    fn fluno_file_read_all(handle: Int) -> String;
+    fn fluno_file_write_string(handle: Int, content: String) -> Int;
+}
+
+fn test_file_io() {
+    let path = "test_phase7.txt";
+    let content = "Phase 7 Storage Test";
+
+    // Write
+    let handle_w = fluno_file_open(path, "w");
+    if handle_w > 0 {
+        fluno_file_write_string(handle_w, content);
+        fluno_file_close(handle_w);
+        println("File written successfully.");
+    } else {
+        println("FAIL: fluno_file_open for write");
+        return;
+    }
+
+    // Read
+    let handle_r = fluno_file_open(path, "r");
+    if handle_r > 0 {
+        let read_content = fluno_file_read_all(handle_r);
+        fluno_file_close(handle_r);
+        println("Read content: [" + read_content + "]");
+        if read_content == content {
+            println("PASS: File IO");
+        } else {
+            println("FAIL: File IO content mismatch");
+        }
+    } else {
+        println("FAIL: fluno_file_open for read");
+    }
+}

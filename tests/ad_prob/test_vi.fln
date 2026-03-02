@@ -1,0 +1,57 @@
+// tests/test_vi.fln
+// Variational Inference (ADVI) Test
+
+fn model() {
+    // Prior: mu ~ N(0, 10)
+    let mu = sample(Gaussian(0.0, 10.0));
+    
+    // Likelihood: x ~ N(mu, 1.0), observed x = 3.0
+    // Posterior should be near 3.0 (strong likelihood, weak prior)
+    // Precise posterior mean: (0*1 + 3*100) / (1 + 100) = 300 / 101 approx 2.97
+    observe(Gaussian(mu, 1.0), 3.0);
+}
+
+fn guide() {
+    // Variational Family: q(mu) = N(m, 1.0)
+    // We want to learn 'm'
+    let m = param("m", 0.0); // Initial guess 0.0
+    
+    // Sample mu from q
+    let mu = sample(Gaussian(m, 1.0));
+}
+
+fn test_vi_gaussian() {
+    println("=== Testing ADVI (Gaussian Mean) ===");
+    
+    // Config (empty for now, using defaults: 1000 iters, 0.01 lr)
+    let config = Map();
+    config.insert("iters", 2000);
+    config.insert("lr", 0.05);
+    
+    let result = infer_vi(config, model, guide);
+    
+    println("Inference Result:");
+    println(result);
+    
+    if (result.contains_key("m")) {
+         let m = result.get("m");
+         println("Estimated m: ");
+         println(m);
+         
+         if (m > 2.5) {
+             if (m < 3.5) {
+                 println("VI Test Passed!");
+             } else {
+                 println("Estimated m is too high");
+             }
+         } else {
+             println("Estimated m is too low");
+         }
+    } else {
+        println("Result does not contain 'm'");
+    }
+}
+
+fn main() {
+    test_vi_gaussian();
+}

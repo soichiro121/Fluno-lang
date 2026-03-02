@@ -1,0 +1,424 @@
+// =============================================================================
+// Flux言語 完全機能テスト
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 構造体定義（トップレベル）
+// -----------------------------------------------------------------------------
+struct Point {
+    x: Int,
+    y: Int
+}
+
+struct Person {
+    name: String,
+    age: Int
+}
+
+struct Rectangle {
+    width: Int,
+    height: Int
+}
+
+// -----------------------------------------------------------------------------
+// Test 1: 基本的な変数と算術演算
+// -----------------------------------------------------------------------------
+fn test_basic_arithmetic() {
+    println("=== Test 1: Basic Arithmetic ===");
+    
+    let a = 10;
+    let b = 3;
+    
+    let sum = a + b;
+    let diff = a - b;
+    let product = a * b;
+    let quotient = a / b;
+    let remainder = a % b;
+    
+    println("a =", a, ", b =", b);
+    println("sum:", sum);
+    println("difference:", diff);
+    println("product:", product);
+    println("quotient:", quotient);
+    println("remainder:", remainder);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 2: 浮動小数点演算
+// -----------------------------------------------------------------------------
+fn test_float_arithmetic() {
+    println("=== Test 2: Float Arithmetic ===");
+    
+    let pi = 3.14159;
+    let radius = 5.0;
+    let area = pi * radius * radius;
+    let circumference = 2.0 * pi * radius;
+    
+    println("pi:", pi);
+    println("radius:", radius);
+    println("area:", area);
+    println("circumference:", circumference);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 3: 論理演算と比較
+// -----------------------------------------------------------------------------
+fn test_logic_and_comparison() {
+    println("=== Test 3: Logic and Comparison ===");
+    
+    let x = 15;
+    let y = 20;
+    
+    let is_equal = x == y;
+    let is_not_equal = x != y;
+    let is_less = x < y;
+    let is_greater = x > y;
+    let is_less_or_equal = x <= y;
+    let is_greater_or_equal = x >= y;
+    
+    println("x:", x, ", y:", y);
+    println("x == y:", is_equal);
+    println("x != y:", is_not_equal);
+    println("x < y:", is_less);
+    println("x > y:", is_greater);
+    println("x <= y:", is_less_or_equal);
+    println("x >= y:", is_greater_or_equal);
+    
+    let a = true;
+    let b = false;
+    println("a && b:", a && b);
+    println("a || b:", a || b);
+    println("!a:", !a);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 4: if式
+// -----------------------------------------------------------------------------
+fn test_if_expression() {
+    println("=== Test 4: If Expression ===");
+    
+    let score = 85;
+    
+    if score >= 90 {
+        println("Grade: A");
+    } else if score >= 80 {
+        println("Grade: B");
+    } else if score >= 70 {
+        println("Grade: C");
+    } else if score >= 60 {
+        println("Grade: D");
+    } else {
+        println("Grade: F");
+    }
+    
+    let status = if score >= 60 {
+        "PASS"
+    } else {
+        "FAIL"
+    };
+    
+    println("Status:", status);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 5: while文
+// -----------------------------------------------------------------------------
+fn test_while_loop() {
+    println("=== Test 5: While Loop ===");
+    
+    let counter = 0;
+    let sum = 0;
+    
+    while counter < 5 {
+        println("counter:", counter);
+        sum = sum + counter;
+        counter = counter + 1;
+    }
+    
+    println("final sum:", sum);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 6: for文（配列イテレーション）
+// -----------------------------------------------------------------------------
+fn test_for_loop() {
+    println("=== Test 6: For Loop ===");
+    
+    let numbers = [10, 20, 30, 40, 50];
+    let total = 0;
+    
+    for num in numbers {
+        println("num:", num);
+        total = total + num;
+    }
+    
+    println("total:", total);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 7: break と continue
+// -----------------------------------------------------------------------------
+fn test_break_continue() {
+    println("=== Test 7: Break and Continue ===");
+    
+    let i = 0;
+    
+    while i < 10 {
+        if i == 3 {
+            println("Skipping", i);
+            i = i + 1;
+            continue;
+        }
+        
+        if i == 7 {
+            println("Breaking at", i);
+            break;
+        }
+        
+        println("i:", i);
+        i = i + 1;
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 8: 配列リテラルとインデックスアクセス
+// -----------------------------------------------------------------------------
+fn test_arrays() {
+    println("=== Test 8: Arrays ===");
+    
+    let arr = [1, 2, 3, 4, 5];
+    
+    println("array:", arr);
+    println("arr[0]:", arr[0]);
+    println("arr[2]:", arr[2]);
+    println("arr[4]:", arr[4]);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 9: タプルとインデックスアクセス
+// -----------------------------------------------------------------------------
+fn test_tuples() {
+    println("=== Test 9: Tuples ===");
+    
+    let person = (42, "Alice", true);
+    
+    println("tuple:", person);
+    println("age:", person[0]);
+    println("name:", person[1]);
+    println("active:", person[2]);
+    
+    let empty = ();
+    println("empty tuple:", empty);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 10: 構造体リテラルとフィールドアクセス
+// -----------------------------------------------------------------------------
+fn test_structs() {
+    println("=== Test 10: Structs ===");
+    
+    let p = Point { x: 10, y: 20 };
+    println("point.x:", p.x);
+    println("point.y:", p.y);
+    
+    let person = Person { name: "Bob", age: 30 };
+    println("person.name:", person.name);
+    println("person.age:", person.age);
+    
+    let rect = Rectangle { width: 100, height: 50 };
+    let area = rect.width * rect.height;
+    println("rectangle area:", area);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 11: match式
+// -----------------------------------------------------------------------------
+fn test_match() {
+    println("=== Test 11: Match Expression ===");
+    
+    let value = 2;
+    
+    match value {
+        1 => println("one"),
+        2 => println("two"),
+        3 => println("three"),
+        _ => println("other"),
+    }
+    
+    let status = 0;
+    match status {
+        0 => println("Success"),
+        _ => println("Error"),
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 12: 複合代入演算子
+// -----------------------------------------------------------------------------
+fn test_compound_assignment() {
+    println("=== Test 12: Compound Assignment ===");
+    
+    let x = 10;
+    println("initial x:", x);
+    
+    x = x + 5;
+    println("after += 5:", x);
+    
+    x = x - 3;
+    println("after -= 3:", x);
+    
+    x = x * 2;
+    println("after *= 2:", x);
+    
+    x = x / 4;
+    println("after /= 4:", x);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 13: 関数呼び出しと戻り値
+// -----------------------------------------------------------------------------
+fn add(a: Int, b: Int) -> Int {
+    return a + b;
+}
+
+fn multiply(x: Int, y: Int) -> Int {
+    return x * y;
+}
+
+fn is_even(n: Int) -> Bool {
+    return n % 2 == 0;
+}
+
+fn test_functions() {
+    println("=== Test 13: Functions ===");
+    
+    let sum = add(10, 20);
+    println("add(10, 20):", sum);
+    
+    let product = multiply(7, 8);
+    println("multiply(7, 8):", product);
+    
+    let even = is_even(42);
+    println("is_even(42):", even);
+    
+    let odd = is_even(17);
+    println("is_even(17):", odd);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 14: 再帰関数（階乗）
+// -----------------------------------------------------------------------------
+fn factorial(n: Int) -> Int {
+    if n <= 1 {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+fn test_recursion() {
+    println("=== Test 14: Recursion ===");
+    
+    let fact5 = factorial(5);
+    println("factorial(5):", fact5);
+    
+    let fact7 = factorial(7);
+    println("factorial(7):", fact7);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 15: ネストしたブロックとスコープ
+// -----------------------------------------------------------------------------
+fn test_scopes() {
+    println("=== Test 15: Scopes ===");
+    
+    let outer = 100;
+    println("outer:", outer);
+    
+    if true {
+        let inner = 200;
+        println("inner:", inner);
+        println("outer in block:", outer);
+    }
+    
+    println("outer after block:", outer);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 16: 文字列操作
+// -----------------------------------------------------------------------------
+fn test_strings() {
+    println("=== Test 16: Strings ===");
+    
+    let greeting = "Hello";
+    let name = "Flux";
+    
+    println(greeting, name);
+    println("Welcome to", name, "language!");
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 17: 複雑な式のネスト
+// -----------------------------------------------------------------------------
+fn test_complex_expressions() {
+    println("=== Test 17: Complex Expressions ===");
+    
+    let a = 5;
+    let b = 10;
+    let c = 15;
+    
+    let result = (a + b) * c - (a * b) / 2;
+    println("(a + b) * c - (a * b) / 2 =", result);
+    
+    let condition = (a < b) && (b < c) || (a == 5);
+    println("condition:", condition);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// メイン関数
+// -----------------------------------------------------------------------------
+fn main() {
+    println("╔══════════════════════════════════════════════╗");
+    println("║   Flux Language Complete Feature Test        ║");
+    println("╚══════════════════════════════════════════════╝");
+    println();
+    
+    test_basic_arithmetic();
+    test_float_arithmetic();
+    test_logic_and_comparison();
+    test_if_expression();
+    test_while_loop();
+    test_for_loop();
+    test_break_continue();
+    test_arrays();
+    test_tuples();
+    test_structs();
+    test_match();
+    test_compound_assignment();
+    test_functions();
+    test_recursion();
+    test_scopes();
+    test_strings();
+    test_complex_expressions();
+    
+    println("╔══════════════════════════════════════════════╗");
+    println("║        All Tests Completed Successfully!     ║");
+    println("╚══════════════════════════════════════════════╝");
+}

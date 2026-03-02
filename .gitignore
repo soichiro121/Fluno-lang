@@ -1,0 +1,63 @@
+# Rust / Cargo
+/target
+# Cargo.lock should be committed for applications to ensure reproducible builds
+# Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+/build
+/dist
+*.exe
+*.dll
+*.so
+*.dylib
+*.vsix
+
+# Testing
+/coverage
+*.profraw
+*.profdata
+
+# Logs
+*.log
+logs/
+build_*.txt
+check_log*.txt
+compile_error*.log
+errors*.txt
+errors.json
+
+# Temporary files / Scratch outputs
+tmp/
+temp/
+*.tmp
+pid_plot.png
+test_hmc_debug_output.txt
+test_*.txt
+/test_prob_build/
+/*.fln
+task.md
+
+
+# Documentation build
+/docs/_build
+/docs/target
+
+# Environment
+.env
+.env.local
+
+# Flux specific
+*.flux.out
+*.flux.ll
+*.flux.bc
+

@@ -1,0 +1,19 @@
+trait Drawable {
+    fn draw(self);
+}
+
+struct Circle {
+    radius: Int
+}
+
+impl Drawable for Circle {
+    fn draw(self) {
+        println("Drawing Circle with radius:");
+        println(self.radius);
+    }
+}
+
+fn main() {
+    let c = Circle { radius: 10 };
+    c.draw();
+}

@@ -1,0 +1,14 @@
+fn model() -> Float {
+    let mean = 5.0;
+    let std = 2.0;
+    let x = sample(Gaussian(mean, std));
+    observe(Gaussian(10.0, 1.0), x);
+    x
+}
+
+fn main() {
+    let config = Map();
+    let samples = infer_hmc(config, model);
+    println("Native HMC Samples collected:");
+    println(samples.len());
+}

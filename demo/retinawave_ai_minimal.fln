@@ -1,0 +1,131 @@
+// demo/retinawave_ai_minimal.fln
+// Minimal repro
+
+// --- Core Polyfills ---
+fn new_signal(val: Float) -> Signal<Float> { Signal_new(val) }
+fn signal_get(s: Signal<Float>) -> Float { Signal_get(s) }
+fn signal_set(s: Signal<Float>, val: Float) { Signal_set(s, val) }
+fn float_abs(x: Float) -> Float { if x < 0.0 { 0.0 - x } else { x } }
+fn float_cos(x: Float) -> Float { cos(x) } 
+
+// --- Neuro Library ---
+struct NeuroNode {
+    phase: Signal<Float>,
+    memory_phase: Signal<Float>, // Memorized pattern (eigenfrequency)
+    coherence: Signal<Float>    // Current coherence (resonance strength)
+}
+
+fn create_neuron(init_p: Float) -> NeuroNode {
+    NeuroNode {
+        phase: new_signal(init_p),
+        memory_phase: new_signal(0.0),
+        coherence: new_signal(0.0)
+    }
+}
+
+impl NeuroNode {
+    fn learn(self) {
+        let current = signal_get(self.phase);
+        signal_set(self.memory_phase, current);
+    }
+
+    fn receive_input(self, input_phase: Float) {
+        let current = signal_get(self.phase);
+        let memory = signal_get(self.memory_phase);
+        
+        // Simple implementation
+        let diff = float_abs(input_phase - memory);
+        let score = 1.0 - (diff / 3.14159); 
+        if score < 0.0 { score = 0.0; }
+        
+        signal_set(self.coherence, score);
+        signal_set(self.phase, input_phase); 
+    }
+    
+    fn get_coherence(self) -> Float {
+        signal_get(self.coherence)
+    }
+}
+
+struct Retina {
+    width: Int,
+    height: Int,
+    nodes: Array<Any>
+}
+
+fn create_retina(w: Int, h: Int) -> Retina {
+    let mut nodes = [];
+    let count = w * h;
+    let i = 0;
+    while i < count {
+        nodes = nodes.push(create_neuron(0.0));
+        i = i + 1;
+    }
+    Retina { width: w, height: h, nodes: nodes }
+}
+
+impl Retina {
+    fn input_image(self, image_data: Array<Float>) {
+        let n = image_data.len();
+        let i = 0;
+        while i < n {
+            let brightness = image_data[i];
+            let phase = brightness * 3.14159;
+            let node: NeuroNode = self.nodes[i];
+            node.receive_input(phase);
+            i = i + 1;
+        }
+    }
+
+    fn memorize_current(self) {
+        let n = self.nodes.len();
+        let i = 0;
+        while i < n {
+            let node: NeuroNode = self.nodes[i];
+            node.learn();
+            i = i + 1;
+        }
+    }
+
+    fn get_total_resonance(self) -> Float {
+        let total = 0.0;
+        let count = self.nodes.len();
+        let i = 0;
+        while i < count {
+            let node: NeuroNode = self.nodes[i];
+            total = total + node.get_coherence();
+            i = i + 1;
+        }
+        let avg = total / (count * 1.0);
+        avg
+    }
+}
+
+fn main() {
+    let W = 5;
+    let H = 5;
+    let retina = create_retina(W, H);
+
+    println("Visualization Start");
+    
+    let y_v = 0;
+    while y_v < H {
+        let row_str = "";
+        let x_v = 0;
+        while x_v < W {
+            let idx = y_v * W + x_v;
+            let node: NeuroNode = retina.nodes[idx];
+            let coh = node.get_coherence();
+            
+            if coh > 0.9 {
+                row_str = row_str + " # ";
+            } else {
+                row_str = row_str + " . ";
+            }
+            x_v = x_v + 1;
+        }
+        println(row_str);
+        y_v = y_v + 1;
+    }
+    println("Done");
+}

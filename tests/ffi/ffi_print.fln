@@ -1,0 +1,12 @@
+
+#[link(name = "c:/Users/froms/Desktop/Flux-main/fluno-rt/target/release/fluno_rt.dll")]
+extern "C" {
+    fn fluno_print(msg: String) -> ();
+}
+
+fn main() {
+    println("Starting FFI Print Test...");
+    let msg = "Hello from Flux via FFI!";
+    fluno_print(msg);
+    println("FFI Print complete.");
+}

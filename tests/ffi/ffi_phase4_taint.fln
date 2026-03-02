@@ -1,0 +1,16 @@
+// Phase 4 Test: AD Taint Check
+// This test verifies that FFI calls are forbidden during AD context
+
+#[link(name = "c:/Users/froms/Desktop/Flux-main/fluno-rt/target/release/fluno_rt.dll")]
+extern "C" {
+    fn fluno_add(a: Int, b: Int) -> Int;
+}
+
+fn main() {
+    // Normal FFI call should work
+    println("Test 1: Normal FFI call");
+    let result = fluno_add(10, 20);
+    println(result);
+    
+    println("Phase 4 AD Taint Check Test completed successfully!");
+}

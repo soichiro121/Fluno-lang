@@ -1,0 +1,29 @@
+enum Color {
+    Red,
+    Green,
+    Blue,
+    RGB(Int, Int, Int)
+}
+
+fn main() {
+    println("Testing Enums...");
+    let c = Color::Red;
+    
+    match c {
+        Color::Red => println("It is Red!"),
+        Color::Green => println("It is Green!"),
+        _ => println("Other color"),
+    }
+
+    let rgb = Color::RGB(100, 200, 50);
+
+    match rgb {
+        Color::RGB(r, g, b) => {
+             println("RGB Color:");
+             println(r.to_string());
+             println(g.to_string());
+             println(b.to_string());
+        },
+        _ => println("Not RGB"),
+    }
+}

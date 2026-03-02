@@ -1,0 +1,46 @@
+// tests/hmc_inference_test.fluno
+
+fn model() -> Float {
+    let mu = Gaussian(0.0, 10.0).sample();
+    observe(Gaussian(mu, 1.0), 3.0);
+    return mu;
+}
+
+fn main() {
+    println("--- HMC Inference Test ---");
+    
+    // サンプリング設定
+    // infer(samples: Int, model: fn)
+    // 内部でHMCが走るように実装されている前提
+    // サンプル数: 500
+    let samples = infer(500, model);
+    
+    println("Inference finished.");
+    println("Number of samples: ");
+    println(samples.len());
+    
+    // 結果の集計 (平均値を計算)
+    let sum = 0.0;
+    for s in samples {
+        // sampleの実装によるが、今回はValueそのものが返ると仮定
+        // あるいは {value: ..., weight: ...} 構造体なら s.value を使う
+        // 現状の実装案では Value::Float などを返しているのでそのまま足す
+        sum = sum + s; 
+    }
+    
+    let mean = sum / samples.len();
+    
+    println("Posterior Mean (Expected ~3.0):");
+    println(mean);
+    
+    // 簡易アサーション
+    if (mean > 2.5) {
+        if (mean < 3.5) {
+            println("Test Passed!");
+        } else {
+            println("Test Failed: Mean too high");
+        }
+    } else {
+        println("Test Failed: Mean too low");
+    }
+}

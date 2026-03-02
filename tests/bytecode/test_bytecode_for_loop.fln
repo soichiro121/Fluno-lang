@@ -1,0 +1,14 @@
+fn main() {
+    let mut sum = 0;
+    for i in 0..5 {
+        sum = sum + i;
+    }
+    print(sum);
+
+    let arr = [10, 20, 30];
+    let mut sum2 = 0;
+    for x in arr {
+        sum2 = sum2 + x;
+    }
+    print(sum2);
+}

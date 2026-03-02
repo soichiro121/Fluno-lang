@@ -1,0 +1,31 @@
+// tests/test_vi_debug.fln
+// Variational Inference (ADVI) Test with Debug
+
+fn model() {
+    println("Model Running");
+   let mu = sample(Gaussian(0.0, 10.0));
+    observe(Gaussian(mu, 1.0), 3.0);
+}
+
+fn guide() {
+    let m = param("m", 0.0);
+    println("Guide: m =");
+    println(m);
+    let mu = sample(Gaussian(m, 1.0));
+}
+
+fn test_vi_debug() {
+    println("=== Testing ADVI with Debug ===");
+    
+    let config = Map();
+    config.insert("iters", 10);  // Only 10 iterations for quick test
+    
+    let result = infer_vi(config, model, guide);
+    
+    println("Final Result:");
+    println(result);
+}
+
+fn main() {
+    test_vi_debug();
+}

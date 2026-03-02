@@ -1,0 +1,140 @@
+// demo/semantic_epiphany.fln
+// WGI Semantic Resonance: Meaning-based Epiphany
+
+// --- 1. System IO & Math ---
+fn float_abs(x: Float) -> Float { if x < 0.0 { 0.0 - x } else { x } }
+fn float_cos(x: Float) -> Float { cos(x) }
+fn float_sqrt(x: Float) -> Float { sqrt(x) }
+
+// --- 2. Core Polyfills ---
+fn new_signal(val: Float) -> Signal<Float> { Signal_new(val) }
+fn signal_get(s: Signal<Float>) -> Float { Signal_get(s) }
+fn signal_set(s: Signal<Float>, val: Float) { Signal_set(s, val) }
+
+// --- 3. Semantic Neuron (Meanings) ---
+struct Concept {
+    name: String,
+    vector: Array<Float>, // 5次元の意味ベクトル
+    state: Signal<Float>
+}
+
+fn create_concept(name: String, v: Array<Float>) -> Concept {
+    Concept {
+        name: name,
+        vector: v,
+        state: new_signal(0.0)
+    }
+}
+
+// --- 4. Resonance Engine (High-Dimensional Interference) ---
+fn check_semantic_resonance(c1: Concept, c2: Concept) {
+    println("\n--- Thinking about: [" + c1.name + "] & [" + c2.name + "] ---");
+    
+    // 意味ベクトルの内積（コサイン類似度）を計算
+    // これが「波の干渉度」になる
+    let dot = 0.0;
+    let mag1 = 0.0;
+    let mag2 = 0.0;
+    
+    let dim = 5; // 5次元空間
+    let i = 0;
+    while i < dim {
+        let val1 = c1.vector[i];
+        let val2 = c2.vector[i];
+        
+        dot = dot + (val1 * val2);
+        mag1 = mag1 + (val1 * val1);
+        mag2 = mag2 + (val2 * val2);
+        
+        i = i + 1;
+    }
+    
+    // コサイン類似度 (-1.0 ~ 1.0)
+    // 1.0に近いほど「意味が同じ（同位相）」
+    // 0.0に近いほど「無関係（直交）」
+    // -1.0に近いほど「反対の意味（逆位相）」
+    let similarity = 0.0;
+    if (mag1 * mag2) > 0.0 {
+        similarity = dot / (float_sqrt(mag1) * float_sqrt(mag2));
+    }
+    
+    println("Semantic Similarity: " + similarity);
+    
+    // --- Simulation Phase ---
+    // 時間経過とともに「気づき」が深まるシミュレーション
+    // 類似度が高いほど、共鳴エネルギーが早く蓄積する
+    
+    let t = 0;
+    let stability = 0.0;
+    let threshold = 3.0; // ひらめきの閾値
+    
+    // 思考ループ
+    while t < 50 {
+        // 波のエネルギー計算
+        // 類似度が高いと常にプラスの干渉が起きる
+        // 類似度が低いとノイズ（ランダムな干渉）しか起きない
+        
+        // WGI的解釈: 類似度を「駆動力」として積分する
+        // 0.5以下なら「違和感」として減衰させる（厳しいフィルタ）
+        let drive = 0.0;
+        if similarity > 0.6 {
+            drive = (similarity - 0.5) * 0.5; // プラスの力
+        } else {
+            drive = -0.1; // マイナスの力（忘却）
+        }
+        
+        stability = stability + drive;
+        if stability < 0.0 { stability = 0.0; }
+        
+        // 可視化
+        if (t % 10) == 0 {
+            // println("t=" + t + " Stability=" + stability);
+        }
+        
+        // 発火判定
+        if stability > threshold {
+            println(">>> SPIKE! Epiphany Reached at t=" + t + " <<<");
+            println("    (Deep Connection Found!)");
+            t = 100; // 脱出
+        }
+        
+        t = t + 1;
+    }
+    
+    println("--- Result ---");
+    if t > 60 {
+        println("Output: '" + c1.name + "' and '" + c2.name + "' are conceptually LINKED.");
+    } else {
+        println("Output: No resonance. Just random thoughts.");
+    }
+}
+
+// --- 5. Main ---
+fn main() {
+    println("Initializing Semantic Space (5-Dimensions)...");
+    // 属性: [生物性, 大きさ, 抽象度, ポジティブ, 複雑さ] (0.0 ~ 1.0)
+    
+    // ケース1: 全く違うもの
+    // Apple: 生物=1, 小さい=0.2, 具体=0.1, 良=0.8, 単純=0.3
+    let apple = create_concept("Apple", [1.0, 0.2, 0.1, 0.8, 0.3]);
+    // Car: 無機物=0, 大きい=0.8, 具体=0.1, 良=0.6, 複雑=0.9
+    let car = create_concept("Car", [0.0, 0.8, 0.1, 0.6, 0.9]);
+    
+    check_semantic_resonance(apple, car);
+    
+    // ケース2: 似ているもの (スペルは違う)
+    // Fruit: 生物=1, 小さい=0.3, 概念=0.5, 良=0.8, 単純=0.4
+    // Appleとベクトルが近い！
+    let fruit = create_concept("Fruit", [1.0, 0.3, 0.5, 0.8, 0.4]);
+    
+    check_semantic_resonance(apple, fruit);
+    
+    // ケース3: 抽象的なつながり (AIと意識)
+    // AI: 無機物=0.1, 無限=0.9, 抽象=0.9, 中立=0.5, 超複雑=1.0
+    let ai = create_concept("AI", [0.1, 0.9, 0.9, 0.5, 1.0]);
+    // Consciousness: 生物=0.8, 無限=0.9, 抽象=1.0, 良=0.7, 超複雑=1.0
+    // 「大きさ」「抽象度」「複雑さ」が高い次元で一致している！
+    let consciousness = create_concept("Consciousness", [0.8, 0.9, 1.0, 0.7, 1.0]);
+    
+    check_semantic_resonance(ai, consciousness);
+}

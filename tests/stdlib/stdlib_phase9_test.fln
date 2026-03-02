@@ -1,0 +1,56 @@
+
+#[link(name = "fluno_rt.dll")]
+extern "C" {
+    fn fluno_http_get(url: String) -> String;
+    fn fluno_net_connect(addr: String) -> Int;
+    fn fluno_net_write(handle: Int, data: String) -> Int;
+    fn fluno_net_read_all(handle: Int) -> String;
+    fn fluno_net_close(handle: Int) -> Unit;
+}
+
+fn main() {
+    println("Starting Phase 9 Test (Network)...");
+    
+    // HTTP Client (ureq)
+    println("Testing HTTP GET (ureq)...");
+    let response = fluno_http_get("http://example.com");
+    if response.len() > 0 && response.contains("Example Domain") {
+        println("PASS: HTTP GET success. Body length: " + response.len());
+    } else {
+        println("FAIL: HTTP GET failed or unexpected content.");
+        if response.len() > 0 {
+             // Just show a bit
+             // No slice method yet? String slice method might be needed.
+             // But we can check contains logic.
+             println("FAIL: Response was not empty but missing keyword.");
+        }
+    }
+
+    println("Testing TCP Client (Manual HTTP)...");
+    // Connect to example.com:80
+    let handle = fluno_net_connect("example.com:80");
+    if handle > 0 {
+        println("Connected to example.com:80, handle=" + handle);
+        
+        // Send HTTP GET manually
+        let req = "GET / HTTP/1.0\r\nHost: example.com\r\n\r\n";
+        let sent_bytes = fluno_net_write(handle, req);
+        println("Sent bytes: " + sent_bytes);
+        
+        // Read response
+        let raw_resp = fluno_net_read_all(handle);
+        println("Received bytes: " + raw_resp.len());
+        
+        if raw_resp.contains("HTTP/1.") {
+            println("PASS: TCP Recv valid HTTP response");
+        } else {
+            println("FAIL: TCP Recv content invalid");
+        }
+
+        fluno_net_close(handle);
+    } else {
+        // Network might fail in controlled environment
+        println("FAIL: Failed to connect to example.com:80");
+        // Don't treat as hard failure if offline
+    }
+}

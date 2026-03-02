@@ -1,0 +1,20 @@
+struct Point {
+    x, y
+}
+
+enum Shape {
+    Circle(r),
+    Rectangle(w, h)
+}
+
+fn main() {
+    let p = Point(10, 20);
+    print(p.x);
+    print(p.y);
+
+    let c = Shape::Circle(5);
+    match c {
+        Shape::Circle(r) => print(r),
+        Shape::Rectangle(w, h) => print(w + h)
+    }
+}

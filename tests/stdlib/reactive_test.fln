@@ -1,0 +1,77 @@
+// tests/reactive_test.flux (修正版)
+
+fn assert(cond: Bool, msg: String) {
+    if cond {
+        // println("PASS: ", msg);
+    } else {
+        println("FAIL: ", msg);
+    }
+}
+
+fn main() {
+    println("=== Reactive Programming (Signal) Test ===");
+
+    // 1. Basic Signal Creation
+    println("--- 1. Signal Creation & Get ---");
+    // Signal::new -> Signal_new
+    let s1 = Signal_new(10);
+    let v1 = Signal_get(s1);
+    println("s1 initial: ", v1);
+    assert(v1 == 10, "Initial value correct");
+
+    // 2. Signal Map (Dependency)
+    println("--- 2. Signal Map ---");
+    // Signal::map -> Signal_map
+    // クロージャの構文: |x| x*2 (波括弧なしの式本体もサポートされているはずですが、念のためブロックで)
+    let s2 = Signal_map(s1, |x| { x * 2 });
+    let v2 = Signal_get(s2);
+    println("s2 (s1 * 2): ", v2);
+    assert(v2 == 20, "Mapped value correct");
+
+    // 3. Propagation (Set)
+    println("--- 3. Propagation ---");
+    // Signal::set -> Signal_set
+    Signal_set(s1, 20); // s1: 10 -> 20
+    // s2 should update to 40 automatically
+    let v1_new = Signal_get(s1);
+    let v2_new = Signal_get(s2);
+    println("s1 updated: ", v1_new);
+    println("s2 updated: ", v2_new);
+    
+    assert(v1_new == 20, "Source signal updated");
+    assert(v2_new == 40, "Dependent signal propagated");
+
+    // 4. Combine (Multiple Dependencies)
+    println("--- 4. Combine ---");
+    let sa = Signal_new(1.0);
+    let sb = Signal_new(2.0);
+    // Signal::combine -> Signal_combine
+    let sc = Signal_combine(sa, sb, |a, b| { a + b });
+    
+    let val_c = Signal_get(sc);
+    println("sc (sa + sb): ", val_c);
+    assert(val_c == 3.0, "Combined value correct");
+    
+    Signal_set(sa, 10.0);
+    let val_c_new = Signal_get(sc);
+    println("sc updated (10 + 2): ", val_c_new);
+    assert(val_c_new == 12.0, "Combined propagation correct");
+
+    // 5. Diamond Graph (Glitch Freedom Check)
+    println("--- 5. Diamond Dependency ---");
+    let root = Signal_new(1);
+    let left = Signal_map(root, |x| { x + 1 });
+    let right = Signal_map(root, |x| { x * 10 });
+    
+    let node = Signal_combine(left, right, |l, r| { l + r });
+    
+    assert(Signal_get(node) == 12, "Diamond initial correct");
+    
+    Signal_set(root, 2);
+    let diamond_val = Signal_get(node);
+    println("Diamond updated: ", diamond_val);
+    // B=3, C=20 -> D=23
+    assert(diamond_val == 23, "Diamond propagation correct");
+
+    println("=== Reactive Tests Completed ===");
+}

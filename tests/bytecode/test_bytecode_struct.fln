@@ -1,0 +1,31 @@
+
+struct Point {
+    x: Int,
+    y: Int
+}
+
+struct Rect {
+    top_left: Point,
+    bottom_right: Point
+}
+
+fn main() {
+    let p = Point { x: 10, y: 20 };
+    print(p.x);
+    print(p.y);
+    
+    let opt = Some(42);
+    // print(opt); 
+    
+    let r = Rect { 
+        top_left: p, 
+        bottom_right: Point { x: 30, y: 40 } 
+    };
+    print(r.top_left.x);
+    print(r.bottom_right.y);
+    
+    // Check if Option works (MakeEnum)
+    let n = None;
+    // We can't easily assert equality in script without Eq impl for Enum, 
+    // but if it runs without crashing, that's a good sign.
+}

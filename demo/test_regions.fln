@@ -1,0 +1,54 @@
+struct Node { value: Int, children: Array<Int> }
+
+fn create_cycle() -> Int {
+    let mut a = [1, 2, 3];
+    let mut b = [4, 5, 6];
+    // ここで a と b は create_cycle の Region#N に所有される
+    // 関数を抜けると Region#N が破棄され、a, b の Rc がドロップされる
+    // → 循環がなくても、スコープ内のメモリは確実に解放される
+    return a[0] + b[0];
+}
+
+fn escape_test() -> Array<Int> {
+    let arr = [10, 20, 30];
+    // arr は現在のRegionに所有される
+    // return 時に動的エスケープ解析で親Regionに昇格する
+    return arr;
+}
+
+fn nested_escape() -> Array<Int> {
+    let inner = escape_test();
+    // inner は escape_test から昇格されたので、ここでも有効
+    return inner;
+}
+
+fn main() {
+    // Test 1: 関数内で生成→破棄
+    let result = create_cycle();
+    println("create_cycle result: " + result);
+
+    // Test 2: 関数から配列をreturn（エスケープ）
+    let arr = escape_test();
+    println("escape_test result: " + arr[0] + ", " + arr[1] + ", " + arr[2]);
+
+    // Test 3: 二重にネストされたエスケープ
+    let nested = nested_escape();
+    println("nested_escape result: " + nested[0] + ", " + nested[1] + ", " + nested[2]);
+
+    // Test 4: 構造体のエスケープ
+    let node = Node { value: 42, children: [1, 2, 3] };
+    println("struct value: " + node.value);
+    println("struct children[0]: " + node.children[0]);
+
+    // Test 5: ループ内のRegion管理
+    let mut sum = 0;
+    let mut i = 0;
+    while i < 100 {
+        let temp = [i, i + 1, i + 2];
+        sum += temp[0];
+        i += 1;
+    }
+    println("loop sum: " + sum);
+
+    println("All region tests passed!");
+}

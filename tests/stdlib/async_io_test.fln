@@ -1,0 +1,24 @@
+struct AsyncRead {}
+
+#[link(name = "fluno_rt")]
+extern "C" {
+    fn fluno_fs_read_async(path: String) -> Int;
+    fn to_future(i: Int) -> Handle<AsyncRead>;
+    fn wait_future(h: Handle<AsyncRead>) -> String;
+}
+
+fn read_file_async(path: String) -> Handle<AsyncRead> {
+    let id = fluno_fs_read_async(path);
+    to_future(id)
+}
+
+fn main() {
+    println("Start Async Read");
+    let h = read_file_async("Cargo.toml");
+    println("Task Started, waiting...");
+    
+    let content = wait_future(h);
+    
+    println("File Read Complete.");
+    println("Content Preview: " + content);
+}

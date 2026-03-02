@@ -1,0 +1,36 @@
+fn model() {
+}
+
+fn guide() {
+    let log_a = param("log_a", 0.0);
+    let log_b = param("log_b", 0.0);
+    
+    let a = exp(log_a);
+    let b = exp(log_b);
+    
+    let x = sample(Beta(a, b));
+    
+    observe(Gaussian(x, 0.1), 0.8);
+}
+
+fn main() {
+    let opts = Map();
+    opts.insert("optimizer", "adam");
+    opts.insert("lr", 0.01);
+    opts.insert("num_iters", 500);
+
+    let res = infer_vi(opts, model, guide);
+
+    let final_log_a = res.get("log_a");
+    let final_log_b = res.get("log_b");
+    let final_a = exp(final_log_a);
+    let final_b = exp(final_log_b);
+    let mean = final_a / (final_a + final_b);
+
+    print("Final a: ");
+    println(final_a);
+    print("Final b: ");
+    println(final_b);
+    print("Final Mean: ");
+    println(mean);
+}

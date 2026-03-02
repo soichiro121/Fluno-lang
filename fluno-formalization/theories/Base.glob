@@ -1,0 +1,101 @@
+DIGEST 5be73d71126fb2193638823d6541ff1a
+FFlux.Base
+R252:262 Coq.Arith.Arith <> <> lib
+R289:297 Coq.Bool.Bool <> <> lib
+R324:333 Coq.Lists.List <> <> lib
+R360:373 Coq.Strings.String <> <> lib
+R400:429 Coq.Logic.FunctionalExtensionality <> <> lib
+R456:458 Coq.micromega.Lia <> <> lib
+R468:480 Coq.Lists.List ListNotations <> mod
+def 716:717 <> id
+R722:724 Coq.Init.Datatypes <> nat ind
+def 739:744 <> beq_id
+R753:754 Flux.Base <> id def
+binder 747:747 <> x:1
+binder 749:749 <> y:2
+R759:762 Coq.Init.Datatypes <> bool ind
+R767:773 Coq.Arith.PeanoNat Nat eqb def
+R775:775 Flux.Base <> x:1 var
+R777:777 Flux.Base <> y:2 var
+prf 789:799 <> beq_id_refl
+binder 810:810 <> x:3
+R823:825 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R813:818 Flux.Base <> beq_id def
+R820:820 Flux.Base <> x:3 var
+R822:822 Flux.Base <> x:3 var
+R826:829 Coq.Init.Datatypes <> true constr
+R854:859 Flux.Base <> beq_id def
+R868:879 Coq.Arith.PeanoNat Nat eqb_refl thm
+R868:879 Coq.Arith.PeanoNat Nat eqb_refl thm
+prf 896:910 <> beq_id_true_iff
+binder 921:921 <> x:4
+binder 923:923 <> y:5
+R945:949 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R938:940 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R928:933 Flux.Base <> beq_id def
+R935:935 Flux.Base <> x:4 var
+R937:937 Flux.Base <> y:5 var
+R941:944 Coq.Init.Datatypes <> true constr
+R951:953 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R950:950 Flux.Base <> x:4 var
+R954:954 Flux.Base <> y:5 var
+R981:986 Flux.Base <> beq_id def
+R999:1008 Coq.Arith.PeanoNat Nat eqb_eq thm
+R999:1008 Coq.Arith.PeanoNat Nat eqb_eq thm
+R999:1008 Coq.Arith.PeanoNat Nat eqb_eq thm
+prf 1038:1053 <> beq_id_false_iff
+binder 1064:1064 <> x:6
+binder 1066:1066 <> y:7
+R1089:1093 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R1081:1083 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1071:1076 Flux.Base <> beq_id def
+R1078:1078 Flux.Base <> x:6 var
+R1080:1080 Flux.Base <> y:7 var
+R1084:1088 Coq.Init.Datatypes <> false constr
+R1095:1098 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R1094:1094 Flux.Base <> x:6 var
+R1099:1099 Flux.Base <> y:7 var
+R1126:1131 Flux.Base <> beq_id def
+R1144:1154 Coq.Arith.PeanoNat Nat eqb_neq thm
+R1144:1154 Coq.Arith.PeanoNat Nat eqb_neq thm
+R1144:1154 Coq.Arith.PeanoNat Nat eqb_neq thm
+prf 1184:1192 <> eq_id_dec
+R1209:1210 Flux.Base <> id def
+binder 1203:1203 <> x:8
+binder 1205:1205 <> y:9
+R1213:1213 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R1219:1223 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R1230:1230 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R1215:1217 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1214:1214 Flux.Base <> x:8 var
+R1218:1218 Flux.Base <> y:9 var
+R1225:1228 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R1224:1224 Flux.Base <> x:8 var
+R1229:1229 Flux.Base <> y:9 var
+R1260:1269 Coq.Arith.PeanoNat Nat eq_dec thm
+R1260:1269 Coq.Arith.PeanoNat Nat eq_dec thm
+def 1976:1979 <> Time
+R1984:1986 Coq.Init.Datatypes <> nat ind
+ind 2310:2315 <> result
+constr 2344:2345 <> Ok
+constr 2369:2373 <> Error
+binder 2318:2318 <> A:10
+binder 2320:2320 <> E:11
+R2350:2353 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2349:2349 Flux.Base <> A:10 var
+R2354:2359 Flux.Base <> result:12 ind
+R2363:2363 Flux.Base <> E:11 var
+R2361:2361 Flux.Base <> A:10 var
+R2378:2381 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2377:2377 Flux.Base <> E:11 var
+R2382:2387 Flux.Base <> result:12 ind
+R2391:2391 Flux.Base <> E:11 var
+R2389:2389 Flux.Base <> A:10 var
+scheme 2310:2315 <> result_rect
+scheme 2310:2315 <> result_ind
+scheme 2310:2315 <> result_rec
+scheme 2310:2315 <> result_sind
+R2405:2406 Flux.Base <> Ok constr
+R2405:2406 Flux.Base <> Ok constr
+R2425:2429 Flux.Base <> Error constr
+R2425:2429 Flux.Base <> Error constr

@@ -1,0 +1,215 @@
+DIGEST 48acdfa9f099bafcb35c1b86dbe37a41
+FFlux.Soundness
+R250:253 Flux.Base <> <> lib
+R255:260 Flux.Syntax <> <> lib
+R262:267 Flux.Typing <> <> lib
+R269:277 Flux.Semantics <> <> lib
+prf 510:528 <> canonical_forms_int
+binder 539:539 <> t:1
+R562:567 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R547:551 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R553:557 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R544:546 Coq.Init.Datatypes <> nil constr
+R552:552 Flux.Soundness <> t:1 var
+R558:561 Flux.Syntax <> TInt constr
+R575:580 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R568:572 Flux.Syntax <> value ind
+R574:574 Flux.Soundness <> t:1 var
+R581:587 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R589:590 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 588:588 <> n:2
+R592:594 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R591:591 Flux.Soundness <> t:1 var
+R595:600 Flux.Syntax <> tm_int constr
+R602:602 Flux.Soundness <> n:2 var
+prf 715:735 <> canonical_forms_float
+binder 746:746 <> t:3
+R771:776 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R754:758 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R760:764 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R751:753 Coq.Init.Datatypes <> nil constr
+R759:759 Flux.Soundness <> t:3 var
+R765:770 Flux.Syntax <> TFloat constr
+R784:789 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R777:781 Flux.Syntax <> value ind
+R783:783 Flux.Soundness <> t:3 var
+R790:796 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R798:799 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 797:797 <> r:4
+R801:803 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R800:800 Flux.Soundness <> t:3 var
+R804:811 Flux.Syntax <> tm_float constr
+R813:813 Flux.Soundness <> r:4 var
+prf 926:945 <> canonical_forms_bool
+binder 956:956 <> t:5
+R980:985 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R964:968 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R970:974 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R961:963 Coq.Init.Datatypes <> nil constr
+R969:969 Flux.Soundness <> t:5 var
+R975:979 Flux.Syntax <> TBool constr
+R993:998 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R986:990 Flux.Syntax <> value ind
+R992:992 Flux.Soundness <> t:5 var
+R999:1005 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R1007:1008 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 1006:1006 <> b:6
+R1010:1012 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1009:1009 Flux.Soundness <> t:5 var
+R1013:1019 Flux.Syntax <> tm_bool constr
+R1021:1021 Flux.Soundness <> b:6 var
+prf 1134:1157 <> canonical_forms_gaussian
+binder 1168:1168 <> t:7
+R1196:1201 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1176:1180 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1182:1186 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1173:1175 Coq.Init.Datatypes <> nil constr
+R1181:1181 Flux.Soundness <> t:7 var
+R1187:1195 Flux.Syntax <> TGaussian constr
+R1209:1214 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1202:1206 Flux.Syntax <> value ind
+R1208:1208 Flux.Soundness <> t:7 var
+R1215:1221 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R1225:1226 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 1222:1222 <> m:8
+binder 1224:1224 <> s:9
+R1228:1230 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1227:1227 Flux.Soundness <> t:7 var
+R1231:1241 Flux.Syntax <> tm_gaussian constr
+R1243:1243 Flux.Soundness <> m:8 var
+R1245:1245 Flux.Soundness <> s:9 var
+prf 1361:1379 <> canonical_forms_fun
+binder 1390:1390 <> t:10
+binder 1392:1393 <> T1:11
+binder 1395:1396 <> T2:12
+R1425:1430 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1404:1408 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1410:1414 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1401:1403 Coq.Init.Datatypes <> nil constr
+R1409:1409 Flux.Soundness <> t:10 var
+R1415:1418 Flux.Syntax <> TFun constr
+R1420:1421 Flux.Soundness <> T1:11 var
+R1423:1424 Flux.Soundness <> T2:12 var
+R1438:1443 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1431:1435 Flux.Syntax <> value ind
+R1437:1437 Flux.Soundness <> t:10 var
+R1444:1450 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R1457:1458 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 1451:1451 <> x:13
+binder 1453:1456 <> body:14
+R1460:1462 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1459:1459 Flux.Soundness <> t:10 var
+R1463:1468 Flux.Syntax <> tm_abs constr
+R1470:1470 Flux.Soundness <> x:13 var
+R1472:1473 Flux.Soundness <> T1:11 var
+R1475:1478 Flux.Soundness <> body:14 var
+prf 1601:1620 <> canonical_forms_unit
+binder 1631:1631 <> t:15
+R1655:1660 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1639:1643 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1645:1649 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R1636:1638 Coq.Init.Datatypes <> nil constr
+R1644:1644 Flux.Soundness <> t:15 var
+R1650:1654 Flux.Syntax <> TUnit constr
+R1668:1673 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1661:1665 Flux.Syntax <> value ind
+R1667:1667 Flux.Soundness <> t:15 var
+R1675:1677 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1674:1674 Flux.Soundness <> t:15 var
+R1678:1684 Flux.Syntax <> tm_unit constr
+prf 2012:2019 <> progress
+binder 2030:2030 <> t:16
+binder 2032:2032 <> T:17
+R2052:2057 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2040:2044 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2046:2050 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2037:2039 Coq.Init.Datatypes <> nil constr
+R2045:2045 Flux.Soundness <> t:16 var
+R2051:2051 Flux.Soundness <> T:17 var
+R2065:2068 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R2058:2062 Flux.Syntax <> value ind
+R2064:2064 Flux.Soundness <> t:16 var
+R2069:2075 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2078:2079 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 2076:2077 <> t':18
+R2081:2085 Flux.Semantics <> :::x_'-->'_x not
+R2080:2080 Flux.Soundness <> t:16 var
+R2086:2087 Flux.Soundness <> t':18 var
+prf 2348:2359 <> preservation
+binder 2370:2370 <> t:19
+binder 2372:2373 <> t':20
+binder 2375:2375 <> T:21
+R2395:2400 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2383:2387 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2389:2393 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2380:2382 Coq.Init.Datatypes <> nil constr
+R2388:2388 Flux.Soundness <> t:19 var
+R2394:2394 Flux.Soundness <> T:21 var
+R2409:2414 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2402:2406 Flux.Semantics <> :::x_'-->'_x not
+R2401:2401 Flux.Soundness <> t:19 var
+R2407:2408 Flux.Soundness <> t':20 var
+R2418:2422 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2425:2429 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2415:2417 Coq.Init.Datatypes <> nil constr
+R2423:2424 Flux.Soundness <> t':20 var
+R2430:2430 Flux.Soundness <> T:21 var
+def 2694:2704 <> normal_form
+binder 2707:2707 <> X:22
+R2723:2726 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2722:2722 Flux.Soundness <> X:22 var
+R2728:2731 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2727:2727 Flux.Soundness <> X:22 var
+binder 2718:2718 <> R:23
+R2743:2743 Flux.Soundness <> X:22 var
+binder 2739:2739 <> t:24
+R2758:2759 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2760:2766 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2769:2770 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 2767:2768 <> t':25
+R2771:2771 Flux.Soundness <> R:23 var
+R2775:2776 Flux.Soundness <> t':25 var
+R2773:2773 Flux.Soundness <> t:24 var
+def 2791:2795 <> stuck
+R2802:2803 Flux.Syntax <> tm ind
+binder 2798:2798 <> t:26
+R2836:2839 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R2818:2828 Flux.Soundness <> normal_form def
+R2835:2835 Flux.Soundness <> t:26 var
+R2830:2833 Flux.Semantics <> step ind
+R2840:2841 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2842:2846 Flux.Syntax <> value ind
+R2848:2848 Flux.Soundness <> t:26 var
+prf 2862:2870 <> soundness
+binder 2881:2881 <> t:27
+binder 2883:2884 <> t':28
+binder 2886:2886 <> T:29
+R2906:2911 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2894:2898 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2900:2904 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R2891:2893 Coq.Init.Datatypes <> nil constr
+R2899:2899 Flux.Soundness <> t:27 var
+R2905:2905 Flux.Soundness <> T:29 var
+R2921:2926 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2913:2918 Flux.Semantics <> :::x_'-->*'_x not
+R2912:2912 Flux.Soundness <> t:27 var
+R2919:2920 Flux.Soundness <> t':28 var
+R2927:2928 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2937:2937 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2929:2933 Flux.Soundness <> stuck def
+R2935:2936 Flux.Soundness <> t':28 var
+prf 3204:3221 <> step_deterministic
+binder 3232:3232 <> t:30
+binder 3234:3235 <> t':31
+binder 3237:3239 <> t'':32
+R3252:3257 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3245:3249 Flux.Semantics <> :::x_'-->'_x not
+R3244:3244 Flux.Soundness <> t:30 var
+R3250:3251 Flux.Soundness <> t':31 var
+R3267:3272 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3259:3263 Flux.Semantics <> :::x_'-->'_x not
+R3258:3258 Flux.Soundness <> t:30 var
+R3264:3266 Flux.Soundness <> t'':32 var
+R3275:3277 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3273:3274 Flux.Soundness <> t':31 var
+R3278:3280 Flux.Soundness <> t'':32 var

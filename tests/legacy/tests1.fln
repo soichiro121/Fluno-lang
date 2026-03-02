@@ -1,0 +1,90 @@
+struct Node {
+    value: Int,
+    next: Option<Rc<Node>>,
+    parent: Option<Weak<Node>>
+}
+fn main() {
+    println("=== Rc/Weak Circular Reference Test ===");
+    
+    // Test 1: 基本的なRcの作成とアクセス
+    println("--- Test 1: Basic Rc ---");
+    let data = Node { value: 42, next: None, parent: None};
+    
+    let rc1 = Rc_new(data);
+    println("Created Rc<Node> with value 42");
+    
+    // Test 2: Weakへの変換
+    println("--- Test 2: Rc to Weak ---");
+    let weak1 = Rc_downgrade(rc1);
+    println("Created Weak<Node> from Rc");
+    
+    // Test 3: Weakからのアップグレード（成功）
+    println("--- Test 3: Weak Upgrade (Success) ---");
+    let upgraded = Weak_upgrade(weak1);
+    match upgraded {
+        Some(rc) => println("✓ Weak upgrade succeeded"),
+        None => println("✗ Weak upgrade failed (unexpected)"),
+    }
+    
+    // Test 4: 親子関係の構築（循環参照）
+    println("--- Test 4: Parent-Child Circular Reference ---");
+    
+    let parent = Node { value: 1, next: None, parent: None};
+    
+    let child = Node { value: 2, next: None, parent: None};
+
+    let parent_rc = Rc_new(parent);
+    let child_rc = Rc_new(child);
+    
+    // 子から親への弱参照を作成
+    let weak_parent = Rc_downgrade(parent_rc);
+    println("Created weak reference from child to parent");
+    
+    // 弱参照が有効であることを確認
+    let check_parent = Weak_upgrade(weak_parent);
+    match check_parent {
+        Some(p) => println("✓ Parent is still alive via weak reference"),
+        None => println("✗ Parent was dropped (unexpected)"),
+    }
+    
+    // Test 5: 複数のRcによる共有
+    println("--- Test 5: Multiple Rc Sharing ---");
+    let shared_data = Node { value: 100, next: None, parent: None};
+    
+    let rc_a = Rc_new(shared_data);
+    let rc_b = rc_a;  // 同じRcを共有
+    println("Created two Rc references to the same data");
+    
+    let weak_from_a = Rc_downgrade(rc_a);
+    let weak_from_b = Rc_downgrade(rc_b);
+    
+    let check_a = Weak_upgrade(weak_from_a);
+    let check_b = Weak_upgrade(weak_from_b);
+    
+    match check_a {
+        Some(a) => {
+            match check_b {
+                Some(b) => println("✓ Both weak references are valid"),
+                None => println("✗ check_b failed"),
+            }
+        },
+        None => println("✗ check_a failed"),
+    }
+    
+    // Test 6: Weakがアップグレードに失敗するケース
+    println("--- Test 6: Weak Upgrade After Drop ---");
+    println("(In Flux with GC, this test demonstrates weak semantics)");
+    
+    let temp_data = Node { value: 999, next: None, parent: None};
+
+    let temp_rc = Rc_new(temp_data);
+    let temp_weak = Rc_downgrade(temp_rc);
+    
+    let still_valid = Weak_upgrade(temp_weak);
+    match still_valid {
+        Some(rc) => println("✓ Weak reference still valid (GC hasn't collected yet)"),
+        None => println("✗ Weak reference already invalid"),
+    }
+    
+    println("=== All Rc/Weak Tests Completed ===");
+}

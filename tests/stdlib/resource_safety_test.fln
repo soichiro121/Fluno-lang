@@ -1,0 +1,16 @@
+struct File {}
+struct Window {}
+
+extern "C" {
+    fn mock_open_file() -> Handle<File>;
+}
+
+fn process_window(w: Handle<Window>) {
+}
+
+fn main() {
+    println("Testing resource safety...");
+    let f = mock_open_file();
+    // This should fail type checking
+    process_window(f); 
+}

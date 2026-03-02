@@ -1,0 +1,60 @@
+// Phase 5 Test: Standard Library IO (Proof of Concept)
+// Simulating 'import stdlib/io' by including definitions here
+
+#[link(name = "c:/Users/froms/Desktop/Flux-main/fluno-rt/target/release/fluno_rt.dll")]
+extern "C" {
+     fn fluno_fs_read(path: String) -> String;
+     fn fluno_fs_write(path: String, content: String) -> Int;
+     fn fluno_time_now() -> Int;
+     fn fluno_time_sleep(ms: Int) -> Int;
+}
+
+fn read_file(path: String) -> String {
+    fluno_fs_read(path)
+}
+fn write_file(path: String, content: String) -> Bool {
+    let result = fluno_fs_write(path, content);
+    result == 0
+}
+fn now() -> Int {
+    fluno_time_now()
+}
+fn sleep(ms: Int) {
+    let _ = fluno_time_sleep(ms);
+}
+
+fn main() {
+    println("Starting IO Test...");
+
+    // 1. Time Test
+    let t1 = now();
+    println("Current time ms:", t1);
+    println("Sleeping for 500ms...");
+    sleep(500);
+    let t2 = now();
+    // println("Awake after:", t2 - t1, "ms");
+    // Simple subtraction print
+    let diff = t2 - t1;
+    println("Awake after:", diff, "ms");
+
+    // 2. File Write Test
+    let path = "test_io.txt";
+    let content = "Hello from Flux IO!";
+    println("Writing to file:", path);
+    if write_file(path, content) {
+        println("Write success.");
+    } else {
+        println("Write failed.");
+    }
+
+    // 3. File Read Test
+    println("Reading from file...");
+    let read_content = read_file(path);
+    println("Read content:", read_content);
+    
+    if read_content == content {
+        println("IO Test Passed: Content matches.");
+    } else {
+        println("IO Test Failed: Content mismatch.");
+    }
+}

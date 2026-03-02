@@ -1,0 +1,60 @@
+
+fn make_counter(start: Int) -> fn() -> Int {
+    let mut count = start;
+    return || {
+        count += 1;
+        count
+    };
+}
+
+fn test_closure_basic() {
+    let c1 = make_counter(10);
+    let v1 = c1(); // 11
+    let v2 = c1(); // 12
+    if v1 == 11 && v2 == 12 {
+        print("PASS: test_closure_basic");
+    } else {
+        print("FAIL: test_closure_basic");
+        print(v1);
+        print(v2);
+    }
+}
+
+fn test_nesting_closures() {
+    let x = 100;
+    let outer = || {
+        let y = 200;
+        let inner = || {
+            return x + y;
+        };
+        return inner;
+    };
+    
+    let f = outer();
+    let res = f();
+    if res == 300 {
+        print("PASS: test_nesting_closures");
+    } else {
+        print("FAIL: test_nesting_closures");
+        print(res);
+    }
+}
+
+fn test_captured_assignment() {
+    let mut x = 10;
+    let f = || { x = 20; };
+    f();
+    if x == 20 {
+        print("PASS: test_captured_assignment");
+    } else {
+        print("FAIL: test_captured_assignment");
+        print(x);
+    }
+}
+
+fn main() {
+    print("--- Test Bytecode Closure ---");
+    test_closure_basic();
+    test_nesting_closures();
+    test_captured_assignment();
+}

@@ -1,0 +1,22 @@
+struct A { x: Int }
+struct B { y: Int }
+
+fn main() {
+    let layers = [];
+    let val = ();
+    
+    match val {
+        A { x } => {
+            match val {
+                B { y } => {
+                    let len = 1;
+                    let k = 0;
+                    while k < len {
+                        k = k + 1;
+                    }
+                }, _ => {}
+            }
+        },
+        _ => {}
+    }
+}

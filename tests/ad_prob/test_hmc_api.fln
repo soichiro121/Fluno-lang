@@ -1,0 +1,58 @@
+// tests/test_hmc_api.fln
+
+fn model() {
+    // 0: Gaussian(0, 10)
+    let mu = Gaussian(0.0, 10.0).sample();
+    // Observe x=3.0 ~ Gaussian(mu, 1.0)
+    observe(Gaussian(mu, 1.0), 3.0);
+}
+
+fn main() {
+    println("=== Testing HMC API (infer_hmc) ===");
+    
+    let config = Map();
+    config.insert("num_samples", 500);
+    config.insert("step_size", 0.05); // Smaller step safer
+    config.insert("num_leapfrog", 10);
+    
+    // Init params (Optional)
+    let init = Map();
+    init.insert("sample_0", 0.0); // Correct key for first sample
+    config.insert("init_params", init);
+    
+    let samples = infer_hmc(config, model);
+    
+    println("Inference finished. Samples count:");
+    println(samples.len());
+    
+    if (samples.len() < 500) {
+        println("Fail: Not enough samples");
+        return;
+    }
+    
+    let sum = 0.0;
+    let count = 0;
+    
+    // Iterate samples (Array<Map>)
+    for s in samples {
+        if (s.contains_key("sample_0")) {
+            let val = s.get("sample_0");
+            sum = sum + val;
+            count = count + 1;
+        }
+    }
+    
+    let mean = sum / count;
+    println("Posterior Mean (Expected ~2.97):");
+    println(mean);
+    
+    if (mean > 2.5) {
+        if (mean < 3.5) {
+            println("HMC API Test Passed!");
+        } else {
+            println("Fail: Mean too high");
+        }
+    } else {
+         println("Fail: Mean too low");
+    }
+}

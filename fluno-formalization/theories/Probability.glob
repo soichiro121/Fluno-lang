@@ -1,0 +1,652 @@
+DIGEST 1d6e1b19aa207bcfc61e9b6eb67e66e6
+FFlux.Probability
+R1078:1081 Flux.Base <> <> lib
+R1083:1088 Flux.Syntax <> <> lib
+R1090:1095 Flux.Typing <> <> lib
+R1097:1105 Flux.Semantics <> <> lib
+R1107:1115 Flux.Soundness <> <> lib
+R1142:1146 Coq.Reals.Reals <> <> lib
+R1173:1177 Coq.micromega.Psatz <> <> lib
+ax 1805:1811 <> Measure
+R1819:1822 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+ax 1839:1840 <> mu
+binder 1852:1852 <> A:3
+R1872:1875 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1863:1869 Flux.Probability <> Measure defax
+R1871:1871 Flux.Probability <> A:3 var
+R1876:1876 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1886:1890 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1878:1881 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1877:1877 Flux.Probability <> A:3 var
+R1891:1891 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+ax 2014:2022 <> mu_nonneg
+binder 2033:2033 <> A:6
+R2040:2046 Flux.Probability <> Measure defax
+R2048:2048 Flux.Probability <> A:6 var
+binder 2036:2036 <> m:7
+R2057:2060 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2056:2056 Flux.Probability <> A:6 var
+binder 2052:2052 <> E:8
+R2076:2079 Coq.Reals.Rdefinitions <> ::R_scope:x_'>='_x not
+R2070:2071 Flux.Probability <> mu defax
+R2075:2075 Flux.Probability <> E:8 var
+R2073:2073 Flux.Probability <> m:7 var
+ax 2243:2250 <> mu_total
+binder 2261:2261 <> A:11
+R2268:2274 Flux.Probability <> Measure defax
+R2276:2276 Flux.Probability <> A:11 var
+binder 2264:2264 <> m:12
+R2302:2304 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2282:2283 Flux.Probability <> mu defax
+R2297:2300 Coq.Init.Logic <> True ind
+R2285:2285 Flux.Probability <> m:12 var
+ax 2461:2471 <> mu_additive
+binder 2482:2482 <> A:15
+R2489:2495 Flux.Probability <> Measure defax
+R2497:2497 Flux.Probability <> A:15 var
+binder 2485:2485 <> m:16
+R2510:2513 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2509:2509 Flux.Probability <> A:15 var
+binder 2501:2502 <> E1:17
+binder 2504:2505 <> E2:18
+R2523:2523 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2548:2554 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 2531:2531 <> x:19
+R2538:2541 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2534:2535 Flux.Probability <> E1:17 var
+R2537:2537 Flux.Probability <> x:19 var
+R2542:2543 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2544:2545 Flux.Probability <> E2:18 var
+R2547:2547 Flux.Probability <> x:19 var
+R2583:2585 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2555:2556 Flux.Probability <> mu defax
+binder 2565:2565 <> x:20
+R2574:2577 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R2570:2571 Flux.Probability <> E1:17 var
+R2573:2573 Flux.Probability <> x:20 var
+R2578:2579 Flux.Probability <> E2:18 var
+R2581:2581 Flux.Probability <> x:20 var
+R2558:2558 Flux.Probability <> m:16 var
+R2593:2595 Coq.Reals.Rdefinitions <> ::R_scope:x_'+'_x not
+R2586:2587 Flux.Probability <> mu defax
+R2591:2592 Flux.Probability <> E1:17 var
+R2589:2589 Flux.Probability <> m:16 var
+R2596:2597 Flux.Probability <> mu defax
+R2601:2602 Flux.Probability <> E2:18 var
+R2599:2599 Flux.Probability <> m:16 var
+ax 2989:2993 <> dirac
+binder 3005:3005 <> A:23
+R3017:3020 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3016:3016 Flux.Probability <> A:23 var
+R3021:3027 Flux.Probability <> Measure defax
+R3029:3029 Flux.Probability <> A:23 var
+ax 3165:3179 <> dirac_singleton
+binder 3190:3190 <> A:26
+R3197:3197 Flux.Probability <> A:26 var
+binder 3193:3193 <> a:27
+R3232:3234 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3203:3204 Flux.Probability <> mu defax
+binder 3221:3221 <> x:28
+R3227:3229 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3226:3226 Flux.Probability <> x:28 var
+R3230:3230 Flux.Probability <> a:27 var
+R3207:3211 Flux.Probability <> dirac defax
+R3213:3213 Flux.Probability <> a:27 var
+ax 3369:3379 <> dirac_other
+binder 3390:3390 <> A:31
+R3397:3397 Flux.Probability <> A:31 var
+binder 3393:3393 <> a:32
+R3406:3409 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3405:3405 Flux.Probability <> A:31 var
+binder 3401:3401 <> E:33
+R3424:3429 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3419:3420 Coq.Init.Logic <> ::type_scope:'~'_x not
+R3421:3421 Flux.Probability <> E:33 var
+R3423:3423 Flux.Probability <> a:32 var
+R3444:3446 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3430:3431 Flux.Probability <> mu defax
+R3443:3443 Flux.Probability <> E:33 var
+R3434:3438 Flux.Probability <> dirac defax
+R3440:3440 Flux.Probability <> a:32 var
+prf 3539:3546 <> dirac_eq
+binder 3557:3557 <> A:36
+R3566:3566 Flux.Probability <> A:36 var
+binder 3560:3560 <> a:37
+binder 3562:3562 <> b:38
+R3605:3610 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3601:3603 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R3572:3573 Flux.Probability <> mu defax
+binder 3590:3590 <> x:39
+R3596:3598 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3595:3595 Flux.Probability <> x:39 var
+R3599:3599 Flux.Probability <> b:38 var
+R3576:3580 Flux.Probability <> dirac defax
+R3582:3582 Flux.Probability <> a:37 var
+R3612:3614 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3611:3611 Flux.Probability <> a:37 var
+R3615:3615 Flux.Probability <> b:38 var
+ax 4003:4018 <> gaussian_measure
+R4036:4036 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+binder 4030:4030 <> m:40
+binder 4032:4032 <> s:41
+R4045:4048 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4041:4043 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R4040:4040 Flux.Probability <> s:41 var
+R4049:4055 Flux.Probability <> Measure defax
+R4057:4057 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+ax 4176:4189 <> gaussian_total
+binder 4200:4200 <> m:44
+binder 4202:4202 <> s:45
+R4211:4213 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R4210:4210 Flux.Probability <> s:45 var
+binder 4205:4206 <> Hs:46
+R4264:4266 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4220:4221 Flux.Probability <> mu defax
+R4259:4262 Coq.Init.Logic <> True ind
+R4224:4239 Flux.Probability <> gaussian_measure defax
+R4241:4241 Flux.Probability <> m:44 var
+R4243:4243 Flux.Probability <> s:45 var
+R4245:4246 Flux.Probability <> Hs:46 var
+ax 4427:4450 <> gaussian_generates_float
+binder 4461:4461 <> m:49
+binder 4463:4463 <> s:50
+R4472:4474 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R4471:4471 Flux.Probability <> s:50 var
+binder 4466:4467 <> Hs:51
+binder 4478:4478 <> r:52
+R4532:4537 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4528:4530 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R4483:4484 Flux.Probability <> mu defax
+binder 4517:4517 <> x:53
+R4523:4525 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4522:4522 Flux.Probability <> x:53 var
+R4526:4526 Flux.Probability <> r:52 var
+R4487:4502 Flux.Probability <> gaussian_measure defax
+R4504:4504 Flux.Probability <> m:49 var
+R4506:4506 Flux.Probability <> s:50 var
+R4508:4509 Flux.Probability <> Hs:51 var
+R4538:4541 Coq.Init.Logic <> True ind
+ax 4975:4986 <> measure_bind
+binder 4998:4998 <> A:56
+binder 5000:5000 <> B:57
+R5022:5025 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5013:5019 Flux.Probability <> Measure defax
+R5021:5021 Flux.Probability <> A:56 var
+R5026:5026 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5041:5045 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5028:5031 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5027:5027 Flux.Probability <> A:56 var
+R5032:5038 Flux.Probability <> Measure defax
+R5040:5040 Flux.Probability <> B:57 var
+R5046:5052 Flux.Probability <> Measure defax
+R5054:5054 Flux.Probability <> B:57 var
+ax 5819:5839 <> measure_bind_positive
+binder 5850:5850 <> A:60
+binder 5852:5852 <> B:61
+R5860:5866 Flux.Probability <> Measure defax
+R5868:5868 Flux.Probability <> A:60 var
+binder 5855:5856 <> ma:62
+R5877:5880 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5876:5876 Flux.Probability <> A:60 var
+R5881:5887 Flux.Probability <> Measure defax
+R5889:5889 Flux.Probability <> B:61 var
+binder 5872:5872 <> f:63
+binder 5892:5892 <> b:64
+R5940:5945 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5936:5938 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R5897:5898 Flux.Probability <> mu defax
+binder 5925:5925 <> x:65
+R5931:5933 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5930:5930 Flux.Probability <> x:65 var
+R5934:5934 Flux.Probability <> b:64 var
+R5901:5912 Flux.Probability <> measure_bind defax
+R5917:5917 Flux.Probability <> f:63 var
+R5914:5915 Flux.Probability <> ma:62 var
+R5946:5952 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5954:5955 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 5953:5953 <> a:66
+R5982:5985 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5978:5980 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R5956:5957 Flux.Probability <> mu defax
+binder 5967:5967 <> x:67
+R5973:5975 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5972:5972 Flux.Probability <> x:67 var
+R5976:5976 Flux.Probability <> a:66 var
+R5959:5960 Flux.Probability <> ma:62 var
+R6011:6013 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R5986:5987 Flux.Probability <> mu defax
+binder 6000:6000 <> x:68
+R6006:6008 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R6005:6005 Flux.Probability <> x:68 var
+R6009:6009 Flux.Probability <> b:64 var
+R5990:5990 Flux.Probability <> f:63 var
+R5992:5992 Flux.Probability <> a:66 var
+ax 6546:6570 <> gaussian_std_positive_inv
+R6588:6588 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+binder 6582:6582 <> m:71
+binder 6584:6584 <> s:72
+R6667:6670 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R6663:6665 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R6662:6662 Flux.Probability <> s:72 var
+R6672:6675 Coq.Reals.Rdefinitions <> ::R_scope:x_'<='_x not
+R6671:6671 Flux.Probability <> s:72 var
+prf 6717:6735 <> decide_positive_std
+binder 6746:6746 <> s:75
+R6751:6751 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R6757:6761 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R6768:6768 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R6753:6755 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R6752:6752 Flux.Probability <> s:75 var
+R6763:6766 Coq.Reals.Rdefinitions <> ::R_scope:x_'<='_x not
+R6762:6762 Flux.Probability <> s:75 var
+R6802:6808 Coq.Reals.RIneq <> Rle_dec thm
+R6802:6808 Coq.Reals.RIneq <> Rle_dec thm
+ax 7057:7079 <> typed_gaussian_positive
+binder 7090:7094 <> Gamma:76
+R7103:7103 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+binder 7097:7097 <> m:77
+binder 7099:7099 <> s:78
+R7148:7153 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7114:7118 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R7134:7138 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R7109:7113 Flux.Probability <> Gamma:76 var
+R7119:7129 Flux.Syntax <> tm_gaussian constr
+R7131:7131 Flux.Probability <> m:77 var
+R7133:7133 Flux.Probability <> s:78 var
+R7139:7147 Flux.Syntax <> TGaussian constr
+R7155:7157 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R7154:7154 Flux.Probability <> s:78 var
+ind 7416:7424 <> prob_step
+constr 7460:7473 <> PS_AddGaussian
+constr 7644:7652 <> PS_Sample
+constr 7842:7850 <> PS_AppAbs
+constr 7973:7979 <> PS_Add1
+constr 8084:8090 <> PS_Add2
+constr 8213:8222 <> PS_Sample1
+constr 8318:8324 <> PS_App1
+constr 8429:8435 <> PS_App2
+R7430:7433 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7428:7429 Flux.Syntax <> tm ind
+R7444:7447 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7434:7440 Flux.Probability <> Measure defax
+R7442:7443 Flux.Syntax <> tm ind
+binder 7484:7485 <> m1:83
+binder 7487:7488 <> s1:84
+binder 7490:7491 <> m2:85
+binder 7493:7494 <> s2:86
+R7503:7511 Flux.Probability <> prob_step:81 ind
+R7579:7583 Flux.Probability <> dirac defax
+R7586:7596 Flux.Syntax <> tm_gaussian constr
+R7601:7603 Coq.Reals.Rdefinitions <> ::R_scope:x_'+'_x not
+R7599:7600 Flux.Probability <> m1:83 var
+R7604:7605 Flux.Probability <> m2:85 var
+R7609:7612 Coq.Reals.R_sqrt <> sqrt def
+R7622:7624 Coq.Reals.Rdefinitions <> ::R_scope:x_'+'_x not
+R7617:7619 Coq.Reals.Rdefinitions <> ::R_scope:x_'*'_x not
+R7615:7616 Flux.Probability <> s1:84 var
+R7620:7621 Flux.Probability <> s1:84 var
+R7627:7629 Coq.Reals.Rdefinitions <> ::R_scope:x_'*'_x not
+R7625:7626 Flux.Probability <> s2:86 var
+R7630:7631 Flux.Probability <> s2:86 var
+R7522:7527 Flux.Syntax <> tm_add constr
+R7530:7540 Flux.Syntax <> tm_gaussian constr
+R7542:7543 Flux.Probability <> m1:83 var
+R7545:7546 Flux.Probability <> s1:84 var
+R7550:7560 Flux.Syntax <> tm_gaussian constr
+R7562:7563 Flux.Probability <> m2:85 var
+R7565:7566 Flux.Probability <> s2:86 var
+binder 7663:7663 <> m:87
+binder 7665:7665 <> s:88
+R7674:7676 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R7673:7673 Flux.Probability <> s:88 var
+binder 7668:7669 <> Hs:89
+R7687:7695 Flux.Probability <> prob_step:81 ind
+R7744:7755 Flux.Probability <> measure_bind defax
+binder 7809:7809 <> r:90
+R7814:7818 Flux.Probability <> dirac defax
+R7821:7828 Flux.Syntax <> tm_float constr
+R7830:7830 Flux.Probability <> r:90 var
+R7769:7784 Flux.Probability <> gaussian_measure defax
+R7786:7786 Flux.Probability <> m:87 var
+R7788:7788 Flux.Probability <> s:88 var
+R7790:7791 Flux.Probability <> Hs:89 var
+R7706:7714 Flux.Syntax <> tm_sample constr
+R7717:7727 Flux.Syntax <> tm_gaussian constr
+R7729:7729 Flux.Probability <> m:87 var
+R7731:7731 Flux.Probability <> s:88 var
+binder 7861:7861 <> x:91
+binder 7863:7863 <> T:92
+binder 7865:7865 <> t:93
+binder 7867:7867 <> v:94
+R7883:7892 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7876:7880 Flux.Syntax <> value ind
+R7882:7882 Flux.Probability <> v:94 var
+R7893:7901 Flux.Probability <> prob_step:81 ind
+R7946:7950 Flux.Probability <> dirac defax
+R7953:7953 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R7955:7958 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R7960:7961 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R7954:7954 Flux.Probability <> x:91 var
+R7959:7959 Flux.Probability <> v:94 var
+R7962:7962 Flux.Probability <> t:93 var
+R7912:7917 Flux.Syntax <> tm_app constr
+R7920:7925 Flux.Syntax <> tm_abs constr
+R7927:7927 Flux.Probability <> x:91 var
+R7929:7929 Flux.Probability <> T:92 var
+R7931:7931 Flux.Probability <> t:93 var
+R7934:7934 Flux.Probability <> v:94 var
+binder 7990:7991 <> t1:95
+binder 7993:7995 <> t1':96
+binder 7997:7998 <> t2:97
+R8018:8027 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8007:8010 Flux.Semantics <> step ind
+R8012:8013 Flux.Probability <> t1:95 var
+R8015:8017 Flux.Probability <> t1':96 var
+R8028:8036 Flux.Probability <> prob_step:81 ind
+R8054:8058 Flux.Probability <> dirac defax
+R8061:8066 Flux.Syntax <> tm_add constr
+R8068:8070 Flux.Probability <> t1':96 var
+R8072:8073 Flux.Probability <> t2:97 var
+R8039:8044 Flux.Syntax <> tm_add constr
+R8046:8047 Flux.Probability <> t1:95 var
+R8049:8050 Flux.Probability <> t2:97 var
+binder 8101:8102 <> v1:98
+binder 8104:8105 <> t2:99
+binder 8107:8109 <> t2':100
+R8126:8135 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8118:8122 Flux.Syntax <> value ind
+R8124:8125 Flux.Probability <> v1:98 var
+R8147:8156 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8136:8139 Flux.Semantics <> step ind
+R8141:8142 Flux.Probability <> t2:99 var
+R8144:8146 Flux.Probability <> t2':100 var
+R8157:8165 Flux.Probability <> prob_step:81 ind
+R8183:8187 Flux.Probability <> dirac defax
+R8190:8195 Flux.Syntax <> tm_add constr
+R8197:8198 Flux.Probability <> v1:98 var
+R8200:8202 Flux.Probability <> t2':100 var
+R8168:8173 Flux.Syntax <> tm_add constr
+R8175:8176 Flux.Probability <> v1:98 var
+R8178:8179 Flux.Probability <> t2:99 var
+binder 8233:8233 <> t:101
+binder 8235:8236 <> t':102
+R8254:8263 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8245:8248 Flux.Semantics <> step ind
+R8250:8250 Flux.Probability <> t:101 var
+R8252:8253 Flux.Probability <> t':102 var
+R8264:8272 Flux.Probability <> prob_step:81 ind
+R8289:8293 Flux.Probability <> dirac defax
+R8296:8304 Flux.Syntax <> tm_sample constr
+R8306:8307 Flux.Probability <> t':102 var
+R8275:8283 Flux.Syntax <> tm_sample constr
+R8285:8285 Flux.Probability <> t:101 var
+binder 8335:8336 <> t1:103
+binder 8338:8340 <> t1':104
+binder 8342:8343 <> t2:105
+R8363:8372 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8352:8355 Flux.Semantics <> step ind
+R8357:8358 Flux.Probability <> t1:103 var
+R8360:8362 Flux.Probability <> t1':104 var
+R8373:8381 Flux.Probability <> prob_step:81 ind
+R8399:8403 Flux.Probability <> dirac defax
+R8406:8411 Flux.Syntax <> tm_app constr
+R8413:8415 Flux.Probability <> t1':104 var
+R8417:8418 Flux.Probability <> t2:105 var
+R8384:8389 Flux.Syntax <> tm_app constr
+R8391:8392 Flux.Probability <> t1:103 var
+R8394:8395 Flux.Probability <> t2:105 var
+binder 8446:8447 <> v1:106
+binder 8449:8450 <> t2:107
+binder 8452:8454 <> t2':108
+R8471:8480 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8463:8467 Flux.Syntax <> value ind
+R8469:8470 Flux.Probability <> v1:106 var
+R8492:8501 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8481:8484 Flux.Semantics <> step ind
+R8486:8487 Flux.Probability <> t2:107 var
+R8489:8491 Flux.Probability <> t2':108 var
+R8502:8510 Flux.Probability <> prob_step:81 ind
+R8528:8532 Flux.Probability <> dirac defax
+R8535:8540 Flux.Syntax <> tm_app constr
+R8542:8543 Flux.Probability <> v1:106 var
+R8545:8547 Flux.Probability <> t2':108 var
+R8513:8518 Flux.Syntax <> tm_app constr
+R8520:8521 Flux.Probability <> v1:106 var
+R8523:8524 Flux.Probability <> t2:107 var
+scheme 7416:7424 <> prob_step_ind
+scheme 7416:7424 <> prob_step_sind
+R8571:8579 Flux.Probability <> prob_step ind
+prf 8857:8869 <> prob_progress
+binder 8880:8880 <> t:109
+binder 8882:8882 <> T:110
+R8902:8907 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8890:8894 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R8896:8900 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R8887:8889 Coq.Init.Datatypes <> nil constr
+R8895:8895 Flux.Probability <> t:109 var
+R8901:8901 Flux.Probability <> T:110 var
+R8915:8918 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8908:8912 Flux.Syntax <> value ind
+R8914:8914 Flux.Probability <> t:109 var
+R8919:8925 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R8928:8929 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 8926:8927 <> mu:111
+R8930:8938 Flux.Probability <> prob_step ind
+R8940:8940 Flux.Probability <> t:109 var
+R8942:8943 Flux.Probability <> mu:111 var
+def 9226:9247 <> measure_preserves_type
+R9254:9260 Flux.Probability <> Measure defax
+R9262:9263 Flux.Syntax <> tm ind
+binder 9250:9250 <> m:112
+R9271:9272 Flux.Syntax <> ty ind
+binder 9267:9267 <> T:113
+binder 9294:9294 <> t:114
+R9322:9325 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9318:9320 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R9297:9298 Flux.Probability <> mu defax
+binder 9307:9307 <> x:115
+R9313:9315 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9312:9312 Flux.Probability <> x:115 var
+R9316:9316 Flux.Probability <> t:114 var
+R9300:9300 Flux.Probability <> m:112 var
+R9329:9333 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R9335:9339 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R9326:9328 Coq.Init.Datatypes <> nil constr
+R9334:9334 Flux.Probability <> t:114 var
+R9340:9340 Flux.Probability <> T:113 var
+prf 9612:9628 <> prob_preservation
+binder 9639:9639 <> t:116
+binder 9641:9641 <> T:117
+binder 9643:9644 <> mu:118
+R9664:9669 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9652:9656 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R9658:9662 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R9649:9651 Coq.Init.Datatypes <> nil constr
+R9657:9657 Flux.Probability <> t:116 var
+R9663:9663 Flux.Probability <> T:117 var
+R9684:9689 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9670:9678 Flux.Probability <> prob_step ind
+R9680:9680 Flux.Probability <> t:116 var
+R9682:9683 Flux.Probability <> mu:118 var
+R9690:9711 Flux.Probability <> measure_preserves_type def
+R9713:9714 Flux.Probability <> mu:118 var
+R9716:9716 Flux.Probability <> T:117 var
+prf 9982:10012 <> deterministic_prob_preservation
+binder 10023:10023 <> t:119
+binder 10025:10026 <> t':120
+binder 10028:10028 <> T:121
+R10048:10053 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10036:10040 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R10042:10046 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R10033:10035 Coq.Init.Datatypes <> nil constr
+R10041:10041 Flux.Probability <> t:119 var
+R10047:10047 Flux.Probability <> T:121 var
+R10063:10068 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10054:10057 Flux.Semantics <> step ind
+R10059:10059 Flux.Probability <> t:119 var
+R10061:10062 Flux.Probability <> t':120 var
+R10072:10076 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R10079:10083 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R10069:10071 Coq.Init.Datatypes <> nil constr
+R10077:10078 Flux.Probability <> t':120 var
+R10084:10084 Flux.Probability <> T:121 var
+R10111:10122 Flux.Soundness <> preservation prfax
+R10111:10122 Flux.Soundness <> preservation prfax
+prf 10146:10165 <> dirac_preserves_type
+binder 10176:10176 <> t:122
+binder 10178:10178 <> T:123
+R10198:10203 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10186:10190 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R10192:10196 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R10183:10185 Coq.Init.Datatypes <> nil constr
+R10191:10191 Flux.Probability <> t:122 var
+R10197:10197 Flux.Probability <> T:123 var
+R10204:10225 Flux.Probability <> measure_preserves_type def
+R10228:10232 Flux.Probability <> dirac defax
+R10234:10234 Flux.Probability <> t:122 var
+R10237:10237 Flux.Probability <> T:123 var
+def 10517:10526 <> prob_stuck
+R10533:10539 Flux.Probability <> Measure defax
+R10541:10542 Flux.Syntax <> tm ind
+binder 10529:10529 <> m:124
+R10557:10563 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R10565:10566 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 10564:10564 <> t:125
+R10592:10595 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R10588:10590 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R10567:10568 Flux.Probability <> mu defax
+binder 10577:10577 <> x:126
+R10583:10585 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R10582:10582 Flux.Probability <> x:126 var
+R10586:10586 Flux.Probability <> t:125 var
+R10570:10570 Flux.Probability <> m:124 var
+R10596:10600 Flux.Soundness <> stuck def
+R10602:10602 Flux.Probability <> t:125 var
+prf 10614:10627 <> prob_soundness
+binder 10638:10638 <> t:127
+binder 10640:10640 <> T:128
+binder 10642:10642 <> m:129
+R10662:10667 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10650:10654 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R10656:10660 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R10647:10649 Coq.Init.Datatypes <> nil constr
+R10655:10655 Flux.Probability <> t:127 var
+R10661:10661 Flux.Probability <> T:128 var
+R10681:10686 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10668:10676 Flux.Probability <> prob_step ind
+R10678:10678 Flux.Probability <> t:127 var
+R10680:10680 Flux.Probability <> m:129 var
+R10687:10688 Coq.Init.Logic <> ::type_scope:'~'_x not
+R10689:10698 Flux.Probability <> prob_stuck def
+R10700:10700 Flux.Probability <> m:129 var
+def 10967:10982 <> sample_type_safe
+binder 10993:10993 <> m:130
+binder 10995:10995 <> s:131
+R11005:11010 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11001:11003 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R11000:11000 Flux.Probability <> s:131 var
+R11014:11018 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R11046:11050 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R11011:11013 Coq.Init.Datatypes <> nil constr
+R11019:11027 Flux.Syntax <> tm_sample constr
+R11030:11040 Flux.Syntax <> tm_gaussian constr
+R11042:11042 Flux.Probability <> m:130 var
+R11044:11044 Flux.Probability <> s:131 var
+R11051:11056 Flux.Syntax <> TFloat constr
+R11082:11089 Flux.Typing <> T_Sample constr
+R11082:11089 Flux.Typing <> T_Sample constr
+R11098:11107 Flux.Typing <> T_Gaussian constr
+R11098:11107 Flux.Typing <> T_Gaussian constr
+def 11124:11145 <> gaussian_add_type_safe
+R11154:11158 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R11202:11206 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R11151:11153 Coq.Init.Datatypes <> nil constr
+R11159:11164 Flux.Syntax <> tm_add constr
+R11167:11177 Flux.Syntax <> tm_gaussian constr
+R11186:11196 Flux.Syntax <> tm_gaussian constr
+R11207:11215 Flux.Syntax <> TGaussian constr
+R11233:11237 Flux.Typing <> T_Add constr
+R11246:11255 Flux.Typing <> T_Gaussian constr
+R11233:11237 Flux.Typing <> T_Add constr
+R11246:11255 Flux.Typing <> T_Gaussian constr
+R11246:11255 Flux.Typing <> T_Gaussian constr
+def 11272:11289 <> function_type_safe
+R11298:11306 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R11389:11395 Flux.Typing <> :::x_'⊢'_x_'∈'_x not
+R11295:11297 Coq.Init.Datatypes <> nil constr
+R11307:11312 Flux.Syntax <> tm_app constr
+R11322:11327 Flux.Syntax <> tm_abs constr
+R11331:11339 Flux.Syntax <> TGaussian constr
+R11342:11350 Flux.Syntax <> tm_sample constr
+R11353:11358 Flux.Syntax <> tm_var constr
+R11372:11382 Flux.Syntax <> tm_gaussian constr
+R11396:11401 Flux.Syntax <> TFloat constr
+R11420:11424 Flux.Typing <> T_App constr
+R11420:11424 Flux.Typing <> T_App constr
+R11437:11441 Flux.Typing <> T_Abs constr
+R11437:11441 Flux.Typing <> T_Abs constr
+R11450:11457 Flux.Typing <> T_Sample constr
+R11450:11457 Flux.Typing <> T_Sample constr
+R11471:11475 Flux.Typing <> T_Var constr
+R11471:11475 Flux.Typing <> T_Var constr
+R11508:11517 Flux.Typing <> T_Gaussian constr
+R11508:11517 Flux.Typing <> T_Gaussian constr
+def 11534:11563 <> sample_preserves_type_concrete
+binder 11577:11577 <> m:132
+binder 11579:11579 <> s:133
+R11588:11590 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R11587:11587 Flux.Probability <> s:133 var
+binder 11582:11583 <> Hs:134
+R11597:11618 Flux.Probability <> measure_preserves_type def
+R11625:11636 Flux.Probability <> measure_bind defax
+binder 11669:11669 <> r:135
+R11674:11678 Flux.Probability <> dirac defax
+R11681:11688 Flux.Syntax <> tm_float constr
+R11690:11690 Flux.Probability <> r:135 var
+R11639:11654 Flux.Probability <> gaussian_measure defax
+R11656:11656 Flux.Probability <> m:132 var
+R11658:11658 Flux.Probability <> s:133 var
+R11660:11661 Flux.Probability <> Hs:134 var
+R11699:11704 Flux.Syntax <> TFloat constr
+R11740:11761 Flux.Probability <> measure_preserves_type def
+R11792:11812 Flux.Probability <> measure_bind_positive prfax
+R11792:11812 Flux.Probability <> measure_bind_positive prfax
+R11866:11873 Flux.Probability <> dirac_eq prfax
+R11866:11873 Flux.Probability <> dirac_eq prfax
+R11901:11907 Flux.Typing <> T_Float constr
+R11901:11907 Flux.Typing <> T_Float constr
+R12333:12345 Flux.Probability <> prob_progress prfax
+R12541:12557 Flux.Probability <> prob_preservation prfax
+R12802:12815 Flux.Probability <> prob_soundness prfax
+def 13329:13340 <> Unnamed_thm
+R13334:13335 Coq.Init.Logic <> ::type_scope:'~'_x not
+R13336:13340 Coq.Init.Logic <> False ind
+prf 13504:13517 <> sanity_check_1
+binder 13528:13528 <> A:136
+R13535:13535 Flux.Probability <> A:136 var
+binder 13531:13531 <> a:137
+R13570:13572 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R13541:13542 Flux.Probability <> mu defax
+binder 13559:13559 <> x:138
+R13565:13567 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R13564:13564 Flux.Probability <> x:138 var
+R13568:13568 Flux.Probability <> a:137 var
+R13545:13549 Flux.Probability <> dirac defax
+R13551:13551 Flux.Probability <> a:137 var
+R13599:13613 Flux.Probability <> dirac_singleton prfax
+R13599:13613 Flux.Probability <> dirac_singleton prfax
+prf 13628:13641 <> sanity_check_2
+binder 13652:13652 <> m:139
+binder 13654:13654 <> s:140
+R13663:13665 Coq.Reals.Rdefinitions <> ::R_scope:x_'>'_x not
+R13662:13662 Flux.Probability <> s:140 var
+binder 13657:13658 <> Hs:141
+R13716:13718 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R13672:13673 Flux.Probability <> mu defax
+R13711:13714 Coq.Init.Logic <> True ind
+R13676:13691 Flux.Probability <> gaussian_measure defax
+R13693:13693 Flux.Probability <> m:139 var
+R13695:13695 Flux.Probability <> s:140 var
+R13697:13698 Flux.Probability <> Hs:141 var
+R13745:13758 Flux.Probability <> gaussian_total prfax
+R13745:13758 Flux.Probability <> gaussian_total prfax

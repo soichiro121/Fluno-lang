@@ -1,0 +1,136 @@
+struct Word { name: String, pos: String, vector: Array<Float> }
+struct KnowledgeBase { words: Array<Word> }
+
+fn float_sqrt(x: Float) -> Float { sqrt(x) }
+
+fn cosine_similarity(vec1: Array<Float>, vec2: Array<Float>) -> Float {
+    let dot = 0.0; let mag1 = 0.0; let mag2 = 0.0; let i = 0;
+    while i < vec1.len() {
+        let v1 = vec1[i];
+        let v2 = vec2[i];
+        dot = dot + (v1 * v2); mag1 = mag1 + (v1 * v1); mag2 = mag2 + (v2 * v2); i = i + 1;
+    }
+    if (mag1 * mag2) <= 0.0 { return 0.0; }
+    dot / (float_sqrt(mag1) * float_sqrt(mag2))
+}
+
+fn blend_vectors(base: Array<Float>, input: Array<Float>, rate: Float) -> Array<Float> {
+    let new_vec = []; let i = 0;
+    while i < base.len() {
+        let v_in = input[i];
+        let blended = (base[i] * (1.0 - rate)) + (v_in * rate);
+        new_vec = new_vec.push(blended); i = i + 1;
+    }
+    new_vec
+}
+
+fn pick_word_inline(words: Array<Word>, target_pos: String, mood: Array<Float>, context_vec: Array<Float>) -> String {
+    let best_word = "something";
+    let best_score = -10.0;
+    
+    let i = 0;
+    while i < words.len() {
+        let w = words[i];
+        if w.pos == target_pos {
+            let score_context = cosine_similarity(w.vector, context_vec);
+            let score_mood = cosine_similarity(w.vector, mood);
+            
+            let total_score = if target_pos == "verb" {
+                (score_context * 0.3) + (score_mood * 0.7)
+            } else {
+                (score_context * 0.6) + (score_mood * 0.4)
+            };
+            
+            if total_score > best_score {
+                best_score = total_score;
+                best_word = w.name;
+            }
+        }
+        i = i + 1;
+    }
+    best_word
+}
+
+fn process_talk(words: Array<Word>, mood: Array<Float>, input: String) -> Array<Float> {
+    let topic_word = words[0];
+    let i = 0;
+    while i < words.len() {
+        let w = words[i];
+        if w.name == input { topic_word = w; }
+        i = i + 1;
+    }
+    
+    println("\nInput: " + input + " -> Topic: " + topic_word.name);
+    
+    let new_mood = blend_vectors(mood, topic_word.vector, 0.4);
+    let mood_val = new_mood[2];
+    
+    let desc = "Neutral";
+    if mood_val > 0.6 { desc = "Bright"; }
+    else { if mood_val < 0.4 { desc = "Dark"; } }
+    println("Mood: " + desc);
+    
+    let subject = topic_word.name;
+    let verb = pick_word_inline(words, "verb", new_mood, topic_word.vector);
+    let obj = pick_word_inline(words, "noun", new_mood, topic_word.vector); // simple fallback
+    
+    if mood_val > 0.6 {
+        println("AI: " + subject + " " + verb + " " + obj);
+    } else {
+        if mood_val < 0.4 {
+             println("AI: ... " + subject + " ... " + verb + " ...");
+        } else {
+             println("AI: " + subject + " becomes " + obj);
+        }
+    }
+
+    new_mood
+}
+
+fn create_word(name: String, pos: String, v: Array<Float>) -> Word {
+    Word { name: name, pos: pos, vector: v }
+}
+
+fn load_kb() -> KnowledgeBase {
+    let words = [];
+    words = words.push(create_word("Love", "noun", [0.8, 0.2, 1.0, 0.9, 0.8]));
+    words = words.push(create_word("Life", "noun", [1.0, 0.6, 0.8, 0.9, 1.0]));
+    words = words.push(create_word("Death", "noun", [0.0, 0.5, 0.1, 0.0, 0.9]));
+    words = words.push(create_word("Void", "noun", [0.0, 0.0, 0.4, 0.1, 1.0]));
+    words = words.push(create_word("Hope", "noun", [0.7, 0.0, 1.0, 0.7, 0.5]));
+    words = words.push(create_word("Fear", "noun", [0.9, 0.1, 0.0, 0.8, 0.6]));
+    words = words.push(create_word("Time", "noun", [0.0, 0.0, 0.5, 0.6, 0.9]));
+    words = words.push(create_word("Silence", "noun", [0.1, 0.1, 0.6, 0.0, 0.2]));
+    words = words.push(create_word("Machine", "noun", [0.0, 1.0, 0.5, 0.7, 0.6]));
+    words = words.push(create_word("Soul", "noun", [1.0, 0.0, 0.9, 0.8, 1.0]));
+    
+    words = words.push(create_word("seeks", "verb", [0.8, 0.5, 0.7, 0.8, 0.5]));
+    words = words.push(create_word("fears", "verb", [0.9, 0.5, 0.1, 0.7, 0.6]));
+    words = words.push(create_word("consumes", "verb", [0.6, 0.8, 0.2, 0.9, 0.7]));
+    words = words.push(create_word("creates", "verb", [0.5, 0.7, 0.9, 0.9, 0.8]));
+    words = words.push(create_word("destroys", "verb", [0.2, 0.8, 0.1, 1.0, 0.6]));
+    words = words.push(create_word("echoes", "verb", [0.1, 0.3, 0.5, 0.4, 0.3]));
+    words = words.push(create_word("becomes", "verb", [0.5, 0.5, 0.6, 0.5, 0.9]));
+    
+    words = words.push(create_word("eternal", "adj", [0.0, 0.0, 0.7, 0.5, 0.8]));
+    words = words.push(create_word("empty", "adj", [0.0, 0.1, 0.3, 0.1, 0.5]));
+    words = words.push(create_word("beautiful", "adj", [0.8, 0.5, 1.0, 0.7, 0.7]));
+    words = words.push(create_word("broken", "adj", [0.4, 0.6, 0.2, 0.4, 0.6]));
+    words = words.push(create_word("dark", "adj", [0.2, 0.4, 0.1, 0.3, 0.7]));
+    words = words.push(create_word("cold", "adj", [0.1, 0.5, 0.2, 0.2, 0.4]));
+
+    KnowledgeBase { words: words }
+}
+
+fn main() {
+    println("Initializing Resonant Poet...");
+    let kb = load_kb();
+    let words = kb.words;
+    let mood = [0.5, 0.5, 0.5, 0.5, 0.5];
+    
+    mood = process_talk(words, mood, "Love");
+    mood = process_talk(words, mood, "Life");
+    mood = process_talk(words, mood, "Death");
+    mood = process_talk(words, mood, "Void");
+    mood = process_talk(words, mood, "Hope");
+}

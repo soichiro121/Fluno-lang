@@ -1,0 +1,235 @@
+DIGEST 8edfeb2d002f3bfcba01af36acd2d760
+FFlux.Semantics
+R260:263 Flux.Base <> <> lib
+R265:270 Flux.Syntax <> <> lib
+R272:277 Flux.Typing <> <> lib
+R304:308 Coq.Reals.Reals <> <> lib
+ax 567:581 <> gaussian_sample
+R586:589 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R585:585 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+R591:594 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R590:590 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+R595:595 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+ax 605:626 <> gaussian_sample_bounds
+binder 637:637 <> m:3
+binder 639:639 <> s:4
+binder 641:641 <> r:5
+R669:674 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R647:649 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R646:646 Flux.Semantics <> r:5 var
+R650:664 Flux.Semantics <> gaussian_sample defax
+R666:666 Flux.Semantics <> m:3 var
+R668:668 Flux.Semantics <> s:4 var
+R675:681 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R683:684 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 682:682 <> k:6
+R697:700 Coq.Reals.Rdefinitions <> ::R_scope:x_'<='_x not
+R685:688 Coq.Reals.Rbasic_fun <> Rabs def
+R692:694 Coq.Reals.Rdefinitions <> ::R_scope:x_'-'_x not
+R691:691 Flux.Semantics <> r:5 var
+R695:695 Flux.Semantics <> m:3 var
+R702:704 Coq.Reals.Rdefinitions <> ::R_scope:x_'*'_x not
+R701:701 Flux.Semantics <> k:6 var
+R705:705 Flux.Semantics <> s:4 var
+ind 990:993 <> step
+constr 1021:1034 <> ST_AddGaussian
+constr 1177:1185 <> ST_Sample
+constr 1283:1291 <> ST_AppAbs
+constr 1401:1407 <> ST_Add1
+constr 1493:1499 <> ST_Add2
+constr 1603:1612 <> ST_Sample1
+constr 1689:1695 <> ST_App1
+constr 1781:1787 <> ST_App2
+R999:1002 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R997:998 Flux.Syntax <> tm ind
+R1005:1008 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1003:1004 Flux.Syntax <> tm ind
+R1908:1911 Flux.Semantics <> step:10 ind
+binder 1045:1046 <> m1:11
+binder 1048:1049 <> s1:12
+binder 1051:1052 <> m2:13
+binder 1054:1055 <> s2:14
+R1110:1120 Flux.Semantics <> :::x_'-->'_x not
+R1064:1069 Flux.Syntax <> tm_add constr
+R1072:1082 Flux.Syntax <> tm_gaussian constr
+R1084:1085 Flux.Semantics <> m1:11 var
+R1087:1088 Flux.Semantics <> s1:12 var
+R1092:1102 Flux.Syntax <> tm_gaussian constr
+R1104:1105 Flux.Semantics <> m2:13 var
+R1107:1108 Flux.Semantics <> s2:14 var
+R1121:1131 Flux.Syntax <> tm_gaussian constr
+R1136:1138 Coq.Reals.Rdefinitions <> ::R_scope:x_'+'_x not
+R1134:1135 Flux.Semantics <> m1:11 var
+R1139:1140 Flux.Semantics <> m2:13 var
+R1144:1147 Coq.Reals.R_sqrt <> sqrt def
+R1157:1159 Coq.Reals.Rdefinitions <> ::R_scope:x_'+'_x not
+R1152:1154 Coq.Reals.Rdefinitions <> ::R_scope:x_'*'_x not
+R1150:1151 Flux.Semantics <> s1:12 var
+R1155:1156 Flux.Semantics <> s1:12 var
+R1162:1164 Coq.Reals.Rdefinitions <> ::R_scope:x_'*'_x not
+R1160:1161 Flux.Semantics <> s2:14 var
+R1165:1166 Flux.Semantics <> s2:14 var
+binder 1196:1196 <> m:15
+binder 1198:1198 <> s:16
+R1234:1244 Flux.Semantics <> :::x_'-->'_x not
+R1207:1215 Flux.Syntax <> tm_sample constr
+R1218:1228 Flux.Syntax <> tm_gaussian constr
+R1230:1230 Flux.Semantics <> m:15 var
+R1232:1232 Flux.Semantics <> s:16 var
+R1245:1252 Flux.Syntax <> tm_float constr
+R1255:1269 Flux.Semantics <> gaussian_sample defax
+R1271:1271 Flux.Semantics <> m:15 var
+R1273:1273 Flux.Semantics <> s:16 var
+binder 1302:1302 <> x:17
+binder 1304:1304 <> T:18
+binder 1306:1306 <> t:19
+binder 1308:1308 <> v:20
+R1324:1333 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1317:1321 Flux.Syntax <> value ind
+R1323:1323 Flux.Semantics <> v:20 var
+R1357:1361 Flux.Semantics <> :::x_'-->'_x not
+R1334:1339 Flux.Syntax <> tm_app constr
+R1342:1347 Flux.Syntax <> tm_abs constr
+R1349:1349 Flux.Semantics <> x:17 var
+R1351:1351 Flux.Semantics <> T:18 var
+R1353:1353 Flux.Semantics <> t:19 var
+R1356:1356 Flux.Semantics <> v:20 var
+R1362:1362 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R1364:1367 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R1369:1370 Flux.Syntax <> :::'['_x_':='_x_']'_x not
+R1363:1363 Flux.Semantics <> x:17 var
+R1368:1368 Flux.Semantics <> v:20 var
+R1371:1371 Flux.Semantics <> t:19 var
+binder 1418:1419 <> t1:21
+binder 1421:1423 <> t1':22
+binder 1425:1426 <> t2:23
+R1445:1454 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1437:1441 Flux.Semantics <> :::x_'-->'_x not
+R1435:1436 Flux.Semantics <> t1:21 var
+R1442:1444 Flux.Semantics <> t1':22 var
+R1467:1471 Flux.Semantics <> :::x_'-->'_x not
+R1455:1460 Flux.Syntax <> tm_add constr
+R1462:1463 Flux.Semantics <> t1:21 var
+R1465:1466 Flux.Semantics <> t2:23 var
+R1472:1477 Flux.Syntax <> tm_add constr
+R1479:1481 Flux.Semantics <> t1':22 var
+R1483:1484 Flux.Semantics <> t2:23 var
+binder 1510:1511 <> v1:24
+binder 1513:1514 <> t2:25
+binder 1516:1518 <> t2':26
+R1535:1544 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1527:1531 Flux.Syntax <> value ind
+R1533:1534 Flux.Semantics <> v1:24 var
+R1555:1564 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1547:1551 Flux.Semantics <> :::x_'-->'_x not
+R1545:1546 Flux.Semantics <> t2:25 var
+R1552:1554 Flux.Semantics <> t2':26 var
+R1577:1581 Flux.Semantics <> :::x_'-->'_x not
+R1565:1570 Flux.Syntax <> tm_add constr
+R1572:1573 Flux.Semantics <> v1:24 var
+R1575:1576 Flux.Semantics <> t2:25 var
+R1582:1587 Flux.Syntax <> tm_add constr
+R1589:1590 Flux.Semantics <> v1:24 var
+R1592:1594 Flux.Semantics <> t2':26 var
+binder 1623:1623 <> t:27
+binder 1625:1626 <> t':28
+R1643:1652 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1636:1640 Flux.Semantics <> :::x_'-->'_x not
+R1635:1635 Flux.Semantics <> t:27 var
+R1641:1642 Flux.Semantics <> t':28 var
+R1664:1668 Flux.Semantics <> :::x_'-->'_x not
+R1653:1661 Flux.Syntax <> tm_sample constr
+R1663:1663 Flux.Semantics <> t:27 var
+R1669:1677 Flux.Syntax <> tm_sample constr
+R1679:1680 Flux.Semantics <> t':28 var
+binder 1706:1707 <> t1:29
+binder 1709:1711 <> t1':30
+binder 1713:1714 <> t2:31
+R1733:1742 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1725:1729 Flux.Semantics <> :::x_'-->'_x not
+R1723:1724 Flux.Semantics <> t1:29 var
+R1730:1732 Flux.Semantics <> t1':30 var
+R1755:1759 Flux.Semantics <> :::x_'-->'_x not
+R1743:1748 Flux.Syntax <> tm_app constr
+R1750:1751 Flux.Semantics <> t1:29 var
+R1753:1754 Flux.Semantics <> t2:31 var
+R1760:1765 Flux.Syntax <> tm_app constr
+R1767:1769 Flux.Semantics <> t1':30 var
+R1771:1772 Flux.Semantics <> t2:31 var
+binder 1798:1799 <> v1:32
+binder 1801:1802 <> t2:33
+binder 1804:1806 <> t2':34
+R1823:1832 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1815:1819 Flux.Syntax <> value ind
+R1821:1822 Flux.Semantics <> v1:32 var
+R1843:1852 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1835:1839 Flux.Semantics <> :::x_'-->'_x not
+R1833:1834 Flux.Semantics <> t2:33 var
+R1840:1842 Flux.Semantics <> t2':34 var
+R1865:1869 Flux.Semantics <> :::x_'-->'_x not
+R1853:1858 Flux.Syntax <> tm_app constr
+R1860:1861 Flux.Semantics <> v1:32 var
+R1863:1864 Flux.Semantics <> t2:33 var
+R1870:1875 Flux.Syntax <> tm_app constr
+R1877:1878 Flux.Semantics <> v1:32 var
+R1880:1882 Flux.Semantics <> t2':34 var
+scheme 990:993 <> step_ind
+scheme 990:993 <> step_sind
+R1908:1911 Flux.Semantics <> step ind
+not 1891:1891 <> :::x_'-->'_x
+R1939:1942 Flux.Semantics <> step ind
+ind 2188:2192 <> multi
+constr 2250:2259 <> multi_refl
+constr 2289:2298 <> multi_step
+binder 2195:2195 <> X:35
+R2211:2214 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2210:2210 Flux.Semantics <> X:35 var
+R2216:2219 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2215:2215 Flux.Semantics <> X:35 var
+binder 2206:2206 <> R:36
+R2229:2232 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2234:2237 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 2270:2270 <> x:39
+R2273:2277 Flux.Semantics <> multi:37 ind
+R2283:2283 Flux.Semantics <> x:39 var
+R2281:2281 Flux.Semantics <> x:39 var
+R2279:2279 Flux.Semantics <> R:36 var
+binder 2309:2309 <> x:40
+binder 2311:2311 <> y:41
+binder 2313:2313 <> z:42
+R2327:2336 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2322:2322 Flux.Semantics <> R:36 var
+R2326:2326 Flux.Semantics <> y:41 var
+R2324:2324 Flux.Semantics <> x:40 var
+R2348:2357 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2337:2341 Flux.Semantics <> multi:37 ind
+R2347:2347 Flux.Semantics <> z:42 var
+R2345:2345 Flux.Semantics <> y:41 var
+R2343:2343 Flux.Semantics <> R:36 var
+R2358:2362 Flux.Semantics <> multi:37 ind
+R2368:2368 Flux.Semantics <> z:42 var
+R2366:2366 Flux.Semantics <> x:40 var
+R2364:2364 Flux.Semantics <> R:36 var
+scheme 2188:2192 <> multi_ind
+scheme 2188:2192 <> multi_sind
+R2399:2403 Flux.Semantics <> multi ind
+R2405:2408 Flux.Semantics <> step ind
+not 2381:2381 <> :::x_'-->*'_x
+R2450:2454 Flux.Semantics <> multi ind
+prf 2473:2483 <> multi_trans
+binder 2494:2495 <> t1:43
+binder 2497:2498 <> t2:44
+binder 2500:2501 <> t3:45
+R2516:2521 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2508:2513 Flux.Semantics <> :::x_'-->*'_x not
+R2506:2507 Flux.Semantics <> t1:43 var
+R2514:2515 Flux.Semantics <> t2:44 var
+R2532:2537 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2524:2529 Flux.Semantics <> :::x_'-->*'_x not
+R2522:2523 Flux.Semantics <> t2:44 var
+R2530:2531 Flux.Semantics <> t3:45 var
+R2540:2545 Flux.Semantics <> :::x_'-->*'_x not
+R2538:2539 Flux.Semantics <> t1:43 var
+R2546:2547 Flux.Semantics <> t3:45 var
+R2607:2616 Flux.Semantics <> multi_step constr
+R2607:2616 Flux.Semantics <> multi_step constr

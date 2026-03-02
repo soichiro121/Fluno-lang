@@ -1,0 +1,29 @@
+fn add(a: Int, b: Int) -> Int {
+    return a + b;
+}
+
+fn factorial(n: Int) -> Int {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+fn fib(n: Int) -> Int {
+  if n < 2 {
+    return n;
+  }
+  return fib(n - 1) + fib(n - 2);
+}
+
+fn main() {
+    println("Calling add(10, 20)");
+    let res = add(10, 20);
+    println(res);
+
+    println("Calling factorial(5)");
+    println(factorial(5));
+
+    println("Calling fib(10)");
+    println(fib(10));
+}

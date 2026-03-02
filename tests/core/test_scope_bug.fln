@@ -1,0 +1,10 @@
+
+fn main() {
+    let res = if true {
+        let x = 10;
+        x + x
+    } else {
+        0
+    };
+    print(res);
+}

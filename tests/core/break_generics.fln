@@ -1,0 +1,18 @@
+// 現状のcodegenは、この関数を "fn identity(x: T) -> T" と出力してしまう。
+// Rustでは "fn identity<T>(x: T) -> T" と書かないとエラーになる。
+
+fn identity<T>(x: T) -> T {
+    return x;
+}
+
+fn wrapper<A, B>(a: A, b: B) -> A {
+    return a;
+}
+
+fn main() {
+    let x: Int = identity(10);
+    let y: Float = identity(3.14);
+    
+    // 複数の型パラメータのテスト
+    let z = wrapper(x, y);
+}

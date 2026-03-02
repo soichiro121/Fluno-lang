@@ -1,0 +1,49 @@
+fn model() {
+    let mu = sample(Gaussian(0.0, 10.0));
+    observe(Gaussian(mu, 1.0), 3.0);
+}
+
+fn guide() {
+    let mu_mean = param("mu_mean", 0.0);
+    let z = sample(Gaussian(mu_mean, 1.0));
+}
+
+fn main() {
+    println("Testing Optimizers...");
+    
+    // Test SGD
+    let config_sgd = Map();
+    config_sgd.insert("num_iters", 1000);
+    config_sgd.insert("lr", 0.05);
+    config_sgd.insert("optimizer", "sgd");
+    
+    let res_sgd = infer_vi(config_sgd, model, guide);
+    // Use contains_key to be safe
+    if (res_sgd.contains_key("mu_mean")) {
+        let mu_sgd = res_sgd.get("mu_mean");
+        println("SGD mu_mean:");
+        println(mu_sgd);
+    }
+    
+    // Test Adam
+    let config_adam = Map();
+    config_adam.insert("num_iters", 1000);
+    config_adam.insert("lr", 0.05);
+    config_adam.insert("optimizer", "adam");
+    
+    let res_adam = infer_vi(config_adam, model, guide);
+    if (res_adam.contains_key("mu_mean")) {
+        let mu_adam = res_adam.get("mu_mean");
+        println("Adam mu_mean:");
+        println(mu_adam);
+        
+        let diff = mu_adam - 2.97;
+        if (diff < 0.0) { diff = 0.0 - diff; }
+        
+        if (diff < 0.2) {
+            println("Optimizer Test Passed!");
+        } else {
+            println("Optimizer Test Failed: Check Adam convergence");
+        }
+    }
+}

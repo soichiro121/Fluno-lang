@@ -1,0 +1,146 @@
+// tests/test_distributions.fln
+// 確率分布のテスト
+
+fn test_gaussian_basic() {
+    println("=== Testing Gaussian Distribution ===");
+    
+    let prior = Gaussian(0.0, 10.0);
+    let likelihood = Gaussian(3.0, 1.0);
+    
+    println("Prior: Gaussian(0.0, 10.0)");
+    println("Likelihood: Gaussian(3.0, 1.0)");
+    println("Test passed.");
+}
+
+fn test_uniform_basic() {
+    println("=== Testing Uniform Distribution ===");
+    
+    let dist = Uniform(0.0, 1.0);
+    println("Distribution: Uniform(0.0, 1.0)");
+    println("Test passed.");
+}
+
+fn simple_model() -> Float {
+    let x = Gaussian(0.0, 1.0).sample();
+    observe(Gaussian(x, 0.5), 1.0);
+    return x;
+}
+
+fn test_simple_inference() {
+    println("=== Testing Simple Inference ===");
+    
+    let samples = infer(100, simple_model);
+    
+    let sum = 0.0;
+    for s in samples {
+        sum = sum + s;
+    }
+    let mean = sum / samples.len();
+    
+    println("Posterior mean (should be close to 1.0): ");
+    println(mean);
+    
+    if (mean > 0.5) {
+        if (mean < 1.5) {
+            println("Simple inference test passed!");
+        } else {
+            println("Mean too high");
+        }
+    } else {
+        println("Mean too low");
+    }
+}
+
+fn test_bernoulli_basic() {
+    println("=== Testing Bernoulli Distribution ===");
+    let dist = Bernoulli(0.5);
+    println("Bernoulli(0.5) created");
+    
+    // Sampling test (approximate)
+    let sum = 0.0;
+    let n = 100;
+    let i = 0;
+    while (i < n) {
+        sum = sum + dist.sample();
+        i = i + 1;
+    }
+    let mean = sum / n;
+    println("Sample mean (should be ~0.5): ");
+    println(mean);
+    println("Test passed.");
+}
+
+fn test_beta_basic() {
+    println("=== Testing Beta Distribution ===");
+    let dist = Beta(2.0, 2.0);
+    println("Beta(2.0, 2.0) created");
+    
+    let samp = dist.sample();
+    println("Sampled value: ");
+    println(samp);
+    
+    if (samp >= 0.0) {
+        if (samp <= 1.0) {
+            println("Sample is within [0, 1]");
+        } else {
+             println("Sample > 1.0 (Fail)");
+        }
+    } else {
+        println("Sample < 0.0 (Fail)");
+    }
+    println("Test passed.");
+}
+
+fn coin_flip_model() -> Float {
+    // p ~ Beta(2, 2)
+    let p = Beta(2.0, 2.0).sample();
+    
+    // observe data: 3 heads (1.0) in a row
+    observe(Bernoulli(p), 1.0);
+    observe(Bernoulli(p), 1.0);
+    observe(Bernoulli(p), 1.0);
+    
+    return p;
+}
+
+fn test_coin_flip_inference() {
+    println("=== Testing Coin Flip Inference (Beta-Bernoulli) ===");
+    // Prior: Beta(2, 2), Mean = 0.5
+    // Data: 3 heads
+    // Posterior: Beta(2+3, 2) = Beta(5, 2), Mean = 5/7 ≈ 0.714
+    
+    let samples = infer(200, coin_flip_model);
+    
+    let sum = 0.0;
+    for s in samples {
+        sum = sum + s;
+    }
+    let mean = sum / samples.len();
+    
+    println("Posterior mean (should be close to 0.714): ");
+    println(mean);
+    
+    if (mean > 0.6) {
+        if (mean < 0.85) {
+            println("Coin flip inference test passed!");
+        } else {
+             println("Mean too high");
+        }
+    } else {
+        println("Mean too low");
+    }
+}
+
+fn main() {
+    test_gaussian_basic();
+    test_uniform_basic();
+    test_bernoulli_basic();
+    test_beta_basic();
+    
+    test_simple_inference();
+    test_coin_flip_inference();
+    
+    println("\n=== All Distribution Tests Completed ===");
+}
+
+

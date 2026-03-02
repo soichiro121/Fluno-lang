@@ -1,0 +1,138 @@
+// 1. Basic Language Features
+fn test_basics() {
+    println("\n--- 1. Basics ---");
+    
+    // Variables & Arithmetic
+    let x: Int = 10;
+    let y: Int = 20;
+    let z: Int = (x + y) * 2; // 60
+    println("Arithmetic: (10 + 20) * 2 = ", z);
+    
+    // Control Flow: If
+    if z > 50 {
+        println("If check: OK (> 50)");
+    } else {
+        println("If check: FAIL");
+    }
+    
+    // Control Flow: While Loop
+    let i: Int = 0;
+    while i < 3 {
+        println("While loop: i = ", i);
+        i = i + 1;
+    }
+    
+    // Lambda & Higher-Order Function
+    let square = |n: Int| { n * n };
+    println("Lambda square(5): ", square(5));
+}
+
+// 2. Data Structures (Structs & Arrays)
+struct Vector2 {
+    x: Float,
+    y: Float,
+}
+
+fn test_structs() {
+    println("\n--- 2. Structs & Arrays ---");
+    
+    let v1 = Vector2 { x: 3.0, y: 4.0 };
+    let mag_sq = v1.x * v1.x + v1.y * v1.y;
+    println("Struct access: mag_sq = ", mag_sq); // 25.0
+    
+    // Array iteration
+    let arr = [10, 20, 30];
+    // Note: Flux's `for` syntax depends on implementation. 
+    // Assuming `for val in arr`
+    print("Array iter: ");
+    for val in arr {
+        print(val, " ");
+    }
+    println("");
+}
+
+// 3. Reactive Programming
+fn test_reactive() {
+    println("\n--- 3. Reactive (Signals) ---");
+    
+    // Source Signal
+    let input = Signal_new(0);
+    
+    // Derived Signal (Map)  input * 2
+    let doubled = Signal_map(input, |x: Int| { x * 2 });
+    
+    // Derived Signal (Filter)  x > 10
+    let large_only = Signal_filter(doubled, |x: Int| { x > 10 });
+    
+    println("Setting Signal to 5...");
+    Signal_set(input, 5); 
+    // doubled -> 10. large_only -> filtered out (not > 10).
+    
+    println("Setting Signal to 10...");
+    Signal_set(input, 10);
+    // doubled -> 20. large_only -> updates to 20.
+    
+    let current_val = Signal_get(large_only);
+    println("Signal value (should be 20): ", current_val);
+    
+    // Fold (State accumulation)
+    let evt_trigger = Event_new();
+    let counter = Event_fold(evt_trigger, 0, |acc: Int, _v: Int| { acc + 1 });
+    
+    Event_emit(evt_trigger, 1); // +1
+    Event_emit(evt_trigger, 1); // +1
+    println("Event Fold Count (should be 2): ", Signal_get(counter));
+}
+
+// 4. Probabilistic Programming
+fn location_model() -> Float {
+    let pos = Gaussian(0.0, 5.0).sample();
+    observe(Gaussian(pos, 1.0), 3.5);
+    pos
+}
+
+
+fn test_inference() {
+    println("\n--- 4. Inference (PPL) ---");
+    
+    let num_samples = 1000;
+    println("Running Importance Sampling (n=", num_samples, ")...");
+    
+    let samples = infer(num_samples, location_model);
+
+    
+    // Calculate weighted average
+    let weight_sum = 0.0;
+    let val_sum = 0.0;
+    
+    for s in samples {
+        let w = exp(s.log_weight);
+        weight_sum = weight_sum + w;
+        val_sum = val_sum + s.value * w;
+    }
+    
+    let estimate = val_sum / weight_sum;
+    println("Estimated Position: ", estimate);
+    
+    // Theoretical posterior mean is ~3.365
+    let diff = estimate - 3.365;
+    if diff < 0.0 { diff = 0.0 - diff; }
+    
+    if diff < 0.2 {
+        println("Inference Result: PASS (Close to theoretical)");
+    } else {
+        println("Inference Result: FAIL (Too far)");
+    }
+}
+
+// Main Entry Point
+fn main() {
+    println("=== FLUX TESTS START ===");
+    
+    test_basics();
+    test_structs();
+    test_reactive();
+    test_inference();
+    
+    println("\n=== ALL TESTS COMPLETED ===");
+}

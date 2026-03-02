@@ -1,0 +1,8 @@
+
+struct Box { val: Int }
+fn main() {
+    let arr = [Box { val: 1 }];
+    let b = arr[0];
+    b.val = 2; // Can I modify b.val?
+    println(arr[0].val); 
+}

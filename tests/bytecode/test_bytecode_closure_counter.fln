@@ -1,0 +1,21 @@
+
+fn make_counter() -> fn() -> Int {
+    let mut count = 0;
+    
+    let counter = || {
+        count = count + 1;
+        count
+    };
+    
+    return counter;
+}
+
+fn main() {
+    let c1 = make_counter();
+    let c2 = make_counter();
+    
+    print(c1());
+    print(c1());
+    print(c2());
+    print(c1());
+}

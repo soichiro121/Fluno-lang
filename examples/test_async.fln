@@ -1,0 +1,8 @@
+async fn fetch_data() -> Float {
+    return 42.0;
+}
+
+fn main() {
+    let val = fetch_data().await;
+    println(val);
+}

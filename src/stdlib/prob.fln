@@ -1,0 +1,101 @@
+// src/stdlib/prob.fln
+
+let PI = 3.141592653589793
+
+struct Gaussian {
+    mean: Float,
+    std: Float
+}
+
+impl Gaussian {
+    fn new(mean: Float, std: Float): Gaussian {
+        Gaussian { mean: mean, std: std }
+    }
+
+    fn standard(): Gaussian {
+        Gaussian { mean: 0.0, std: 1.0 }
+    }
+}
+
+fn (g1: Gaussian) + (g2: Gaussian): Gaussian {
+    Gaussian {
+        mean: g1.mean + g2.mean,
+        std: sqrt(g1.std * g1.std + g2.std * g2.std)
+    }
+}
+
+fn (g1: Gaussian) - (g2: Gaussian): Gaussian {
+    Gaussian {
+        mean: g1.mean - g2.mean,
+        std: sqrt(g1.std * g1.std + g2.std * g2.std)
+    }
+}
+
+fn (g: Gaussian) * (scalar: Float): Gaussian {
+    Gaussian {
+        mean: g.mean * scalar,
+        std: g.std * abs(scalar)
+    }
+}
+
+fn (scalar: Float) * (g: Gaussian): Gaussian {
+    Gaussian {
+        mean: g.mean * scalar,
+        std: g.std * abs(scalar)
+    }
+}
+
+fn (g: Gaussian) / (scalar: Float): Gaussian {
+    Gaussian {
+        mean: g.mean / scalar,
+        std: g.std / abs(scalar)
+    }
+}
+
+fn (g1: Gaussian) * (g2: Gaussian): Gaussian {
+    let mu = g1.mean * g2.mean
+    let rel_var = (g1.std / g1.mean) * (g1.std / g1.mean) + 
+                  (g2.std / g2.mean) * (g2.std / g2.mean)
+    Gaussian {
+        mean: mu,
+        std: abs(mu) * sqrt(rel_var)
+    }
+}
+
+
+impl Gaussian {
+    fn pdf(self, x: Float): Float {
+        let z = (x - self.mean) / self.std
+        (1.0 / (self.std * sqrt(2.0 * PI))) * exp(-0.5 * z * z)
+    }
+
+    fn cdf(self, x: Float): Float {
+        let z = (x - self.mean) / (self.std * sqrt(2.0))
+        0.5 * (1.0 + erf(z))
+    }
+    fn sample(self): Float {
+        let u1 = random()
+        let u2 = random()
+        
+        let z = sqrt(-2.0 * log(u1)) * cos(2.0 * PI * u2)
+        self.mean + self.std * z
+    }
+}
+
+impl Gaussian {
+    fn ci_95(self): (Float, Float) {
+        let margin = 1.96 * self.std
+        (self.mean - margin, self.mean + margin)
+    }
+
+    fn ci_99(self): (Float, Float) {
+        let margin = 2.576 * self.std
+        (self.mean - margin, self.mean + margin)
+    }
+    fn cv(self): Float {
+        self.std / self.mean
+    }
+    fn variance(self): Float {
+        self.std * self.std
+    }
+}

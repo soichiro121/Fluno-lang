@@ -1,0 +1,94 @@
+// Composite Tests for Flux Features (Generic Enum Support Verified)
+
+fn assert(cond: Bool, msg: String) {
+    if cond {
+        // OK
+    } else {
+        println("FAIL: " + msg);
+    }
+}
+
+// --- 1. Generics & Enums ---
+enum MyOption<T> {
+    Some(T),
+    None,
+}
+
+fn test_enum_generics() {
+    // Explicit annotation should now work correctly with generics
+    let x: MyOption<Int> = MyOption::Some(42);
+    
+    match x {
+        MyOption::Some(v) => assert(v == 42, "MyOption::Some generic match"),
+        MyOption::None => assert(false, "MyOption::None matched mistakenly"),
+    }
+
+    // Type inference for None
+    let y: MyOption<Int> = MyOption::None;
+    match y {
+        MyOption::Some(_) => assert(false, "MyOption::Some matched mistakenly"),
+        MyOption::None => assert(true, "MyOption::None generic match"),
+    }
+    
+    // Test with another type
+    let s: MyOption<String> = MyOption::Some("hello");
+    match s {
+        MyOption::Some(val) => assert(val == "hello", "MyOption::Some<String> match"),
+        MyOption::None => assert(false, "Should not match None"),
+    }
+}
+
+// --- 2. Structs ---
+struct Point {
+    x: Int,
+    y: Int,
+}
+
+fn test_struct() {
+    let p = Point { x: 10, y: 20 };
+    assert(p.x == 10, "Point.x access");
+    assert(p.y == 20, "Point.y access");
+
+    match p {
+        Point { x, y } => {
+            assert(x == 10, "Point match x");
+            assert(y == 20, "Point match y");
+        }
+    }
+}
+
+// --- 3. Traits ---
+trait Greeter {
+    fn greet(self) -> String;
+}
+
+struct Person {
+    name: String,
+}
+
+impl Greeter for Person {
+    fn greet(self) -> String {
+        return "Hello, " + self.name;
+    }
+}
+
+fn test_trait() {
+    let p = Person { name: "Flux" };
+    let msg = p.greet(); 
+    assert(msg == "Hello, Flux", "Trait method call");
+}
+
+fn main() {
+    println("Running Composite Tests with Generics...");
+    
+    test_enum_generics();
+    println("Enum tests done.");
+    
+    test_struct();
+    println("Struct tests done.");
+    
+    test_trait();
+    println("Trait tests done.");
+    
+    println("All tests passed!");
+}

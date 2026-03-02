@@ -1,0 +1,182 @@
+// demo/mnist_wgi.fln
+// WGI MNIST Classifier v6.1 (Fix: Variable naming)
+
+// --- 1. System IO ---
+#[link(name = "c:/Users/froms/Desktop/Flux-main/fluno-rt/target/release/fluno_rt.dll")]
+extern "C" { fn fluno_fs_read(path: String) -> String; }
+fn read_file(path: String) -> String { fluno_fs_read(path) }
+
+// --- 2. Core Polyfills ---
+fn new_signal(val: Float) -> Signal<Float> { Signal_new(val) }
+fn signal_get(s: Signal<Float>) -> Float { Signal_get(s) }
+fn signal_set(s: Signal<Float>, val: Float) { Signal_set(s, val) }
+fn float_abs(x: Float) -> Float { if x < 0.0 { 0.0 - x } else { x } }
+fn float_cos(x: Float) -> Float { cos(x) }
+fn float_pow(base: Float, exp: Float) -> Float { pow(base, exp) }
+fn float_max(a: Float, b: Float) -> Float { if a > b { a } else { b } }
+
+// --- 3. Data Structures ---
+struct Dataset { train: Array<Any>, test: Array<Any> }
+struct Item { label: String, pixels: Array<Any> }
+
+// --- 4. Neuro Library (Negative Resonance) ---
+struct NeuroNode {
+    phase: Signal<Float>,
+    memory_phase: Signal<Float>
+}
+fn create_neuron() -> NeuroNode {
+    NeuroNode { phase: new_signal(0.0), memory_phase: new_signal(0.0) }
+}
+impl NeuroNode {
+    fn learn(self) {
+        let current = signal_get(self.phase);
+        signal_set(self.memory_phase, current);
+    }
+    
+    // 負の共鳴 (Negative Resonance)
+    fn get_resonance_score(self, input_phase: Float) -> Array<Float> {
+        let memory = signal_get(self.memory_phase);
+        
+        let max_intensity = float_max(memory, input_phase);
+        let weight = (max_intensity / 3.14159) * 0.9 + 0.1;
+        
+        let diff = input_phase - memory;
+        let interference = float_cos(diff); 
+        
+        let sign = 1.0;
+        if interference < 0.0 { sign = -1.0; }
+        
+        let sharpened = float_pow(float_abs(interference), 3.0) * sign;
+        
+        [sharpened * weight, weight]
+    }
+    
+    fn set_phase(self, p: Float) { signal_set(self.phase, p); }
+}
+
+// --- 5. Layer ---
+struct Layer { label: String, nodes: Array<Any> }
+fn create_layer(size: Int, label: String) -> Layer {
+    let mut nodes = [];
+    let i = 0;
+    while i < size { nodes = nodes.push(create_neuron()); i = i + 1; }
+    Layer { label: label, nodes: nodes }
+}
+impl Layer {
+    fn input_image(self, pixels: Array<Any>) {
+        let len = self.nodes.len();
+        let i = 0;
+        while i < len {
+            let val = pixels[i];
+            let p = 0.0;
+            if is_float(val) { p = val; }
+            let phase = p * 3.14159; 
+            let node: NeuroNode = self.nodes[i];
+            node.set_phase(phase);
+            i = i + 1;
+        }
+    }
+    fn memorize(self) {
+        let len = self.nodes.len();
+        let i = 0;
+        while i < len {
+            let node: NeuroNode = self.nodes[i];
+            node.learn();
+            i = i + 1;
+        }
+    }
+    fn calculate_score(self, pixels: Array<Any>) -> Float {
+        let total_score = 0.0;
+        let total_weight = 0.0;
+        let len = self.nodes.len();
+        let i = 0;
+        while i < len {
+            let val = pixels[i];
+            let p = 0.0;
+            if is_float(val) { p = val; }
+            let input_phase = p * 3.14159;
+            let node: NeuroNode = self.nodes[i];
+            let comps = node.get_resonance_score(input_phase);
+            total_score = total_score + comps[0];
+            total_weight = total_weight + comps[1];
+            i = i + 1;
+        }
+        if total_weight == 0.0 { 0.0 } else { total_score / total_weight }
+    }
+}
+
+// --- 6. Main ---
+fn load_dataset() -> Any {
+    println("Reading mnist_data.json...");
+    let json_str = read_file("c:/Users/froms/Desktop/Flux-main/demo/mnist_data.json");
+    if json_str == "" { println("Error: Could not read mnist_data.json"); return (); }
+    from_json(json_str)
+}
+
+fn main() {
+    let image_size = 784; // 修正: 小文字開始
+    
+    println("Initializing WGI Core v6.1 (Negative Resonance)...");
+    let layers = [];
+    
+    let raw_data = load_dataset();
+    
+    match raw_data {
+        Dataset { train, test } => {
+            println("\n[Training Phase]");
+            let t_len = train.len();
+            let i = 0;
+            while i < t_len {
+                let item_any = train[i];
+                match item_any {
+                    Item { label, pixels } => {
+                        let layer = create_layer(image_size, label);
+                        layer.input_image(pixels);
+                        layer.memorize();
+                        layers = layers.push(layer);
+                    }, _ => {}
+                }
+                i = i + 1;
+            }
+            println("Total Prototypes Learned: " + layers.len());
+
+            println("\n[Testing Phase]");
+            let correct_count = 0;
+            let test_len = test.len();
+            let j = 0;
+            
+            while j < test_len {
+                let item_any = test[j];
+                match item_any {
+                    Item { label, pixels } => {
+                        let true_label = label;
+                        let best_label = "?";
+                        let best_score = -999.0;
+                        
+                        let k = 0;
+                        let layer_count = layers.len(); // 変数名を小文字に変更
+                        while k < layer_count {
+                            let layer: Layer = layers[k];
+                            let score = layer.calculate_score(pixels);
+                            
+                            if score > best_score {
+                                best_score = score;
+                                best_label = layer.label;
+                            }
+                            k = k + 1;
+                        }
+                        
+                        let mark = "X";
+                        if best_label == true_label { mark = "O"; correct_count = correct_count + 1; }
+                        println("Test[" + j + "] True:" + true_label + " Pred:" + best_label + " (" + best_score + ") " + mark);
+                    }, _ => {}
+                }
+                j = j + 1;
+            }
+            
+            let acc = (correct_count * 100.0) / (test_len * 1.0);
+            println("\n=== Final Accuracy: " + acc + "% ===");
+        },
+        _ => { println("Error: Invalid dataset format"); }
+    }
+}

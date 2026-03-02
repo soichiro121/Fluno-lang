@@ -1,0 +1,47 @@
+struct Point { x: Int, y: Int }
+struct Box { p: Point }
+
+fn assert(condition: Bool, message: String) {
+    if !condition {
+        println("ASSERTION FAILED: " + message);
+    }
+}
+
+fn main() {
+    // 1. Simple variables
+    let mut x = 10;
+    x += 5;
+    assert(x == 15, "x += 5 failed");
+    x *= 2;
+    assert(x == 30, "x *= 2 failed");
+
+    // 2. Struct fields
+    let mut p1 = Point { x: 5, y: 10 };
+    p1.x = 100;
+    assert(p1.x == 100, "p1.x = 100 failed");
+    p1.x += 10;
+    assert(p1.x == 110, "p1.x += 10 failed");
+    
+    // 3. Array indices
+    let mut arr = [1, 2, 3];
+    arr[0] = 100;
+    assert(arr[0] == 100, "arr[0] = 100 failed");
+    arr[1] += 10;
+    assert(arr[1] == 12, "arr[1] += 10 failed");
+
+    // 4. Nested structures
+    let mut b = Box { p: Point { x: 0, y: 0 } };
+    b.p.x = 5;
+    assert(b.p.x == 5, "b.p.x = 5 failed");
+    b.p.y += 20;
+    assert(b.p.y == 20, "b.p.y += 20 failed");
+
+    // 5. Multi-dimensional array
+    let mut m = [[1, 2], [3, 4]];
+    m[0][1] = 99;
+    assert(m[0][1] == 99, "m[0][1] = 99 failed");
+    m[1][0] *= 10;
+    assert(m[1][0] == 30, "m[1][0] *= 10 failed");
+
+    println("All assignment tests completed.");
+}

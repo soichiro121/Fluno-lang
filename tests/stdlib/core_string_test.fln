@@ -1,0 +1,69 @@
+// Phase 6 Test: Core Language Enhancements (String concatenation)
+
+fn main() {
+    println("Starting Core String Test...");
+
+    // 1. String + String
+    let s1 = "Hello";
+    let s2 = " World";
+    let s3 = s1 + s2;
+    println("String + String:", s3);
+    if s3 == "Hello World" {
+        println("PASS: String + String");
+    } else {
+        println("FAIL: String + String");
+    }
+
+    // 2. String + Int
+    let age = 30;
+    let msg = "Age is " + age;
+    println("String + Int:", msg);
+    if msg == "Age is 30" {
+        println("PASS: String + Int");
+    } else {
+        println("FAIL: String + Int");
+    }
+
+    // 3. Int + String
+    let prefix = 100;
+    let code = prefix + " errors";
+    println("Int + String:", code);
+    if code == "100 errors" {
+        println("PASS: Int + String");
+    } else {
+        println("FAIL: Int + String");
+    }
+
+    // 4. String + Float
+    let pi = 3.14;
+    let pi_msg = "Pi is approx " + pi;
+    println("String + Float:", pi_msg);
+    // Note: Float printing might vary slightly (e.g. 3.14 vs 3.14000)
+    // We check if it contains "3.14" logic implicitly via equality
+    // Assuming simple format
+    if pi_msg == "Pi is approx 3.14" {
+        println("PASS: String + Float");
+    } else {
+        println("FAIL: String + Float -> Got: [" + pi_msg + "]");
+    }
+
+    // 5. Interpolation
+    let x = 42;
+    let interp = "Answer: {x}";
+    println("Interpolation:", interp);
+    
+    if interp == "Answer: 42" {
+        println("PASS: Interpolation");
+    } else {
+        println("FAIL: Interpolation -> Got: [" + interp + "]");
+    }
+    
+    // 6. Complex Chaining
+    let complex = "A" + 1 + "B" + 2.5;
+    println("Complex Chain:", complex);
+    if complex == "A1B2.5" {
+        println("PASS: Complex Chain");
+    } else {
+        println("FAIL: Complex Chain");
+    }
+}

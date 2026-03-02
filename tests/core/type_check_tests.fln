@@ -1,0 +1,43 @@
+// ==============================
+// TypeChecker 動作確認テスト
+// ==============================
+
+// 成功例: すべての型が一致するケース
+fn test_pass() -> Unit {
+    println("=== Type Check: PASS CASE ===");
+    
+    let a: Int = 42;
+    let b: Float = 3.14;
+    let c: String = "Flux";
+    let d: Bool = true;
+
+    // それぞれ型が一致
+    println("Int:", a);
+    println("Float:", b);
+    println("String:", c);
+    println("Bool:", d);
+
+    // Any汎用型（printlnがVariadic<Any>）にマッチ
+    println("Variadic test", a, b, c, d);
+}
+
+// 失敗例: 型不一致および未定義変数などを検出
+fn test_fail() -> Unit {
+    println();
+    println("=== Type Check: FAIL CASE (expected errors) ===");
+
+    let x: Int = "hello";   // [E2001] TypeMismatch
+    let y = 3.14 + true;    // [E2001] InvalidBinaryOp
+    println(x, y);
+
+    // 未定義変数
+    println(undefined_var);
+}
+
+// メイン関数
+fn main() {
+    println("====== Flux TypeChecker Demo ======");
+    test_pass();
+    test_fail();
+    println("====== End ======");
+}

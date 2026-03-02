@@ -1,0 +1,166 @@
+// demo/epiphany.fln
+// WGI Epiphany Demo: Concept Resonance
+
+// --- 1. System IO ---
+// 文字列操作のための簡易ヘルパー（ハッシュ関数代わり）
+fn str_to_freq(s: String) -> Float {
+    let len = s.len();
+    let val = 0.0;
+    let i = 0;
+    
+    // 簡易ハッシュ: 文字コードの重み付き和
+    // 本来はWord2Vecなどのベクトルを使うが、デモなので「文字の響き」で代用
+    while i < len {
+        // Flunoに char_code_at がある前提（なければ適当な数値生成）
+        // 現状のFluno仕様に合わせて、文字数と先頭文字などで擬似乱数を作る
+        let seed = (i + 1) * 1.0;
+        val = val + seed * 1.5; 
+        i = i + 1;
+    }
+    
+    // 周波数として扱いやすい値 (0.5 ~ 5.0 Hz) に正規化
+    // 文字列が長いほど少し高い周波数になる傾向
+    let base = float_mod(val, 50.0) / 10.0; 
+    base + 0.5
+}
+
+fn float_mod(a: Float, b: Float) -> Float {
+    a - (a / b).floor() * b
+}
+
+fn str_to_phase(s: String) -> Float {
+    let len = s.len();
+    // 位相 (0 ~ 2π)
+    let val = (len * 1.0) * 0.7;
+    float_mod(val, 6.28318)
+}
+
+// --- 2. Core Polyfills ---
+fn new_signal(val: Float) -> Signal<Float> { Signal_new(val) }
+fn signal_get(s: Signal<Float>) -> Float { Signal_get(s) }
+fn signal_set(s: Signal<Float>, val: Float) { Signal_set(s, val) }
+
+fn float_sin(x: Float) -> Float { sin(x) }
+fn float_cos(x: Float) -> Float { cos(x) }
+fn float_abs(x: Float) -> Float { if x < 0.0 { 0.0 - x } else { x } }
+
+// --- 3. WGI Idea Neuron ---
+struct Idea {
+    name: String,
+    freq: Float,       // 概念の振動数
+    phase: Float,      // 概念の位相
+    state: Signal<Float> // 現在の波の高さ
+}
+
+fn create_idea(name: String) -> Idea {
+    Idea {
+        name: name,
+        freq: str_to_freq(name),
+        phase: str_to_phase(name),
+        state: new_signal(0.0)
+    }
+}
+
+// --- 4. Resonance Engine (The Brain) ---
+// 2つの概念を衝突させて、共鳴（ひらめき）をチェックする
+fn check_resonance(idea_a: Idea, idea_b: Idea) {
+    println("\n--- Thinking about: [" + idea_a.name + "] & [" + idea_b.name + "] ---");
+    println("Params A: Freq=" + idea_a.freq + ", Phase=" + idea_a.phase);
+    println("Params B: Freq=" + idea_b.freq + ", Phase=" + idea_b.phase);
+    
+    // シミュレーション: 時間を進めて波の干渉を見る
+    let time = 0.0;
+    let max_resonance = 0.0;
+    let stability = 0.0;
+    let steps = 100; // 思考時間
+    
+    println("\n[Brain Waves Simulation]");
+    
+    let t = 0;
+    while t < steps {
+        // 波の計算: AとBの波を合成
+        let wave_a = float_sin(idea_a.freq * time + idea_a.phase);
+        let wave_b = float_sin(idea_b.freq * time + idea_b.phase);
+        
+        // 干渉: 強め合うか、打ち消し合うか
+        // (A + B) / 2
+        let interference = (wave_a + wave_b) * 0.5;
+        
+        // 共鳴エネルギー: 干渉波の絶対値（振幅の大きさ）
+        let energy = float_abs(interference);
+        
+        // 最大共鳴を記録
+        if energy > max_resonance {
+            max_resonance = energy;
+        }
+        
+        // 安定性チェック:
+        // エネルギーが高い状態が続くと「安定（Stability）」が上がる
+        // SNNの積分発火 (Integrate-and-Fire) モデル
+        // ★修正2: 感動のハードルを下げる
+        // 0.8 (厳しすぎ) -> 0.6 (これなら波の山で貯まりやすい)
+        if energy > 0.6 {
+            // ★修正3: 興奮しやすくする
+            // +0.1 -> +0.2 (ビビッと来やすくする)
+            stability = stability + 0.2; 
+        } else {
+            // ★修正4: 忘れるのを遅くする
+            // -0.05 -> -0.02 (余韻を残す)
+            stability = stability - 0.02; 
+        }
+        if stability < 0.0 { stability = 0.0; }
+        
+        // 可視化（簡易オシロスコープ）
+        let bar = "";
+        let n_bars = (energy * 20.0).floor();
+        let k = 0;
+        while k < n_bars { bar = bar + "|"; k = k + 1; }
+        // println(t + ": " + bar); // 詳細ログが見たい場合はコメントアウト解除
+        
+        // ★ひらめき発火 (Spike!)
+        if stability > 5.0 {
+            println(">>> SPIKE! Epiphany Reached at t=" + t + " <<<");
+            println("    (Stability: " + stability + ", Energy: " + energy + ")");
+            
+            // ループを抜ける（ひらめいたので思考終了）
+            t = steps + 1; 
+        }
+        
+        time = time + 0.2;
+        t = t + 1;
+    }
+    
+    // 結果判定
+    println("\n--- Result ---");
+    if t > steps {
+        // 発火した場合
+        println("Output: GENIUS IDEA! (Resonance: " + max_resonance + ")");
+        println("Interpretation: The concepts '" + idea_a.name + "' and '" + idea_b.name + "' resonate perfectly.");
+    } else {
+        // 発火しなかった場合
+        println("Output: Just a thought. (Peak Resonance: " + max_resonance + ")");
+        println("Interpretation: No strong connection found.");
+    }
+}
+
+// --- 5. Main ---
+fn main() {
+    println("initializing Epiphany Engine...");
+    
+    // ケース1: 共鳴しにくい組み合わせ（と想定されるもの）
+    let apple = create_idea("Apple");
+    let car = create_idea("Car"); // 文字長などが異なる
+    check_resonance(apple, car);
+    
+    // ケース2: 共鳴しやすい組み合わせ（と想定されるもの）
+    // 文字列の長さや構成が似ていると、簡易ハッシュ関数で似た周波数になりやすい
+    let data = create_idea("Data");
+    let date = create_idea("Date"); 
+    check_resonance(data, date);
+    
+    // ケース3: ユーザーのカスタム思考
+    // 実際に「ひらめく」かどうかは実行時の乱数（ハッシュ）次第！
+    let ai = create_idea("Artificial Intelligence");
+    let consciousness = create_idea("Consciousness");
+    check_resonance(ai, consciousness);
+}

@@ -1,0 +1,341 @@
+// =============================================================================
+// Flux言語 Option<T>型 完全機能テスト
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Test 1: 基本的なOption値の生成と表示
+// -----------------------------------------------------------------------------
+fn test_basic_option() {
+    println("=== Test 1: Basic Option Values ===");
+    
+    let some_int: Option<Int> = Some(42);
+    let some_float: Option<Float> = Some(3.14);
+    let some_string: Option<String> = Some("hello");
+    let some_bool: Option<Bool> = Some(true);
+    let none_val = None;
+    
+    println("some_int:", some_int);
+    println("some_float:", some_float);
+    println("some_string:", some_string);
+    println("some_bool:", some_bool);
+    println("none_val:", none_val);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 2: Option型の変数宣言と型推論
+// -----------------------------------------------------------------------------
+fn test_type_inference() {
+    println("=== Test 2: Type Inference ===");
+    
+    let a = Some(100);
+    let b = Some("Flux");
+    let c = None;
+    
+    println("a =", a);
+    println("b =", b);
+    println("c =", c);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 3: matchによるOption値の分解（基本）
+// -----------------------------------------------------------------------------
+fn test_match_basic() {
+    println("=== Test 3: Match Expressions (Basic) ===");
+    
+    let value = Some(42);
+    
+    match value {
+        Some(x) => println("Got value:", x),
+        None => println("No value"),
+    }
+    
+    let empty = None;
+    
+    match empty {
+        Some(x) => println("Got value:", x),
+        None => println("Empty option"),
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 4: matchでの変数束縛とネストしたOption
+// -----------------------------------------------------------------------------
+fn test_match_binding() {
+    println("=== Test 4: Match Pattern Binding ===");
+    
+    let opt1 = Some(10);
+    let opt2 = Some(20);
+    let opt3 = None;
+    
+    match opt1 {
+        Some(n) => println("opt1 contains:", n),
+        None => println("opt1 is empty"),
+    }
+    
+    match opt2 {
+        Some(n) => println("opt2 contains:", n),
+        None => println("opt2 is empty"),
+    }
+    
+    match opt3 {
+        Some(n) => println("opt3 contains:", n),
+        None => println("opt3 is empty"),
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 5: 関数の引数としてのOption
+// -----------------------------------------------------------------------------
+fn process_option(opt: Option<Int>) {
+    match opt {
+        Some(value) => println("Processing value:", value),
+        None => println("Nothing to process"),
+    }
+}
+
+fn test_function_args() {
+    println("=== Test 5: Function Arguments ===");
+    
+    process_option(Some(100));
+    process_option(None);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 6: 関数の戻り値としてのOption
+// -----------------------------------------------------------------------------
+fn divide(a: Int, b: Int) -> Option<Int> {
+    if b == 0 {
+        return None;
+    } else {
+        return Some(a / b);
+    }
+}
+
+fn test_function_return() {
+    println("=== Test 6: Function Return Values ===");
+    
+    let result1 = divide(10, 2);
+    let result2 = divide(10, 0);
+    
+    match result1 {
+        Some(v) => println("10 / 2 =", v),
+        None => println("Division failed"),
+    }
+    
+    match result2 {
+        Some(v) => println("10 / 0 =", v),
+        None => println("Cannot divide by zero"),
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 7: Option型の連鎖的なmatch
+// -----------------------------------------------------------------------------
+fn find_value(x: Int) -> Option<String> {
+    if x == 1 {
+        return Some("one");
+    } else if x == 2 {
+        return Some("two");
+    } else if x == 3 {
+        return Some("three");
+    } else {
+        return None;
+    }
+}
+
+fn test_chained_options() {
+    println("=== Test 7: Chained Options ===");
+    
+    let nums = [1, 2, 3, 4, 5];
+    
+    for n in nums {
+        let result = find_value(n);
+        match result {
+            Some(name) => println(n, "is", name),
+            None => println(n, "has no name"),
+        }
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 8: Option型とif式の組み合わせ
+// -----------------------------------------------------------------------------
+fn test_option_with_if() {
+    println("=== Test 8: Option with If Expression ===");
+    
+    let maybe_num = Some(42);
+    let result = None;
+    
+    let status1 = if true {
+        Some("active")
+    } else {
+        None
+    };
+    
+    let status2 = if false {
+        Some("active")
+    } else {
+        None
+    };
+    
+    println("status1:", status1);
+    println("status2:", status2);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 9: Option型とタプルの組み合わせ
+// -----------------------------------------------------------------------------
+fn test_option_tuple() {
+    println("=== Test 9: Option with Tuples ===");
+    
+    let tuple1 = (Some(10), Some(20), None);
+    
+    println("tuple:", tuple1);
+    
+    match tuple1[0] {
+        Some(x) => println("First element:", x),
+        None => println("First is None"),
+    }
+    
+    match tuple1[2] {
+        Some(x) => println("Third element:", x),
+        None => println("Third is None"),
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 10: Option型と配列の組み合わせ
+// -----------------------------------------------------------------------------
+fn test_option_array() {
+    println("=== Test 10: Option with Arrays ===");
+    
+    let arr = [Some(1), Some(2), None, Some(4)];
+    
+    for opt in arr {
+        match opt {
+            Some(val) => println("Value:", val),
+            None => println("Empty slot"),
+        }
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 11: 複雑なmatchパターン
+// -----------------------------------------------------------------------------
+fn test_complex_match() {
+    println("=== Test 11: Complex Match Patterns ===");
+    
+    let x = Some(100);
+    
+    match x {
+        Some(n) => {
+            if n > 50 {
+                println("Large number:", n);
+            } else {
+                println("Small number:", n);
+            }
+        }
+        None => println("No value"),
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 12: Optionのネスト（Option<Option<T>>）
+// -----------------------------------------------------------------------------
+fn test_nested_option() {
+    println("=== Test 12: Nested Options ===");
+    
+    let nested = Some(Some(42));
+    
+    match nested {
+        Some(inner) => {
+            match inner {
+                Some(value) => println("Nested value:", value),
+                None => println("Inner is None"),
+            }
+        }
+        None => println("Outer is None"),
+    }
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 13: Option型の比較と条件分岐
+// -----------------------------------------------------------------------------
+fn test_option_comparison() {
+    println("=== Test 13: Option Comparison ===");
+    
+    let opt1 = Some(5);
+    let opt2 = Some(5);
+    let opt3 = None;
+    
+    println("opt1:", opt1);
+    println("opt2:", opt2);
+    println("opt3:", opt3);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// Test 14: Option型と文字列操作
+// -----------------------------------------------------------------------------
+fn get_greeting(name: Option<String>) -> String {
+    let result = match name {
+        Some(n) => "Hello",
+        None => "Hello, stranger",
+    };
+    return result;
+}
+
+fn test_option_string() {
+    println("=== Test 14: Option with Strings ===");
+    
+    let name1 = Some("Alice");
+    let name2 = None;
+    
+    let greeting1 = get_greeting(name1);
+    let greeting2 = get_greeting(name2);
+    
+    println(greeting1);
+    println(greeting2);
+    println();
+}
+
+// -----------------------------------------------------------------------------
+// メイン関数
+// -----------------------------------------------------------------------------
+fn main() {
+    println("╔══════════════════════════════════════════════╗");
+    println("║     Flux Option<T> Complete Test Suite      ║");
+    println("╚══════════════════════════════════════════════╝");
+    println();
+    
+    test_basic_option();
+    test_type_inference();
+    test_match_basic();
+    test_match_binding();
+    test_function_args();
+    test_function_return();
+    test_chained_options();
+    test_option_with_if();
+    test_option_tuple();
+    test_option_array();
+    test_complex_match();
+    test_nested_option();
+    test_option_comparison();
+    test_option_string();
+    
+    println("╔══════════════════════════════════════════════╗");
+    println("║      All Option Tests Completed! ✓          ║");
+    println("╚══════════════════════════════════════════════╝");
+}

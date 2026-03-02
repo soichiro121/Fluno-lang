@@ -1,0 +1,461 @@
+DIGEST bcffb0f112315a363f586ef09416886f
+FFlux.Syntax
+R248:251 Flux.Base <> <> lib
+R278:291 Coq.Strings.String <> <> lib
+R318:327 Coq.Lists.List <> <> lib
+R354:367 Coq.Strings.String <> <> lib
+R394:403 Coq.Lists.List <> <> lib
+R430:438 Coq.Bool.Bool <> <> lib
+R465:470 Coq.ZArith.ZArith <> <> lib
+R497:501 Coq.Reals.Reals <> <> lib
+R511:523 Coq.Lists.List ListNotations <> mod
+ind 756:757 <> ty
+constr 773:776 <> TInt
+constr 787:792 <> TFloat
+constr 803:807 <> TBool
+constr 818:826 <> TGaussian
+constr 837:840 <> TFun
+constr 863:867 <> TUnit
+constr 878:884 <> TString
+constr 895:900 <> TArray
+constr 917:920 <> TMap
+R780:781 Flux.Syntax <> ty:1 ind
+R796:797 Flux.Syntax <> ty:1 ind
+R811:812 Flux.Syntax <> ty:1 ind
+R830:831 Flux.Syntax <> ty:1 ind
+R846:849 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R844:845 Flux.Syntax <> ty:1 ind
+R852:855 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R850:851 Flux.Syntax <> ty:1 ind
+R856:857 Flux.Syntax <> ty:1 ind
+R871:872 Flux.Syntax <> ty:1 ind
+R888:889 Flux.Syntax <> ty:1 ind
+R906:909 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R904:905 Flux.Syntax <> ty:1 ind
+R910:911 Flux.Syntax <> ty:1 ind
+R926:929 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R924:925 Flux.Syntax <> ty:1 ind
+R930:931 Flux.Syntax <> ty:1 ind
+scheme 756:757 <> ty_rect
+scheme 756:757 <> ty_ind
+scheme 756:757 <> ty_rec
+scheme 756:757 <> ty_sind
+prf 971:979 <> eq_ty_dec
+R999:1000 Flux.Syntax <> ty ind
+binder 991:992 <> T1:3
+binder 994:995 <> T2:4
+R1004:1004 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R1012:1016 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R1025:1025 Coq.Init.Specif <> ::type_scope:'{'_x_'}'_'+'_'{'_x_'}' not
+R1007:1009 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1005:1006 Flux.Syntax <> T1:3 var
+R1010:1011 Flux.Syntax <> T2:4 var
+R1019:1022 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R1017:1018 Flux.Syntax <> T1:3 var
+R1023:1024 Flux.Syntax <> T2:4 var
+def 1101:1106 <> beq_ty
+R1117:1118 Flux.Syntax <> ty ind
+binder 1109:1110 <> T1:5
+binder 1112:1113 <> T2:6
+R1123:1126 Coq.Init.Datatypes <> bool ind
+R1143:1144 Flux.Syntax <> T2:6 var
+R1139:1140 Flux.Syntax <> T1:5 var
+R1155:1158 Flux.Syntax <> TInt constr
+R1161:1164 Flux.Syntax <> TInt constr
+R1169:1172 Coq.Init.Datatypes <> true constr
+R1178:1183 Flux.Syntax <> TFloat constr
+R1186:1191 Flux.Syntax <> TFloat constr
+R1196:1199 Coq.Init.Datatypes <> true constr
+R1205:1209 Flux.Syntax <> TBool constr
+R1212:1216 Flux.Syntax <> TBool constr
+R1221:1224 Coq.Init.Datatypes <> true constr
+R1230:1238 Flux.Syntax <> TGaussian constr
+R1241:1249 Flux.Syntax <> TGaussian constr
+R1254:1257 Coq.Init.Datatypes <> true constr
+R1263:1266 Flux.Syntax <> TFun constr
+R1277:1280 Flux.Syntax <> TFun constr
+R1300:1303 Coq.Init.Datatypes <> andb def
+R1323:1328 Flux.Syntax <> beq_ty:7 def
+R1306:1311 Flux.Syntax <> beq_ty:7 def
+R1343:1347 Flux.Syntax <> TUnit constr
+R1350:1354 Flux.Syntax <> TUnit constr
+R1359:1362 Coq.Init.Datatypes <> true constr
+R1368:1374 Flux.Syntax <> TString constr
+R1377:1383 Flux.Syntax <> TString constr
+R1388:1391 Coq.Init.Datatypes <> true constr
+R1397:1402 Flux.Syntax <> TArray constr
+R1408:1413 Flux.Syntax <> TArray constr
+R1421:1426 Flux.Syntax <> beq_ty:7 def
+R1438:1441 Flux.Syntax <> TMap constr
+R1447:1450 Flux.Syntax <> TMap constr
+R1458:1463 Flux.Syntax <> beq_ty:7 def
+R1483:1487 Coq.Init.Datatypes <> false constr
+prf 1503:1513 <> beq_ty_refl
+binder 1524:1524 <> T:10
+R1537:1539 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1527:1532 Flux.Syntax <> beq_ty def
+R1534:1534 Flux.Syntax <> T:10 var
+R1536:1536 Flux.Syntax <> T:10 var
+R1540:1543 Coq.Init.Datatypes <> true constr
+prf 1630:1644 <> beq_ty_true_iff
+binder 1655:1656 <> T1:11
+binder 1658:1659 <> T2:12
+R1683:1687 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R1676:1678 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1664:1669 Flux.Syntax <> beq_ty def
+R1671:1672 Flux.Syntax <> T1:11 var
+R1674:1675 Flux.Syntax <> T2:12 var
+R1679:1682 Coq.Init.Datatypes <> true constr
+R1690:1692 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1688:1689 Flux.Syntax <> T1:11 var
+R1693:1694 Flux.Syntax <> T2:12 var
+R1847:1859 Coq.Bool.Bool <> andb_true_iff thm
+R1847:1859 Coq.Bool.Bool <> andb_true_iff thm
+R2022:2032 Flux.Syntax <> beq_ty_refl thm
+R2022:2032 Flux.Syntax <> beq_ty_refl thm
+ind 2272:2273 <> tm
+constr 2289:2294 <> tm_var
+constr 2312:2317 <> tm_int
+constr 2333:2340 <> tm_float
+constr 2356:2362 <> tm_bool
+constr 2381:2391 <> tm_gaussian
+constr 2412:2417 <> tm_add
+constr 2440:2448 <> tm_sample
+constr 2465:2470 <> tm_abs
+constr 2500:2505 <> tm_app
+constr 2528:2534 <> tm_unit
+constr 2545:2553 <> tm_string
+constr 2574:2581 <> tm_array
+constr 2603:2608 <> tm_map
+R2301:2304 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2298:2300 Coq.Init.Datatypes <> nat ind
+R2305:2306 Flux.Syntax <> tm:13 ind
+R2322:2325 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2321:2321 Coq.Numbers.BinNums <> Z ind
+R2326:2327 Flux.Syntax <> tm:13 ind
+R2345:2348 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2344:2344 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+R2349:2350 Flux.Syntax <> tm:13 ind
+R2370:2373 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2366:2369 Coq.Init.Datatypes <> bool ind
+R2374:2375 Flux.Syntax <> tm:13 ind
+R2396:2399 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2395:2395 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+R2401:2404 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2400:2400 Coq.Reals.Rdefinitions RbaseSymbolsImpl R defax
+R2405:2406 Flux.Syntax <> tm:13 ind
+R2423:2426 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2421:2422 Flux.Syntax <> tm:13 ind
+R2429:2432 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2427:2428 Flux.Syntax <> tm:13 ind
+R2433:2434 Flux.Syntax <> tm:13 ind
+R2454:2457 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2452:2453 Flux.Syntax <> tm:13 ind
+R2458:2459 Flux.Syntax <> tm:13 ind
+R2477:2480 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2474:2476 Coq.Init.Datatypes <> nat ind
+R2483:2486 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2481:2482 Flux.Syntax <> ty ind
+R2489:2492 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2487:2488 Flux.Syntax <> tm:13 ind
+R2493:2494 Flux.Syntax <> tm:13 ind
+R2511:2514 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2509:2510 Flux.Syntax <> tm:13 ind
+R2517:2520 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2515:2516 Flux.Syntax <> tm:13 ind
+R2521:2522 Flux.Syntax <> tm:13 ind
+R2538:2539 Flux.Syntax <> tm:13 ind
+R2563:2566 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2557:2562 Coq.Strings.String <> string ind
+R2567:2568 Flux.Syntax <> tm:13 ind
+R2592:2595 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2585:2588 Coq.Init.Datatypes <> list ind
+R2590:2591 Flux.Syntax <> tm:13 ind
+R2596:2597 Flux.Syntax <> tm:13 ind
+R2630:2633 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2612:2615 Coq.Init.Datatypes <> list ind
+R2624:2626 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R2618:2623 Coq.Strings.String <> string ind
+R2627:2628 Flux.Syntax <> tm:13 ind
+R2634:2635 Flux.Syntax <> tm:13 ind
+scheme 2272:2273 <> tm_rect
+scheme 2272:2273 <> tm_ind
+scheme 2272:2273 <> tm_rec
+scheme 2272:2273 <> tm_sind
+ind 2868:2872 <> value
+constr 2894:2898 <> v_int
+constr 2933:2939 <> v_float
+constr 2976:2981 <> v_bool
+constr 3017:3026 <> v_gaussian
+constr 3070:3074 <> v_abs
+constr 3117:3122 <> v_unit
+constr 3144:3151 <> v_string
+constr 3189:3195 <> v_array
+constr 3253:3257 <> v_map
+R2878:2881 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2876:2877 Flux.Syntax <> tm ind
+binder 2909:2909 <> n:17
+R2912:2916 Flux.Syntax <> value:15 ind
+R2919:2924 Flux.Syntax <> tm_int constr
+R2926:2926 Flux.Syntax <> n:17 var
+binder 2950:2950 <> r:18
+R2953:2957 Flux.Syntax <> value:15 ind
+R2960:2967 Flux.Syntax <> tm_float constr
+R2969:2969 Flux.Syntax <> r:18 var
+binder 2992:2992 <> b:19
+R2995:2999 Flux.Syntax <> value:15 ind
+R3002:3008 Flux.Syntax <> tm_bool constr
+R3010:3010 Flux.Syntax <> b:19 var
+binder 3037:3037 <> m:20
+binder 3039:3039 <> s:21
+R3042:3046 Flux.Syntax <> value:15 ind
+R3049:3059 Flux.Syntax <> tm_gaussian constr
+R3061:3061 Flux.Syntax <> m:20 var
+R3063:3063 Flux.Syntax <> s:21 var
+binder 3085:3085 <> x:22
+binder 3087:3087 <> T:23
+binder 3089:3089 <> t:24
+R3092:3096 Flux.Syntax <> value:15 ind
+R3099:3104 Flux.Syntax <> tm_abs constr
+R3106:3106 Flux.Syntax <> x:22 var
+R3108:3108 Flux.Syntax <> T:23 var
+R3110:3110 Flux.Syntax <> t:24 var
+R3126:3130 Flux.Syntax <> value:15 ind
+R3132:3138 Flux.Syntax <> tm_unit constr
+binder 3162:3162 <> s:25
+R3165:3169 Flux.Syntax <> value:15 ind
+R3172:3180 Flux.Syntax <> tm_string constr
+R3182:3182 Flux.Syntax <> s:25 var
+binder 3206:3207 <> vs:26
+R3225:3228 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3210:3215 Coq.Lists.List <> Forall ind
+R3223:3224 Flux.Syntax <> vs:26 var
+R3217:3221 Flux.Syntax <> value:15 ind
+R3229:3233 Flux.Syntax <> value:15 ind
+R3236:3243 Flux.Syntax <> tm_array constr
+R3245:3246 Flux.Syntax <> vs:26 var
+binder 3268:3269 <> ps:27
+R3306:3309 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3272:3277 Coq.Lists.List <> Forall ind
+R3304:3305 Flux.Syntax <> ps:27 var
+binder 3284:3284 <> p:28
+R3289:3293 Flux.Syntax <> value:15 ind
+R3296:3298 Coq.Init.Datatypes <> snd def
+R3300:3300 Flux.Syntax <> p:28 var
+R3310:3314 Flux.Syntax <> value:15 ind
+R3317:3322 Flux.Syntax <> tm_map constr
+R3324:3325 Flux.Syntax <> ps:27 var
+scheme 2868:2872 <> value_ind
+scheme 2868:2872 <> value_sind
+R3348:3352 Flux.Syntax <> value ind
+ind 3595:3609 <> appears_free_in
+constr 3638:3644 <> afi_var
+constr 3697:3704 <> afi_add1
+constr 3797:3804 <> afi_add2
+constr 3897:3906 <> afi_sample
+constr 3993:4000 <> afi_app1
+constr 4093:4100 <> afi_app2
+constr 4193:4199 <> afi_abs
+constr 4307:4315 <> afi_array
+constr 4422:4428 <> afi_map
+R3616:3619 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3613:3615 Coq.Init.Datatypes <> nat ind
+R3622:3625 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3620:3621 Flux.Syntax <> tm ind
+binder 3655:3655 <> x:31
+R3664:3678 Flux.Syntax <> appears_free_in:29 ind
+R3683:3688 Flux.Syntax <> tm_var constr
+R3690:3690 Flux.Syntax <> x:31 var
+R3680:3680 Flux.Syntax <> x:31 var
+binder 3715:3715 <> x:32
+binder 3717:3718 <> t1:33
+binder 3720:3721 <> t2:34
+R3750:3759 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3730:3744 Flux.Syntax <> appears_free_in:29 ind
+R3748:3749 Flux.Syntax <> t1:33 var
+R3746:3746 Flux.Syntax <> x:32 var
+R3760:3774 Flux.Syntax <> appears_free_in:29 ind
+R3779:3784 Flux.Syntax <> tm_add constr
+R3786:3787 Flux.Syntax <> t1:33 var
+R3789:3790 Flux.Syntax <> t2:34 var
+R3776:3776 Flux.Syntax <> x:32 var
+binder 3815:3815 <> x:35
+binder 3817:3818 <> t1:36
+binder 3820:3821 <> t2:37
+R3850:3859 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3830:3844 Flux.Syntax <> appears_free_in:29 ind
+R3848:3849 Flux.Syntax <> t2:37 var
+R3846:3846 Flux.Syntax <> x:35 var
+R3860:3874 Flux.Syntax <> appears_free_in:29 ind
+R3879:3884 Flux.Syntax <> tm_add constr
+R3886:3887 Flux.Syntax <> t1:36 var
+R3889:3890 Flux.Syntax <> t2:37 var
+R3876:3876 Flux.Syntax <> x:35 var
+binder 3917:3917 <> x:38
+binder 3919:3919 <> t:39
+R3947:3956 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3928:3942 Flux.Syntax <> appears_free_in:29 ind
+R3946:3946 Flux.Syntax <> t:39 var
+R3944:3944 Flux.Syntax <> x:38 var
+R3957:3971 Flux.Syntax <> appears_free_in:29 ind
+R3976:3984 Flux.Syntax <> tm_sample constr
+R3986:3986 Flux.Syntax <> t:39 var
+R3973:3973 Flux.Syntax <> x:38 var
+binder 4011:4011 <> x:40
+binder 4013:4014 <> t1:41
+binder 4016:4017 <> t2:42
+R4046:4055 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4026:4040 Flux.Syntax <> appears_free_in:29 ind
+R4044:4045 Flux.Syntax <> t1:41 var
+R4042:4042 Flux.Syntax <> x:40 var
+R4056:4070 Flux.Syntax <> appears_free_in:29 ind
+R4075:4080 Flux.Syntax <> tm_app constr
+R4082:4083 Flux.Syntax <> t1:41 var
+R4085:4086 Flux.Syntax <> t2:42 var
+R4072:4072 Flux.Syntax <> x:40 var
+binder 4111:4111 <> x:43
+binder 4113:4114 <> t1:44
+binder 4116:4117 <> t2:45
+R4146:4155 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4126:4140 Flux.Syntax <> appears_free_in:29 ind
+R4144:4145 Flux.Syntax <> t2:45 var
+R4142:4142 Flux.Syntax <> x:43 var
+R4156:4170 Flux.Syntax <> appears_free_in:29 ind
+R4175:4180 Flux.Syntax <> tm_app constr
+R4182:4183 Flux.Syntax <> t1:44 var
+R4185:4186 Flux.Syntax <> t2:45 var
+R4172:4172 Flux.Syntax <> x:43 var
+binder 4210:4210 <> x:46
+binder 4212:4212 <> y:47
+binder 4214:4214 <> T:48
+binder 4216:4216 <> t:49
+R4231:4240 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4226:4229 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R4225:4225 Flux.Syntax <> y:47 var
+R4230:4230 Flux.Syntax <> x:46 var
+R4260:4269 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4241:4255 Flux.Syntax <> appears_free_in:29 ind
+R4259:4259 Flux.Syntax <> t:49 var
+R4257:4257 Flux.Syntax <> x:46 var
+R4270:4284 Flux.Syntax <> appears_free_in:29 ind
+R4289:4294 Flux.Syntax <> tm_abs constr
+R4296:4296 Flux.Syntax <> y:47 var
+R4298:4298 Flux.Syntax <> T:48 var
+R4300:4300 Flux.Syntax <> t:49 var
+R4286:4286 Flux.Syntax <> x:46 var
+binder 4326:4326 <> x:50
+binder 4328:4329 <> ts:51
+binder 4331:4331 <> t:52
+R4347:4356 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4340:4341 Coq.Lists.List <> In def
+R4345:4346 Flux.Syntax <> ts:51 var
+R4343:4343 Flux.Syntax <> t:52 var
+R4376:4385 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4357:4371 Flux.Syntax <> appears_free_in:29 ind
+R4375:4375 Flux.Syntax <> t:52 var
+R4373:4373 Flux.Syntax <> x:50 var
+R4386:4400 Flux.Syntax <> appears_free_in:29 ind
+R4405:4412 Flux.Syntax <> tm_array constr
+R4414:4415 Flux.Syntax <> ts:51 var
+R4402:4402 Flux.Syntax <> x:50 var
+binder 4439:4439 <> x:53
+binder 4441:4442 <> ps:54
+binder 4444:4444 <> k:55
+binder 4446:4446 <> t:56
+R4467:4476 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4455:4456 Coq.Lists.List <> In def
+R4465:4466 Flux.Syntax <> ps:54 var
+R4458:4458 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4460:4461 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4463:4463 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4459:4459 Flux.Syntax <> k:55 var
+R4462:4462 Flux.Syntax <> t:56 var
+R4496:4505 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4477:4491 Flux.Syntax <> appears_free_in:29 ind
+R4495:4495 Flux.Syntax <> t:56 var
+R4493:4493 Flux.Syntax <> x:53 var
+R4506:4520 Flux.Syntax <> appears_free_in:29 ind
+R4525:4530 Flux.Syntax <> tm_map constr
+R4532:4533 Flux.Syntax <> ps:54 var
+R4522:4522 Flux.Syntax <> x:53 var
+scheme 3595:3609 <> appears_free_in_ind
+scheme 3595:3609 <> appears_free_in_sind
+R4556:4570 Flux.Syntax <> appears_free_in ind
+def 4810:4814 <> subst
+R4821:4823 Coq.Init.Datatypes <> nat ind
+binder 4817:4817 <> x:57
+R4831:4832 Flux.Syntax <> tm ind
+binder 4827:4827 <> s:58
+R4840:4841 Flux.Syntax <> tm ind
+binder 4836:4836 <> t:59
+R4846:4847 Flux.Syntax <> tm ind
+R4860:4860 Flux.Syntax <> t:59 var
+R4871:4876 Flux.Syntax <> tm_var constr
+R4886:4891 Flux.Base <> beq_id def
+R4893:4893 Flux.Syntax <> x:57 var
+R4909:4909 Flux.Syntax <> t:59 var
+R4902:4902 Flux.Syntax <> s:58 var
+R4915:4920 Flux.Syntax <> tm_int constr
+R4927:4932 Flux.Syntax <> tm_int constr
+R4940:4947 Flux.Syntax <> tm_float constr
+R4954:4961 Flux.Syntax <> tm_float constr
+R4969:4975 Flux.Syntax <> tm_bool constr
+R4982:4988 Flux.Syntax <> tm_bool constr
+R4996:5006 Flux.Syntax <> tm_gaussian constr
+R5017:5027 Flux.Syntax <> tm_gaussian constr
+R5039:5044 Flux.Syntax <> tm_add constr
+R5055:5060 Flux.Syntax <> tm_add constr
+R5063:5067 Flux.Syntax <> subst:60 def
+R5071:5071 Flux.Syntax <> s:58 var
+R5069:5069 Flux.Syntax <> x:57 var
+R5078:5082 Flux.Syntax <> subst:60 def
+R5086:5086 Flux.Syntax <> s:58 var
+R5084:5084 Flux.Syntax <> x:57 var
+R5096:5104 Flux.Syntax <> tm_sample constr
+R5112:5120 Flux.Syntax <> tm_sample constr
+R5123:5127 Flux.Syntax <> subst:60 def
+R5131:5131 Flux.Syntax <> s:58 var
+R5129:5129 Flux.Syntax <> x:57 var
+R5141:5146 Flux.Syntax <> tm_app constr
+R5157:5162 Flux.Syntax <> tm_app constr
+R5165:5169 Flux.Syntax <> subst:60 def
+R5173:5173 Flux.Syntax <> s:58 var
+R5171:5171 Flux.Syntax <> x:57 var
+R5180:5184 Flux.Syntax <> subst:60 def
+R5188:5188 Flux.Syntax <> s:58 var
+R5186:5186 Flux.Syntax <> x:57 var
+R5198:5203 Flux.Syntax <> tm_abs constr
+R5225:5230 Flux.Base <> beq_id def
+R5232:5232 Flux.Syntax <> x:57 var
+R5255:5260 Flux.Syntax <> tm_abs constr
+R5267:5271 Flux.Syntax <> subst:60 def
+R5275:5275 Flux.Syntax <> s:58 var
+R5273:5273 Flux.Syntax <> x:57 var
+R5241:5241 Flux.Syntax <> t:59 var
+R5285:5291 Flux.Syntax <> tm_unit constr
+R5296:5302 Flux.Syntax <> tm_unit constr
+R5308:5316 Flux.Syntax <> tm_string constr
+R5323:5331 Flux.Syntax <> tm_string constr
+R5333:5333 Flux.Syntax <> s:58 var
+R5339:5346 Flux.Syntax <> tm_array constr
+R5354:5361 Flux.Syntax <> tm_array constr
+R5364:5366 Coq.Lists.List <> map def
+R5369:5373 Flux.Syntax <> subst:60 def
+R5377:5377 Flux.Syntax <> s:58 var
+R5375:5375 Flux.Syntax <> x:57 var
+R5388:5393 Flux.Syntax <> tm_map constr
+R5401:5406 Flux.Syntax <> tm_map constr
+R5409:5411 Coq.Lists.List <> map def
+binder 5418:5418 <> p:62
+R5423:5423 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5429:5430 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5448:5448 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5424:5426 Coq.Init.Datatypes <> fst def
+R5428:5428 Flux.Syntax <> p:62 var
+R5431:5435 Flux.Syntax <> subst:60 def
+R5442:5444 Coq.Init.Datatypes <> snd def
+R5446:5446 Flux.Syntax <> p:62 var
+R5439:5439 Flux.Syntax <> s:58 var
+R5437:5437 Flux.Syntax <> x:57 var
+R5505:5509 Flux.Syntax <> subst def
+not 5480:5480 <> :::'['_x_':='_x_']'_x

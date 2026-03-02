@@ -1,0 +1,25 @@
+// Simple test for bytecode VM
+fn main() {
+    let x = 10;
+    let y = 20;
+    let z = x + y;
+    println(z);
+    
+    let a = 3.14;
+    let b = 2.0;
+    println(a * b);
+    
+    // Test conditionals
+    if z > 25 {
+        println("z is greater than 25");
+    } else {
+        println("z is not greater than 25");
+    }
+    
+    // Test while loop
+    let mut i = 0;
+    while i < 3 {
+        println(i);
+        i = i + 1;
+    }
+}

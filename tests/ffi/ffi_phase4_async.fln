@@ -1,0 +1,13 @@
+// Phase 4 Test: Async FFI (should fail with "not supported" message)
+
+#[link(name = "c:/Users/froms/Desktop/Flux-main/fluno-rt/target/release/fluno_rt.dll")]
+extern "C" {
+    async fn async_fetch(url: String) -> String;
+}
+
+fn main() {
+    println("Test: Async FFI call (expected to fail)");
+    // This should produce an error since async FFI is not supported in interpreter
+    // let result = async_fetch("http://example.com");
+    println("If you see this, the async extern fn was registered (but not called).");
+}
