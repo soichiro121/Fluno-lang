@@ -1,7 +1,7 @@
 # Flunoプログラミング言語
 
 <div align="center">
-  <img src="assets/transparency-logo.png" alt="Fluno Logo" width="200" style="display: none;" onerror="this.style.display='none'">
+  <img src="logo.png" alt="Fluno Logo" width="200" style="display: none;" onerror="this.style.display='none'">
   <p>
     <strong>Probabilistic, Reactive, and Differentiable Programming for Autonomous Systems</strong>
   </p>
