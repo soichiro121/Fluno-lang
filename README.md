@@ -10,6 +10,7 @@
     <a href="documents/fluxver2.md">仕様書</a>
   </p>
 </div>
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/soichiro121/Fluno-lang)](https://github.com/soichiro121/Fluno-lang/releases/latest)
 ---
