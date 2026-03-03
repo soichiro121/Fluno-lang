@@ -1,4 +1,4 @@
-# Fluno Programming Language
+# Flunoプログラミング言語
 
 <div align="center">
   <img src="assets/transparency-logo.png" alt="Fluno Logo" width="200" style="display: none;" onerror="this.style.display='none'">
